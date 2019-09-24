@@ -1,4 +1,4 @@
-package land.app.appmap.commands;
+package com.appland.appmap.commands;
 
 import java.io.File;
 import java.util.List;

@@ -21,16 +21,35 @@ repositories {
 }
 
 dependencies {
-    // This dependency is used by the application.
     implementation("com.google.guava:guava:28.0-jre")
     implementation("info.picocli:picocli:4.0.4")
     annotationProcessor("info.picocli:picocli-codegen:4.0.4")
 
-    // Use JUnit test framework
     testImplementation("junit:junit:4.12")
 }
 
 application {
-    // Define the main class for the application
-    mainClassName = "land.app.appmap.App"
+    mainClassName = "com.appland.appmap.App"
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = application.mainClassName
+    }
+}
+
+tasks.register<Jar>("build-release") {
+    from(sourceSets.main.get().output)
+
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
+    })
+}
+
+tasks.register("list") {
+    dependsOn(configurations["compileClasspath"])
+    doLast {
+        println("classpath = ${configurations["compileClasspath"].map { file: File -> file.path }}")
+    }
 }
