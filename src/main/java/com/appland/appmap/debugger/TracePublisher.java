@@ -1,11 +1,12 @@
 package com.appland.appmap.debugger;
 
-import com.sun.jdi.Location;
 import com.sun.jdi.Method;
 import com.sun.jdi.ObjectReference;
 import com.sun.jdi.ReferenceType;
+import com.sun.jdi.Value;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class TracePublisher implements ITraceListener {
 
@@ -30,16 +31,16 @@ public class TracePublisher implements ITraceListener {
   }
 
   @Override
-  public void onMethodInvoked(Method ref, Location location) {
+  public void onMethodInvoked(Method method, List<Value> argumentValues, Long threadId) {
     for (ITraceListener listener : listeners) {
-      listener.onMethodInvoked(ref, location);
+      listener.onMethodInvoked(method, argumentValues, threadId);
     }
   }
 
   @Override
-  public void onMethodReturned(Method ref, Location location) {
+  public void onMethodReturned(Method method, Value returnValue, Long threadId) {
     for (ITraceListener listener : listeners) {
-      listener.onMethodReturned(ref, location);
+      listener.onMethodReturned(method, returnValue, threadId);
     }
   }
 

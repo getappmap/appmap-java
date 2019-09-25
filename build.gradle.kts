@@ -18,11 +18,15 @@ repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
     jcenter()
+    mavenCentral()
 }
 
 dependencies {
     implementation("com.google.guava:guava:28.0-jre")
     implementation("info.picocli:picocli:4.0.4")
+    implementation("org.yaml:snakeyaml:1.25")
+    implementation("com.alibaba:fastjson:1.2.61")
+
     annotationProcessor("info.picocli:picocli-codegen:4.0.4")
 
     testImplementation("junit:junit:4.12")
