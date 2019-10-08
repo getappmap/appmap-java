@@ -26,6 +26,8 @@ dependencies {
     implementation("info.picocli:picocli:4.0.4")
     implementation("org.yaml:snakeyaml:1.25")
     implementation("com.alibaba:fastjson:1.2.61")
+    implementation("org.javassist:javassist:3.25.0-GA")
+    implementation("org.reflections:reflections:0.9.11")
 
     annotationProcessor("info.picocli:picocli-codegen:4.0.4")
 
@@ -33,12 +35,14 @@ dependencies {
 }
 
 application {
-    mainClassName = "com.appland.appmap.App"
+    mainClassName = "com.appland.appmap.AppTest"
+
 }
 
 tasks.withType<Jar> {
     manifest {
         attributes["Main-Class"] = application.mainClassName
+        attributes["PreMain-Class"] = "com.appland.appmap.App"
     }
 }
 

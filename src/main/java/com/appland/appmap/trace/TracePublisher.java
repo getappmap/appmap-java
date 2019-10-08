@@ -1,9 +1,7 @@
-package com.appland.appmap.debugger;
+package com.appland.appmap.trace;
 
-import com.sun.jdi.Method;
-import com.sun.jdi.ObjectReference;
-import com.sun.jdi.ReferenceType;
-import com.sun.jdi.Value;
+import javassist.CtClass;
+import java.lang.reflect.Method;;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,30 +15,30 @@ public class TracePublisher implements ITraceListener {
   }
 
   @Override
-  public void onClassRegistered(ReferenceType ref) {
+  public void onClassRegistered(Class classType) {
     for (ITraceListener listener : listeners) {
-      listener.onClassRegistered(ref);
+      listener.onClassRegistered(classType);
     }
   }
 
   @Override
-  public void onExceptionThrown(ObjectReference ref) {
+  public void onExceptionThrown(Exception exception) {
     for (ITraceListener listener : listeners) {
-      listener.onExceptionThrown(ref);
+      listener.onExceptionThrown(exception);
     }
   }
 
   @Override
-  public void onMethodInvoked(Method method, List<Value> argumentValues, Long threadId) {
+  public void onMethodInvoked(Method method, Object selfValue, Object[] params) {
     for (ITraceListener listener : listeners) {
-      listener.onMethodInvoked(method, argumentValues, threadId);
+      listener.onMethodInvoked(method, selfValue, params);
     }
   }
 
   @Override
-  public void onMethodReturned(Method method, Value returnValue, Long threadId) {
+  public void onMethodReturned(Method method, Object returnValue) {
     for (ITraceListener listener : listeners) {
-      listener.onMethodReturned(method, returnValue, threadId);
+      listener.onMethodReturned(method, returnValue);
     }
   }
 

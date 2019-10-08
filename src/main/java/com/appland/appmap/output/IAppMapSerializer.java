@@ -5,9 +5,5 @@ import com.appland.appmap.output.v1.Event;
 import java.io.File;
 
 public interface IAppMapSerializer {
-  void addEvent(Event e);
-
-  void addCodeObject(CodeObject obj);
-
   String serialize();
 }

@@ -1,3 +1,5 @@
 name: AppMap - Java
 packages:
-- path: com.appland.*
+- path: com.appland
+  exclude:
+    - com.appland.appmap.agent

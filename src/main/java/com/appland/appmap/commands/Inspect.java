@@ -3,13 +3,15 @@ package com.appland.appmap.commands;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.AppMapPackage;
 
-import com.appland.appmap.debugger.Trace;
+// import com.appland.appmap.debugger.Trace;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
+
+import javax.sound.midi.SysexMessage;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -39,52 +41,54 @@ public class Inspect implements Callable<Void> {
 
   @Override
   public Void call() {
-    AppMapConfig config = AppMapConfig.load(filename);
-    if (config == null) {
-      return null;
-    }
+    // AppMapConfig config = AppMapConfig.load(filename);
+    // if (config == null) {
+    //   return null;
+    // }
 
-    Trace trace = new Trace();
+    // Trace trace = new Trace();
 
-    ArrayList<String> classPaths = new ArrayList<String>();
-    for (AppMapPackage p : config.packages) {
-      trace.includeClassPath(p.path);
+    // ArrayList<String> classPaths = new ArrayList<String>();
+    // for (AppMapPackage p : config.packages) {
+    //   trace.includeClassPath(p.path);
 
-      if (p.exclude == null) {
-        continue;
-      }
+    //   if (p.exclude == null) {
+    //     continue;
+    //   }
 
-      for (String exclusion : p.exclude) {
-        trace.excludeClassPath(exclusion);
-      }
-    }
+    //   for (String exclusion : p.exclude) {
+    //     trace.excludeClassPath(exclusion);
+    //   }
+    // }
 
-    if (jarPath != null) {
-      if (classPath != null && classPath.length > 0) {
-        System.err.println("warn: both jar and class path options provided.");
-        System.err.println("      only jar will be used.");
-      }
-      trace.execute(jarPath, launchArgs);
-      return null;
-    }
+    // mainClass = String.format("%s", mainClass, String.join(" ", launchArgs));
 
-    if (mainClass == null || mainClass.isBlank()) {
-      System.err.println("error: a jar path or main class must be provided");
-      return null;
-    }
+    // if (jarPath != null) {
+    //   if (classPath != null && classPath.length > 0) {
+    //     System.err.println("warn: both jar and class path options provided.");
+    //     System.err.println("      only jar will be used.");
+    //   }
+    //   trace.execute(mainClass, jarPath);
+    //   return null;
+    // }
 
-    mainClass = String.format("%s", mainClass, String.join(" ", launchArgs));
+    // if (mainClass == null || mainClass.isBlank()) {
+    //   System.err.println("error: a jar path or main class must be provided");
+    //   return null;
+    // }
 
-    if (classPath != null && classPath.length > 0) {
-      // if -c is provided many times, join them
-      String joinedClassPath = String.join(":", classPath);
-      trace.execute(mainClass, joinedClassPath);
-      return null;
-    }
+    // mainClass = String.format("%s", mainClass, String.join(" ", launchArgs));
 
-    trace.execute(mainClass);
+    // if (classPath != null && classPath.length > 0) {
+    //   // if -c is provided many times, join them
+    //   String joinedClassPath = String.join(":", classPath);
+    //   trace.execute(mainClass, joinedClassPath);
+    //   return null;
+    // }
 
-    System.out.println(trace.serialize());
+    // trace.execute(mainClass);
+
+    // // System.out.println(trace.serialize());
 
     return null;
   }
