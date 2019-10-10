@@ -1,12 +1,13 @@
 package com.appland.appmap.trace;
 
 import java.lang.reflect.Method;
+import javassist.CtClass;
 
 import java.util.List;
 
 
 interface ITraceListener {
-  void onClassRegistered(Class classType);
+  void onClassLoad(CtClass classType);
 
   void onExceptionThrown(Exception exception);
 

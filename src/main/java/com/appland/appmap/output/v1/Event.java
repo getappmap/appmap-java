@@ -19,7 +19,7 @@ public class Event {
   @JSONField(name = "method_id")
   public String methodId;
 
-  @JSONField(name = "line_no")
+  @JSONField(name = "lineno")
   public Integer lineNumber;
 
   @JSONField(name = "thread_id")

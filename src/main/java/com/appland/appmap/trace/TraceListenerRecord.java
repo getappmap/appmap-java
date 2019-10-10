@@ -9,6 +9,9 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
+import java.util.HashMap;
+import javassist.CtClass;
+import javassist.CtBehavior;
 
 import com.appland.appmap.data_structures.CodeObjectTree;
 import com.appland.appmap.data_structures.EventCallStack;
@@ -18,43 +21,68 @@ import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 
 public class TraceListenerRecord implements ITraceListener, IAppMapSerializer {
+  class MethodLocation {
+    String path;
+    Integer lineNumber;
+
+    public MethodLocation(String path, Integer lineNumber) {
+      this.path = path;
+      this.lineNumber = lineNumber;
+    }
+  }
+
   private CodeObjectTree classMap = new CodeObjectTree();
   private EventCallStack events = new EventCallStack();
+  private HashMap<String, MethodLocation> methodLocations = new HashMap<String, MethodLocation>();
+
+  private String behaviorKey(CtBehavior behavior) {
+    return String.format("%s.%s:%d",
+        behavior.getDeclaringClass().getName(),
+        behavior.getName(),
+        behavior.getMethodInfo().getLineNumber(0));
+  }
+
+  private void registerBehaviorLocation(CtBehavior behavior) {
+    String key = String.format("%s::%s",
+        behavior.getDeclaringClass().getName(),
+        behavior.getName());
+
+    MethodLocation val = new MethodLocation(
+        TraceUtil.getSourcePath(behavior.getDeclaringClass()),
+        behavior.getMethodInfo().getLineNumber(0));
+
+    methodLocations.put(key, val);
+  }
+
+  private MethodLocation getBehaviorLocation(Method behavior) {
+    return methodLocations.get(String.format("%s::%s",
+        behavior.getDeclaringClass().getName(),
+        behavior.getName()));
+  }
 
   public String serialize() {
     return new AppMapSerializer(classMap, events).serialize();
   }
 
   @Override
-  public void onClassRegistered(Class classType) {
+  public void onClassLoad(CtClass classType) {
     CodeObject rootObject = CodeObject.createTree(classType);
     CodeObject classObject = rootObject.get(classType.getName());
 
-    Constructor[] constructors = classType.getConstructors();
-    for (Constructor constructor : constructors) {
-      if (constructor.isSynthetic()) {
+    CtBehavior[] behaviors = classType.getDeclaredBehaviors();
+    for (CtBehavior behavior : behaviors) {
+      if (TraceUtil.isRelevant(behavior) == false) {
         continue;
       }
 
-      CodeObject constructorObject = new CodeObject(constructor);
-      classObject.addChild(constructorObject);
+      this.registerBehaviorLocation(behavior);
+      CodeObject behaviorObject = new CodeObject(behavior);
+      classObject.addChild(behaviorObject);
     }
 
-    Method[] methods = classType.getDeclaredMethods();
-    for (Method method : methods) {
-      if (!Modifier.isPublic(method.getModifiers())) {
-        continue;
-      }
-
-      if (method.isSynthetic()) {
-        continue;
-      }
-
-      CodeObject methodObject = new CodeObject(method);
-      classObject.addChild(methodObject);
+    if (classObject.children.size() > 0) {
+      classMap.add(rootObject);
     }
-
-    classMap.add(rootObject);
   }
 
   @Override
@@ -63,15 +91,16 @@ public class TraceListenerRecord implements ITraceListener, IAppMapSerializer {
 
   @Override
   public void onMethodInvoked(Method method, Object selfValue, Object[] params) {
-    this.onClassRegistered(method.getDeclaringClass());
-
     // TODO: `selfValue` doesn't appear to always be correct -db
-    Event event = new Event(method, "call").setReceiver(selfValue);
-    if (params != null) {
-      System.out.println(String.format("%s.%s received %d arguments", method.getDeclaringClass().getName(), method.getName(), params.length));
-    } else {
-      System.out.println(String.format("%s.%s received no arguments", method.getDeclaringClass().getName(), method.getName()));
+    Event event = new Event(method, "call")
+        .setReceiver(selfValue);
+
+    MethodLocation location = getBehaviorLocation(method);
+    if (location != null) {
+      event.setLineNumber(location.lineNumber)
+          .setPath(location.path);
     }
+
     Parameter[] paramInfo;
     try {
       paramInfo = method.getParameters();
@@ -92,7 +121,9 @@ public class TraceListenerRecord implements ITraceListener, IAppMapSerializer {
 
   @Override
   public void onMethodReturned(Method method, Object returnValue) {
-    Event event = new Event(method, "return").setReturnValue(returnValue);
+    Event event = new Event(method, "return")
+        .setReturnValue(returnValue);
+
     events.add(event);
   }
 

@@ -1,13 +1,14 @@
 package com.appland.appmap.trace;
 
 import java.lang.reflect.Method;
+import javassist.CtClass;
 
 import java.util.List;
 
 public class TraceListenerDebug implements ITraceListener {
 
   @Override
-  public void onClassRegistered(Class classType) {
+  public void onClassLoad(CtClass classType) {
     System.out.println(String.format("onClassRegistered: %s", classType.getSimpleName()));
   }
 

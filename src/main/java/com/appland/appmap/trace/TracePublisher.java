@@ -1,7 +1,7 @@
 package com.appland.appmap.trace;
 
 import javassist.CtClass;
-import java.lang.reflect.Method;;
+import java.lang.reflect.Method;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +15,9 @@ public class TracePublisher implements ITraceListener {
   }
 
   @Override
-  public void onClassRegistered(Class classType) {
+  public void onClassLoad(CtClass classType) {
     for (ITraceListener listener : listeners) {
-      listener.onClassRegistered(classType);
+      listener.onClassLoad(classType);
     }
   }
 

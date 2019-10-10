@@ -37,7 +37,7 @@ public class TraceClassTransformer implements ClassFileTransformer {
         "com.appland.appmap.trace.Agent.onCall(%s.class, %d, %s, $args);",
         behavior.getDeclaringClass().getName(),
         methodOrdinal,
-        isStatic ? "null" : "$0");
+        isStatic ? "null" : "this");
   }
 
   private static String getPostHook(CtBehavior behavior, Integer methodOrdinal) {
@@ -66,12 +66,7 @@ public class TraceClassTransformer implements ClassFileTransformer {
       CtBehavior[] behaviors = ctClass.getDeclaredMethods();
       Integer i = -1;
       for (CtBehavior behavior : behaviors) {
-        if (behavior.getName().contains("$")) {
-          continue;
-        }
-
-        // hooking toString could cause a stack overflow
-        if (behavior.getName().equals("toString")) {
+        if (TraceUtil.isRelevant(behavior) == false) {
           continue;
         }
 
@@ -102,6 +97,8 @@ public class TraceClassTransformer implements ClassFileTransformer {
                   methodOrdinal));
         }
       }
+
+      Agent.get().onClassLoad(ctClass);
 
       return ctClass.toBytecode();
     } catch (IOException e) {
