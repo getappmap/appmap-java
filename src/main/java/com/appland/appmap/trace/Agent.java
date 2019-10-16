@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Vector;
 import java.util.Set;
+import java.util.HashMap;
 import java.util.List;
 
 import com.appland.appmap.output.IAppMapSerializer;
@@ -35,6 +36,8 @@ import javassist.CannotCompileException;
 import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 
+import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.IllegalClassFormatException;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.ReflectionUtils;
@@ -43,11 +46,13 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URLClassLoader;
 
-public class Agent extends TracePublisher {
+public class Agent extends TracePublisher implements ClassFileTransformer {
   private static Agent singleton = new Agent();
   private static ClassPool classPool;
   private static AppMapConfig config;
   private static ThreadLock threadLock = new ThreadLock();
+  private TraceClassTransformer transformer = new TraceClassTransformer();
+  private HashMap<String, ClassFileTransformer> transforms = new HashMap<String, ClassFileTransformer>();
 
   private Agent() {
     if (TraceUtil.isDebugMode()) {
@@ -142,6 +147,9 @@ public class Agent extends TracePublisher {
     }
   }
 
+  public TraceClassTransformer getClassTransformer() {
+    return this.transformer;
+  }
 
   public static void onCall(Integer methodId, Object selfValue, Object[] params) {
     // Long threadId = Agent.threadLock.getLock();

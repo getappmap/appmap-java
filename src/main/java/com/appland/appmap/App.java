@@ -9,9 +9,13 @@ import com.appland.appmap.commands.Record;
 import com.appland.appmap.commands.Upload;
 import com.appland.appmap.trace.Agent;
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.record.RuntimeRecorder;
 import com.appland.appmap.trace.TraceListenerDebug;
 import com.appland.appmap.trace.TraceListenerRecord;
-import com.appland.appmap.trace.TraceClassTransformer;
+import com.appland.appmap.transform.AppMapClassTransformer;
+import com.appland.appmap.transform.SqlClassTransformer;
+import com.appland.appmap.transform.HttpClassTransformer;
+import com.appland.appmap.transform.TraceClassTransformer;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -47,22 +51,31 @@ public class App implements Runnable {
       return;
     }
 
-    TraceListenerRecord recording = new TraceListenerRecord();
-    Agent agent = Agent.get()
-        .config(config)
-        .addListener(recording);
+    TraceClassTransformer   traceTransformer = new TraceClassTransformer(config);
+    SqlClassTransformer     sqlTransformer   = new SqlClassTransformer();
+    HttpClassTransformer    httpTransformer  = new HttpClassTransformer();
+    AppMapClassTransformer  transformer      = new AppMapClassTransformer();
+    transformer.addSubTransform(sqlTransformer)
+               .addSubTransform(httpTransformer)
+               .addSubTransform(traceTransformer);
 
-    if (System.getenv("APPMAP_DEBUG") != null) {
-      agent.addListener(new TraceListenerDebug());
-    }
+    // TraceListenerRecord recording = new TraceListenerRecord();
+    // Agent agent = Agent.get()
+    //     .config(config)
+    //     .addListener(recording);
 
-    inst.addTransformer(new TraceClassTransformer());
+    // if (System.getenv("APPMAP_DEBUG") != null) {
+    //   agent.addListener(new TraceListenerDebug());
+    // }
+
+    inst.addTransformer(transformer);
 
     // agent.initialize();
 
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         public void run() {
-          System.out.println(recording.serialize());
+          RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
+          System.out.println(runtimeRecorder.serializeJson());
         }
     }, "Shutdown-thread"));
   }
