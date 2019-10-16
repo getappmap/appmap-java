@@ -11,9 +11,9 @@ interface ITraceListener {
 
   void onExceptionThrown(Exception exception);
 
-  void onMethodInvoked(Method method, Object selfValue, Object[] params);
+  void onMethodInvoked(Integer methodId, Object selfValue, Object[] params);
 
-  void onMethodReturned(Method method, Object returnValue);
+  void onMethodReturned(Integer methodId, Object returnValue);
 
   void onSqlQuery();
 

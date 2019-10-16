@@ -18,19 +18,15 @@ public class TraceListenerDebug implements ITraceListener {
   }
 
   @Override
-  public void onMethodInvoked(Method method, Object selfValue, Object[] params) {
+  public void onMethodInvoked(Integer methodId, Object selfValue, Object[] params) {
     System.out.println(
-        String.format("onMethodInvoked: %s.%s",
-            method.getDeclaringClass().getName(),
-            method.getName()));
+        String.format("onMethodInvoked: %d", methodId));
   }
 
   @Override
-  public void onMethodReturned(Method method, Object returnValue) {
+  public void onMethodReturned(Integer methodId, Object returnValue) {
     System.out.println(
-        String.format("onMethodReturned: %s.%s",
-            method.getDeclaringClass().getName(),
-            method.getName()));
+        String.format("onMethodReturned: %d", methodId));
   }
 
   @Override

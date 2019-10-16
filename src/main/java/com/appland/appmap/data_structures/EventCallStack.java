@@ -28,6 +28,10 @@ public class EventCallStack {
     if (lastEvent == null || !lastEvent.methodId.equals(event.methodId)) {
       // note that a method call with no matching return will not be added to the
       // `publishedEvents` array
+      System.err.printf("warning: dropping event %s %s.%s()\n",
+          event.event,
+          event.definedClass,
+          event.methodId);
       return;
     }
 

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Vector;
 import java.util.HashMap;
 import javassist.CtClass;
+import jdk.jfr.EventFactory;
 import javassist.CtBehavior;
 
 import com.appland.appmap.data_structures.CodeObjectTree;
@@ -19,49 +20,22 @@ import com.appland.appmap.output.IAppMapSerializer;
 import com.appland.appmap.output.v1.AppMapSerializer;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.output.v1.Value;
 
 public class TraceListenerRecord implements ITraceListener, IAppMapSerializer {
-  class MethodLocation {
-    String path;
-    Integer lineNumber;
-
-    public MethodLocation(String path, Integer lineNumber) {
-      this.path = path;
-      this.lineNumber = lineNumber;
-    }
-  }
-
   private CodeObjectTree classMap = new CodeObjectTree();
   private EventCallStack events = new EventCallStack();
-  private HashMap<String, MethodLocation> methodLocations = new HashMap<String, MethodLocation>();
-
-  private String behaviorKey(CtBehavior behavior) {
-    return String.format("%s.%s:%d",
-        behavior.getDeclaringClass().getName(),
-        behavior.getName(),
-        behavior.getMethodInfo().getLineNumber(0));
-  }
-
-  private void registerBehaviorLocation(CtBehavior behavior) {
-    String key = String.format("%s::%s",
-        behavior.getDeclaringClass().getName(),
-        behavior.getName());
-
-    MethodLocation val = new MethodLocation(
-        TraceUtil.getSourcePath(behavior.getDeclaringClass()),
-        behavior.getMethodInfo().getLineNumber(0));
-
-    methodLocations.put(key, val);
-  }
-
-  private MethodLocation getBehaviorLocation(Method behavior) {
-    return methodLocations.get(String.format("%s::%s",
-        behavior.getDeclaringClass().getName(),
-        behavior.getName()));
-  }
+  private static TraceEventFactory eventFactory = new TraceEventFactory();
 
   public String serialize() {
     return new AppMapSerializer(classMap, events).serialize();
+  }
+
+  /**
+   * @return the eventFactory
+   */
+  public static TraceEventFactory getEventFactory() {
+    return eventFactory;
   }
 
   @Override
@@ -75,7 +49,6 @@ public class TraceListenerRecord implements ITraceListener, IAppMapSerializer {
         continue;
       }
 
-      this.registerBehaviorLocation(behavior);
       CodeObject behaviorObject = new CodeObject(behavior);
       classObject.addChild(behaviorObject);
     }
@@ -90,39 +63,59 @@ public class TraceListenerRecord implements ITraceListener, IAppMapSerializer {
   }
 
   @Override
-  public void onMethodInvoked(Method method, Object selfValue, Object[] params) {
+  public void onMethodInvoked(Integer methodId, Object selfValue, Object[] params) {
     // TODO: `selfValue` doesn't appear to always be correct -db
-    Event event = new Event(method, "call")
+    Event event = TraceListenerRecord.getEventFactory()
+        .create(methodId, EventType.CALL)
         .setReceiver(selfValue);
 
-    MethodLocation location = getBehaviorLocation(method);
-    if (location != null) {
-      event.setLineNumber(location.lineNumber)
-          .setPath(location.path);
+    if (TraceUtil.isDebugMode()) {
+      System.out.printf("%s.%s got %d params", event.definedClass, event.methodId, params.length);
     }
 
-    Parameter[] paramInfo;
     try {
-      paramInfo = method.getParameters();
-      for (int i = 0; i < params.length; ++i) {
-        event.addParameter(params[i], paramInfo[i].getName());
+      for (int i = 0; i < params.length; i++) {
+          Value paramValue = event.parameters.get(i);
+          paramValue.set(params[i]);
       }
-    } catch (MalformedParametersException e) {
-      System.err.println(
-          String.format(
-              "failed to get parameters for method invocation %s.%s:\n%s",
-              method.getDeclaringClass().getName(),
-              method.getName(),
-              e.getMessage()));
+    } catch (IndexOutOfBoundsException e) {
+      if (TraceUtil.isDebugMode()) {
+        System.err.println(
+            String.format("onMethodInvoked: %s.%s expected %d params, got %d",
+                event.definedClass,
+                event.methodId,
+                event.parameters.size(),
+                params.length));
+        System.err.print("params received:");
+        for (Object param : params) {
+          System.err.printf(" (%s) %s, ", param.getClass().getName(), param.toString());
+        }
+        System.err.print("\nparams recorded:");
+        for (Value param : event.parameters) {
+          System.err.printf(" %s %s,", param.classType, param.name);
+        }
+        System.err.print("\n");
+      }
+    } catch(NullPointerException e) {
+      System.err.printf("null pointer: %s\n", e.getMessage());
     }
 
     events.add(event);
   }
 
   @Override
-  public void onMethodReturned(Method method, Object returnValue) {
-    Event event = new Event(method, "return")
+  public void onMethodReturned(Integer methodId, Object returnValue) {
+    Event event = TraceListenerRecord.getEventFactory()
+        .create(methodId, EventType.RETURN)
         .setReturnValue(returnValue);
+
+    if (returnValue != null) {
+      System.out.printf("%d -> %s returning %s %s\n",
+          methodId,
+          event.methodId,
+          returnValue.getClass().toString(),
+          returnValue.toString());
+    }
 
     events.add(event);
   }

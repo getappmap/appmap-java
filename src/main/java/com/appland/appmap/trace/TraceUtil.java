@@ -1,5 +1,6 @@
 package com.appland.appmap.trace;
 
+import java.lang.reflect.Modifier;
 import javassist.CtBehavior;
 import javassist.CtClass;
 
@@ -17,6 +18,10 @@ class TraceUtil {
   }
 
   public static Boolean isRelevant(CtBehavior behavior) {
+    if ((behavior.getModifiers() & Modifier.PUBLIC) == 0) {
+      return false;
+    }
+
     if (behavior.getMethodInfo().getLineNumber(0) == -1) {
       // auto generated code, cglib enhancers, etc.
       // it's totally possible this might remove something we care about

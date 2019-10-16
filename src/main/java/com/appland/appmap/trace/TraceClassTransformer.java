@@ -13,12 +13,19 @@ import javassist.NotFoundException;
 import javassist.bytecode.InstructionPrinter;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
+import javassist.bytecode.Bytecode;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.appland.appmap.trace.Agent;
+import com.appland.appmap.trace.TraceEventFactory;
+import com.appland.appmap.trace.TraceListenerRecord;
+
+import com.appland.appmap.output.v1.Event;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -30,22 +37,53 @@ public class TraceClassTransformer implements ClassFileTransformer {
     super();
   }
 
-  private static String getPreHook(CtBehavior behavior, Integer methodOrdinal) {
+  private static String getPreHook(CtBehavior behavior, Event event, Integer methodId) {
+    String paramArray = "new Object[0]";
+    if (event.parameters.size() > 0) {
+      paramArray = event.parameters
+          .stream()
+          .map(p -> String.format("com.appland.appmap.trace.Agent.box(%s)", p.name))
+          .collect(Collectors.joining(", ", "new Object[]{ ", " }"));
+    }
+
     Boolean isStatic = (behavior.getModifiers() & Modifier.STATIC) != 0;
-
+    //  "__$APPMAP$THREAD_LOCK = com.appland.appmap.trace.Agent.onCall(new Integer(%d), %s, %s);",
     return String.format(
-        "com.appland.appmap.trace.Agent.onCall(%s.class, %d, %s, $args);",
-        behavior.getDeclaringClass().getName(),
-        methodOrdinal,
-        isStatic ? "null" : "this");
+        "com.appland.appmap.trace.Agent.onCall(new Integer(%d), %s, %s);",
+        methodId,
+        isStatic ? "null" : "this",
+        paramArray);
   }
 
-  private static String getPostHook(CtBehavior behavior, Integer methodOrdinal) {
+  private static String getPostHook(CtBehavior behavior, Integer methodId) {
     return String.format(
-        "com.appland.appmap.trace.Agent.onReturn(%s.class, %d, com.appland.appmap.trace.Agent.box($_));",
-        behavior.getDeclaringClass().getName(),
-        methodOrdinal);
+        "com.appland.appmap.trace.Agent.onReturn(new Integer(%d), $_);",
+        methodId);
   }
+
+  // private static void testTransform(CtBehavior behavior, Event event) {
+  //   CodeAttribute codeAttribute = behavior.getMethodInfo().getCodeAttribute();
+  //   CodeIterator iter = codeAttribute.iterator();
+  //   Bytecode preHook = new Bytecode();
+
+
+  //   if (event.isStatic == false) {
+  //     preHook.addAload(0);
+  //   }
+
+  //   for(CodeIterator iter = codeAttribute.iterator(); iter.hasNext();) {
+  //     int i = iter.next();
+  //     int opCode = iter.byteAt(i);
+  //     // if (opCode == Bytecode.ARETURN ||
+  //     //     opCode == Bytecode.DRETURN ||
+  //     //     opCode == Bytecode.FRETURN ||
+  //     //     opCode == Bytecode.IRETURN ||
+  //     //     opCode == Bytecode.LRETURN ||
+  //     //     opCode == Bytecode.RETURN) {
+
+  //     // }
+  //   }
+  // }
 
   public byte[] transform(ClassLoader loader, String className, Class redefiningClass, ProtectionDomain domain, byte[] bytes) throws IllegalClassFormatException {
     try {
@@ -63,38 +101,45 @@ public class TraceClassTransformer implements ClassFileTransformer {
         return bytes;
       }
 
+      TraceEventFactory eventFactory = TraceListenerRecord.getEventFactory();
       CtBehavior[] behaviors = ctClass.getDeclaredMethods();
-      Integer i = -1;
       for (CtBehavior behavior : behaviors) {
         if (TraceUtil.isRelevant(behavior) == false) {
           continue;
         }
 
-        // I'm not confident in this methodology of counting the method ordinal.
-        // It also seems finicky against code modified by cglib.
-        // -db
-        final Integer methodOrdinal = i++;
-
-        if ((behavior.getModifiers() & Modifier.PUBLIC) == 0) {
-          continue;
+        if (TraceUtil.isDebugMode()) {
+          System.out.printf("\n\nNew hook -> %s.%s\n\n", ctClass.getName(), behavior.getName());
         }
 
-        behavior.instrument(
-            new ExprEditor() {
-              public void edit(MethodCall m) throws CannotCompileException {
-                m.replace(
-                    String.format("{{%s} {$_ = $proceed($$);} {%s}}",
-                        TraceClassTransformer.getPreHook(behavior, methodOrdinal),
-                        TraceClassTransformer.getPostHook(behavior, methodOrdinal)));
-              }
-          });
+        Integer methodId = eventFactory.register(behavior);
+        // testTransform(behavior, eventFactory.getTemplate(methodId));
+
+        // try {
+        // behavior.addLocalVariable("__$APPMAP$THREAD_LOCK", classPool.get("java.lang.Long"));
+        behavior.insertBefore(TraceClassTransformer.getPreHook(behavior, eventFactory.getTemplate(methodId), methodId));
+        behavior.insertAfter(TraceClassTransformer.getPostHook(behavior, methodId));
+        // } catch (NotFoundException e) {
+        //   if (TraceUtil.isDebugMode()) {
+        //     System.err.printf("error: %s\n", e.getMessage());
+        //   }
+        // }
+        
+ 
+        // behavior.instrument(
+        //     new ExprEditor() {
+        //       public void edit(MethodCall m) throws CannotCompileException {
+        //         String code = String.format("{ %s $_ = $proceed($$); %s }",
+        //             TraceClassTransformer.getPreHook(behavior, eventFactory.getTemplate(methodId), methodId),
+        //             TraceClassTransformer.getPostHook(behavior, methodId));
+        //         // System.out.println(code);
+        //         m.replace(code);
+        //       }
+        //   });
 
         if (TraceUtil.isDebugMode()) {
-          System.out.println(
-              String.format("Hooked %s.%s (%d)",
-                  ctClass.getName(),
-                  behavior.getName(),
-                  methodOrdinal));
+          System.out.print("\nBytecode:\n");
+          InstructionPrinter.print((CtMethod) behavior, System.out);
         }
       }
 

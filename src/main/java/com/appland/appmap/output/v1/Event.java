@@ -11,7 +11,7 @@ public class Event {
   public String event;
   public String path;
   public Value receiver;
-  public ArrayList<Value> parameters;
+  public ArrayList<Value> parameters = new ArrayList<Value>();
 
   @JSONField(name = "defined_class")
   public String definedClass;
@@ -36,6 +36,14 @@ public class Event {
 
   public Event() {
 
+  }
+
+  public Event(Event master) {
+    this.setMethodId(master.methodId)
+        .setDefinedClass(master.definedClass)
+        .setPath(master.path)
+        .setLineNumber(master.lineNumber)
+        .setStatic(master.isStatic);
   }
 
   public Event(Method method, String eventType) {
@@ -118,6 +126,25 @@ public class Event {
 
     this.parameters.add(new Value(val, name));
 
+    return this;
+  }
+
+  public Event addParameter(Value val) {
+    if (val == null) {
+      return this;
+    }
+
+    if (this.parameters == null) {
+      this.parameters = new ArrayList<Value>();
+    }
+
+    this.parameters.add(new Value(val));
+
+    return this;
+  }
+
+  public Event setParameters(ArrayList<Value> parameters) {
+    this.parameters = parameters;
     return this;
   }
 }

@@ -29,16 +29,16 @@ public class TracePublisher implements ITraceListener {
   }
 
   @Override
-  public void onMethodInvoked(Method method, Object selfValue, Object[] params) {
+  public void onMethodInvoked(Integer methodId, Object selfValue, Object[] params) {
     for (ITraceListener listener : listeners) {
-      listener.onMethodInvoked(method, selfValue, params);
+      listener.onMethodInvoked(methodId, selfValue, params);
     }
   }
 
   @Override
-  public void onMethodReturned(Method method, Object returnValue) {
+  public void onMethodReturned(Integer methodId, Object returnValue) {
     for (ITraceListener listener : listeners) {
-      listener.onMethodReturned(method, returnValue);
+      listener.onMethodReturned(methodId, returnValue);
     }
   }
 

@@ -47,10 +47,12 @@ public class Agent extends TracePublisher {
   private static Agent singleton = new Agent();
   private static ClassPool classPool;
   private static AppMapConfig config;
+  private static ThreadLock threadLock = new ThreadLock();
 
   private Agent() {
     if (TraceUtil.isDebugMode()) {
       addListener(new TraceListenerDebug());
+      CtClass.debugDump = "./appmap/debug";
     }
   }
 
@@ -65,21 +67,6 @@ public class Agent extends TracePublisher {
 
   public Agent addListener(ITraceListener listener) {
     this.addEventListener(listener);
-    return this;
-  }
-
-  public Agent initialize() {
-    classPool = ClassPool.getDefault();
-    classPool.insertClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));
-    classPool.importPackage("com.appland.appmap.trace.Agent");
-
-    for (AppMapPackage packageConfig : config.packages) {
-      classPool.importPackage(packageConfig.path);
-      Reflections reflections = new Reflections(packageConfig.path, new SubTypesScanner(false));
-      hookClassLoaders(reflections.getSubTypesOf(URLClassLoader.class));
-      hookClasses(reflections.getAllTypes(), packageConfig);
-    }
-
     return this;
   }
 
@@ -155,29 +142,57 @@ public class Agent extends TracePublisher {
     }
   }
 
-  public static void onCall(Class declaringType, int methodOrdinal, Object selfValue, Object[] params) {
-    // singleton.onClassRegistered(declaringType);
-    try {
-      singleton.onMethodInvoked(declaringType.getMethods()[methodOrdinal], selfValue, params);
-    } catch (ArrayIndexOutOfBoundsException e) {
-      if (TraceUtil.isDebugMode()) {
-        System.err.println(String.format(
-          "error [onCall]: %s",
-          e.getMessage()));
-      }
+
+  public static void onCall(Integer methodId, Object selfValue, Object[] params) {
+    // Long threadId = Agent.threadLock.getLock();
+    // if (threadId >= 0) {
+    //   singleton.onMethodInvoked(methodId, selfValue, params);
+    // }
+    // return threadId;
+    if (Agent.threadLock.tryLock()) {
+      singleton.onMethodInvoked(methodId, selfValue, params);
+      Agent.threadLock.releaseLock();
     }
   }
 
-  public static void onReturn(Class declaringType, int methodOrdinal, Object returnValue) {
-    try {
-    singleton.onMethodReturned(declaringType.getMethods()[methodOrdinal], returnValue);
-    } catch (ArrayIndexOutOfBoundsException e) {
-      if (TraceUtil.isDebugMode()) {
-        System.err.println(String.format(
-          "error [onReturn]: %s",
-          e.getMessage()));
-      }
+  public static void onReturn(Integer methodId, byte returnValue) {
+    Agent.onReturn(methodId, new Byte(returnValue));
+  }
+
+  public static void onReturn(Integer methodId, char returnValue) {
+    Agent.onReturn(methodId, new Character(returnValue));
+  }
+
+  public static void onReturn(Integer methodId, short returnValue) {
+    Agent.onReturn(methodId, new Short(returnValue));
+  }
+
+  public static void onReturn(Integer methodId, long returnValue) {
+    Agent.onReturn(methodId, new Long(returnValue));
+  }
+
+  public static void onReturn(Integer methodId, float returnValue) {
+    Agent.onReturn(methodId, new Float(returnValue));
+  }
+
+  public static void onReturn(Integer methodId, double returnValue) {
+    Agent.onReturn(methodId, new Double(returnValue));
+  }
+
+  public static void onReturn(Integer methodId, int returnValue) {
+    Agent.onReturn(methodId, new Integer(returnValue));
+  }
+
+  public static void onReturn(Integer methodId, boolean returnValue) {
+    Agent.onReturn(methodId, new Boolean(returnValue));
+  }
+
+  public static void onReturn(Integer methodId, Object returnValue) {
+    if (Agent.threadLock.tryLock()) {
+      singleton.onMethodReturned(methodId, returnValue);
+      Agent.threadLock.releaseLock();
     }
+    // Agent.threadLock.releaseLock(threadId);
   }
 
   private static void hookClass(String className) {
