@@ -4,12 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.appland.appmap.output.v1.AppMap;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
+import java.util.Vector;
 
 public class RuntimeRecorder {
   private static RuntimeRecorder instance = new RuntimeRecorder();
 
   private CodeObjectTree classMap = new CodeObjectTree();
-  private EventCallStack events   = new EventCallStack();
+  private Vector<Event> events = new Vector<Event>();
 
   private RuntimeRecorder() { }
 
@@ -28,7 +29,8 @@ public class RuntimeRecorder {
   public String serializeJson() {
     AppMap appMap = new AppMap();
     appMap.classMap = classMap.toArray();
-    appMap.events = events.toArray();
+    appMap.events = new Event[this.events.size()];
+    this.events.copyInto(appMap.events);
 
     return JSON.toJSONString(appMap);
   }
