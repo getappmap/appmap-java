@@ -2,7 +2,7 @@ package com.appland.appmap.process;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.output.v1.Value;
-
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
@@ -17,6 +17,13 @@ public class HttpTomcatReceiver implements IEventProcessor {
 
     HttpServletRequest request = requestParam.get();
     event.setHttpServerRequest(request.getMethod(), request.getRequestURI(), request.getProtocol());
+
+    Map<String, String[]> params = request.getParameterMap();
+    for (Map.Entry<String, String[]> entry : params.entrySet()) {
+      event.addMessageParam(entry.getKey(), String.join(" ", entry.getValue()));
+    }
+
+    event.setParameters(null);
 
     return event;
   }

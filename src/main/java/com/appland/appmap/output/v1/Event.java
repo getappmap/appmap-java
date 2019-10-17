@@ -3,6 +3,8 @@ package com.appland.appmap.output.v1;
 import com.alibaba.fastjson.annotation.JSONField;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Event {
   private static Integer globalEventId = 0;
@@ -39,6 +41,9 @@ public class Event {
 
   @JSONField(name = "http_server_response")
   public HttpServerResponse httpResponse;
+
+  @JSONField(name = "message")
+  public Map<String, String> message;
 
   public Event() {
 
@@ -197,6 +202,15 @@ public class Event {
   public Event setHttpServerResponse(Integer status) {
     this.httpResponse = new HttpServerResponse()
         .setStatus(status);
+    return this;
+  }
+
+  public Event addMessageParam(String key, String val) {
+    if (this.message == null) {
+      this.message = new HashMap<>();
+    }
+
+    this.message.put(key, val);
     return this;
   }
 }
