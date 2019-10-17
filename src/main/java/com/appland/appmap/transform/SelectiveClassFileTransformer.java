@@ -83,7 +83,7 @@ class SelectiveClassFileTransformer {
   public void transformBehavior(CtBehavior behavior, Integer behaviorOrdinal, Event eventTemplate)
       throws CannotCompileException {
     final EventProcessorType eventProcessor = this.getProcessorType(behavior);
-
+    System.err.printf("Hooking %s.%s with %s\n", behavior.getDeclaringClass().getName(), behavior.getName(), eventProcessor);
     behavior.insertBefore(
         SelectiveClassFileTransformer.buildPreHook(behavior,
                                                    behaviorOrdinal,

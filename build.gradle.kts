@@ -28,6 +28,7 @@ dependencies {
     implementation("com.alibaba:fastjson:1.2.61")
     implementation("org.javassist:javassist:3.25.0-GA")
     implementation("org.reflections:reflections:0.9.11")
+    implementation("javax.servlet:javax.servlet-api:4.0.1")
 
     annotationProcessor("info.picocli:picocli-codegen:4.0.4")
 

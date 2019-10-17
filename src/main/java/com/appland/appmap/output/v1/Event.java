@@ -34,6 +34,12 @@ public class Event {
   @JSONField(name = "return_value")
   public Value returnValue;
 
+  @JSONField(name = "http_server_request")
+  public HttpServerRequest httpRequest;
+
+  @JSONField(name = "http_server_response")
+  public HttpServerResponse httpResponse;
+
   public Event() {
 
   }
@@ -145,6 +151,52 @@ public class Event {
 
   public Event setParameters(ArrayList<Value> parameters) {
     this.parameters = parameters;
+    return this;
+  }
+
+  public Value getParameter(String name) {
+    if (this.parameters == null) {
+      return null;
+    }
+
+    for (Value param : this.parameters) {
+      if (param.name.equals(name)) {
+        return param;
+      }
+    }
+
+    return null;
+  }
+
+  public Value popParameter(String name) {
+    if (this.parameters == null) {
+      return null;
+    }
+
+    final int numParams = this.parameters.size();
+    for (int i = 0; i < numParams; ++i) {
+      final Value param = this.parameters.get(i);
+
+      if (param.name.equals(name)) {
+        this.parameters.remove(i);
+        return param;
+      }
+    }
+
+    return null;
+  }
+
+  public Event setHttpServerRequest(String method, String path, String protocol) {
+    this.httpRequest = new HttpServerRequest()
+        .setMethod(method)
+        .setPath(path)
+        .setProtocol(protocol);
+    return this;
+  }
+
+  public Event setHttpServerResponse(Integer status) {
+    this.httpResponse = new HttpServerResponse()
+        .setStatus(status);
     return this;
   }
 }

@@ -1,11 +1,14 @@
 package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.serializer.ToStringSerializer;
 
 public class Value {
   public String kind;
   public String name;
-  public String value;
+
+  @JSONField(serializeUsing = ToStringSerializer.class)
+  public Object value;
 
   @JSONField(name = "class")
   public String classType;
@@ -17,9 +20,9 @@ public class Value {
     if (val != null) {
       this.classType = val.getClass().getName();
       this.objectId = System.identityHashCode(val);
-      this.value = val.toString();
+      this.value = val;
     } else {
-      this.value = "null";
+      this.value = null;
       this.objectId = 0;
     }
   }
@@ -55,5 +58,9 @@ public class Value {
   public Value setKind(String kind) {
     this.kind = kind;
     return this;
+  }
+
+  public <T> T get() {
+    return (T) this.value;
   }
 }

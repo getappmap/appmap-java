@@ -1,8 +1,7 @@
 package com.appland.appmap.record;
 
-import com.appland.appmap.data_structures.CodeObjectTree;
-import com.appland.appmap.data_structures.EventCallStack;
-import com.appland.appmap.output.v1.AppMapSerializer;
+import com.alibaba.fastjson.JSON;
+import com.appland.appmap.output.v1.AppMap;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 
@@ -27,6 +26,10 @@ public class RuntimeRecorder {
   }
 
   public String serializeJson() {
-    return new AppMapSerializer(classMap, events).serialize();
+    AppMap appMap = new AppMap();
+    appMap.classMap = classMap.toArray();
+    appMap.events = events.toArray();
+
+    return JSON.toJSONString(appMap);
   }
 }

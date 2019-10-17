@@ -19,6 +19,9 @@ public class EventCallStack {
 
   public void add(Event event) {
     if (event.event.equals("call")) {
+      if (event.httpRequest != null) {
+        System.out.printf("QUEUED -> %s %s\n", event.httpRequest.method, event.httpRequest.path);
+      }
       callStack.push(event);
       return;
     }
