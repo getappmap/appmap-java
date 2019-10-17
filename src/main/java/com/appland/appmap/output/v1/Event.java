@@ -45,6 +45,9 @@ public class Event {
   @JSONField(name = "message")
   public Map<String, String> message;
 
+  @JSONField(name = "sql_query")
+  public SqlQuery sqlQuery;
+
   public Event() {
 
   }
@@ -211,6 +214,11 @@ public class Event {
     }
 
     this.message.put(key, val);
+    return this;
+  }
+
+  public Event setSqlQuery(String sql) {
+    this.sqlQuery = new SqlQuery().setSql(sql);
     return this;
   }
 }
