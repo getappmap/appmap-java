@@ -49,7 +49,6 @@ public class EventFactory {
 
     try {
       parameterTypes = behavior.getParameterTypes();
-      System.out.printf("%s has %d params:\n", behavior.getName(), parameterTypes.length);
     } catch (NotFoundException e) {
       System.err.println(
           String.format("failed to get parameter types for %s.%s: %s",
