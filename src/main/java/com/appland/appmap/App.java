@@ -3,6 +3,8 @@ package com.appland.appmap;
 import java.lang.instrument.Instrumentation;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 
 import com.appland.appmap.commands.Inspect;
 import com.appland.appmap.commands.Record;
@@ -75,7 +77,19 @@ public class App implements Runnable {
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         public void run() {
           RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
-          System.out.println(runtimeRecorder.serializeJson());
+
+          try {
+            System.err.print("writing data to appmap.json... ");
+            PrintWriter out = new PrintWriter("appmap.json");
+            out.print(runtimeRecorder.serializeJson());
+            out.close();
+
+            System.err.print("done.\n");
+          } catch (FileNotFoundException e) {
+            System.err.printf("failed: %s\n", e.getMessage());
+          } catch (Exception e) {
+            System.err.printf("failed: %s\n", e.getMessage());
+          }
         }
     }, "Shutdown-thread"));
   }
