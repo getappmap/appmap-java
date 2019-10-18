@@ -9,45 +9,25 @@ import javassist.CtClass;
 import javassist.NotFoundException;
 
 public class SqlClassTransformer extends SelectiveClassFileTransformer {
-  // private static final ClassProcessorInfo sqlClasses = new ClassProcessorInfo()
-  //     .add("java.sql.http.HttpServlet",
-  //       new BehaviorInfo("service")
-  //         .addParam("javax.servlet.http.HttpServletRequest")
-  //         .addParam("javax.servlet.http.HttpServletResponse")
-  //         .processedBy(EventProcessorType.Http_Tomcat));
+  private static final ClassProcessorInfo sqlClasses = new ClassProcessorInfo()
+      .addInterface("java.sql.Connection",
+        new BehaviorInfo("nativeSQL"),
+        new BehaviorInfo("prepareCall"),
+        new BehaviorInfo("prepareStatement"))
+      .addInterface("java.sql.Statement",
+        new BehaviorInfo("addBatch"),
+        new BehaviorInfo("execute"),
+        new BehaviorInfo("executeQuery"),
+        new BehaviorInfo("executeUpdate"));
 
   @Override
   public Boolean canTransformClass(CtClass classType) {
-    try {
-      final CtClass[] interfaces = classType.getInterfaces();
-      for (CtClass superType : interfaces) {
-        final String superTypeName = superType.getName();
-        if (superTypeName.equals("java.sql.PreparedStatement")) {
-          return true;
-        }
-
-        if (superTypeName.equals("java.sql.Statement")) {
-          return true;
-        }
-
-        if (superTypeName.equals("java.sql.CallableStatement")) {
-          return true;
-        }
-      }
-    } catch (NotFoundException e) {
-      // fall through
-    }
-    
-    return false;
+    return sqlClasses.inheritsKnownInterface(classType);
   }
 
   @Override
   public Boolean canTransformBehavior(CtBehavior behavior) {
-    final String behaviorName = behavior.getName();
-    return behaviorName.equals("addBatch")
-        || behaviorName.equals("execute")
-        || behaviorName.equals("executeQuery")
-        || behaviorName.equals("executeUpdate");
+    return sqlClasses.isKnownInterfaceBehavior(behavior);
   }
 
   @Override

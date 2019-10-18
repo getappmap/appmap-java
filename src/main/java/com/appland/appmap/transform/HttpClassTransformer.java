@@ -11,7 +11,7 @@ import javassist.CtClass;
 
 public class HttpClassTransformer extends SelectiveClassFileTransformer {
   private static final ClassProcessorInfo httpClasses = new ClassProcessorInfo()
-      .add("javax.servlet.http.HttpServlet",
+      .addClass("javax.servlet.http.HttpServlet",
         new BehaviorInfo("service")
           .addParam("javax.servlet.http.HttpServletRequest")
           .addParam("javax.servlet.http.HttpServletResponse")
@@ -23,12 +23,12 @@ public class HttpClassTransformer extends SelectiveClassFileTransformer {
 
   @Override
   public Boolean canTransformClass(CtClass classType) {
-    return httpClasses.containsClass(classType);
+    return httpClasses.isKnownClass(classType);
   }
 
   @Override
   public Boolean canTransformBehavior(CtBehavior behavior) {
-    return httpClasses.containsBehavior(behavior);
+    return httpClasses.isKnownClassBehavior(behavior);
   }
 
   @Override
