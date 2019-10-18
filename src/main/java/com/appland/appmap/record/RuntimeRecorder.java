@@ -19,7 +19,7 @@ public class RuntimeRecorder {
   }
 
   public void recordEvent(Event event) {
-    events.add(event);
+    events.add(event.freeze());
   }
 
   public void recordCodeObject(CodeObject codeObject) {

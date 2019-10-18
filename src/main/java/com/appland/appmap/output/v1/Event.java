@@ -221,4 +221,22 @@ public class Event {
     this.sqlQuery = new SqlQuery().setSql(sql);
     return this;
   }
+
+  public Event freeze() {
+    if (this.parameters != null) {
+      for (Value value : this.parameters) {
+        value.freeze();
+      }
+    }
+
+    if (this.receiver != null) {
+      this.receiver.freeze();
+    }
+
+    if (this.returnValue != null) {
+      this.returnValue.freeze();
+    }
+
+    return this;
+  }
 }

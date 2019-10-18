@@ -63,4 +63,11 @@ public class Value {
   public <T> T get() {
     return (T) this.value;
   }
+
+  public Value freeze() {
+    if (this.value != null) {
+      this.value = this.value.toString();
+    }
+    return this;
+  }
 }
