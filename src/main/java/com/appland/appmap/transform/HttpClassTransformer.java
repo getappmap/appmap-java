@@ -33,6 +33,6 @@ public class HttpClassTransformer extends SelectiveClassFileTransformer {
 
   @Override
   public EventProcessorType getProcessorType(CtBehavior behavior) {
-    return httpClasses.getEventProcessorType(behavior);
+    return EventProcessorType.Http_Tomcat;
   }
 }

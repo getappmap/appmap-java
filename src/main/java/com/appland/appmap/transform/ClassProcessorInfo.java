@@ -8,6 +8,7 @@ import java.util.Map;
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.NotFoundException;
+import javassist.bytecode.ClassFile;
 
 class ClassProcessorInfo {
   enum DefinitionType { Class, Interface }
@@ -26,7 +27,11 @@ class ClassProcessorInfo {
   }
 
   public EventProcessorType getEventProcessorType(CtBehavior behavior) {
-    final String className = behavior.getDeclaringClass().getName();
+    final String className = this.getKnownClassName(behavior.getDeclaringClass());
+    if (className == null) {
+      return null;
+    }
+
     final List<BehaviorInfo> behaviors = classes.get(className);
     if (behaviors == null) {
       return null;
@@ -60,9 +65,23 @@ class ClassProcessorInfo {
     return false;
   }
 
-  public Boolean isKnownClass(CtClass classType) {
+  private String getKnownClassName(CtClass classType) {
     final String className = classType.getName();
-    return this.classes.containsKey(className);
+    if (this.classes.containsKey(className)) {
+      return className;
+    }
+
+    final ClassFile classFile = classType.getClassFile();
+    final String superclassName = classFile.getSuperclass();
+    if (this.classes.containsKey(superclassName)) {
+      return superclassName;
+    }
+
+    return null;
+  }
+
+  public Boolean isKnownClass(CtClass classType) {
+    return this.getKnownClassName(classType) != null;
   }
 
   public Boolean isKnownClassBehavior(CtBehavior behavior) {

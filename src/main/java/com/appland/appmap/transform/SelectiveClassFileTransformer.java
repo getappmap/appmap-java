@@ -96,8 +96,8 @@ class SelectiveClassFileTransformer {
                                                     eventTemplate,
                                                     eventProcessor));
 
-    if (System.getProperty("debug") != null) {
-      System.err.printf("Hooking %s.%s with %s\n",
+    if (System.getenv("APPMAP_DEBUG") != null) {
+      System.out.printf("Hooking %s.%s with %s\n",
           behavior.getDeclaringClass().getName(),
           behavior.getName(),
           eventProcessor);
