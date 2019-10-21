@@ -4,7 +4,7 @@ import com.appland.appmap.output.v1.Event;
 
 public class PassThroughReceiver implements IEventProcessor {
   @Override
-  public Event processEvent(Event event) {
-    return event;
+  public int processEvent(Event event) {
+    return EventDispatcher.EVENT_RECORD;
   }
 }

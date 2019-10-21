@@ -5,17 +5,17 @@ import com.appland.appmap.output.v1.Value;
 
 public class SqlJdbcReceiver implements IEventProcessor {
   @Override
-  public Event processEvent(Event event) {
+  public int processEvent(Event event) {
     if (event.event.equals("return")) {
-      return event;
+      return EventDispatcher.EVENT_RECORD;
     }
 
     if (event.parameters == null) {
-      return null;
+      return EventDispatcher.EVENT_DISCARD;
     }
 
     if (event.parameters.size() < 1) {
-      return null;
+      return EventDispatcher.EVENT_DISCARD;
     }
 
     Value sqlParam = event.parameters.get(0);
@@ -23,6 +23,6 @@ public class SqlJdbcReceiver implements IEventProcessor {
     event.setSqlQuery(sqlParam.value.toString());
     System.out.println(sqlParam.value.toString());
 
-    return event;
+    return EventDispatcher.EVENT_RECORD;
   }
 }

@@ -50,6 +50,10 @@ public class CodeObjectTree {
     this.add(this.root, newObject);
   }
 
+  public void clear() {
+    this.root = new CodeObject();
+  }
+
   public CodeObject[] toArray() {
     Integer numTopLevelObjects = root.children.size();
     CodeObject[] codeObjects = new CodeObject[numTopLevelObjects];

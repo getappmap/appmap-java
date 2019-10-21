@@ -8,6 +8,7 @@ import java.util.Map;
 
 public class Event {
   private static Integer globalEventId = 0;
+  private Boolean alive = true;
 
   public Integer id;
   public String event;
@@ -238,5 +239,14 @@ public class Event {
     }
 
     return this;
+  }
+
+  public Event kill() {
+    this.alive = false;
+    return this;
+  }
+
+  public Boolean isAlive() {
+    return this.alive;
   }
 }

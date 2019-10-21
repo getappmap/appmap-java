@@ -34,4 +34,11 @@ public class RuntimeRecorder {
 
     return JSON.toJSONString(appMap);
   }
+
+  public String dumpJson() {
+    // TODO: make me thread safe :)
+    String json = this.serializeJson();
+    this.events.clear();
+    return json;
+  }
 }

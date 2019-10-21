@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import javassist.CannotCompileException;
 import javassist.CtBehavior;
 import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.NotFoundException;
 
 class SelectiveClassFileTransformer {
   private static EventFactory eventFactory = EventFactory.get();
@@ -59,13 +61,30 @@ class SelectiveClassFileTransformer {
     }
 
     Boolean isStatic = (behavior.getModifiers() & Modifier.STATIC) != 0;
-    return String.format("%s(new Integer(%d), %s.%s, %s, %s);",
+    Boolean returnsVoid = true;
+    Boolean unknownReturnType = false;
+    if (behavior instanceof CtMethod) {
+      try {
+        CtMethod method = (CtMethod) behavior;
+        returnsVoid = method.getReturnType() == CtClass.voidType;
+      } catch (NotFoundException e) {
+        unknownReturnType = true;
+      }
+    }
+
+    String returnStatement = "";
+    if (unknownReturnType == false) {
+      returnStatement = returnsVoid ? "return;" : "return ($r) new Object();";
+    }
+
+    return String.format("if (%s(new Integer(%d), %s.%s, %s, %s) == false) { %s }",
         "com.appland.appmap.process.MethodCallback.onMethodInvocation",
         behaviorOrdinal,
         "com.appland.appmap.process.EventProcessorType",
         eventProcessor,
         isStatic ? "null" : "this",
-        paramArray);
+        paramArray,
+        returnStatement);
   }
 
   private static String buildPostHook(CtBehavior behavior,

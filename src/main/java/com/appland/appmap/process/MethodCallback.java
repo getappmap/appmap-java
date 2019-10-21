@@ -20,7 +20,7 @@ public class MethodCallback {
     MethodCallback.runtimeRecorder.recordCodeObject(rootObject);
   }
 
-  public static void onMethodInvocation(Integer behaviorOrdinal,
+  public static boolean onMethodInvocation(Integer behaviorOrdinal,
                                         EventProcessorType eventProcessor,
                                         Object selfValue,
                                         Object[] params) {
@@ -38,10 +38,14 @@ public class MethodCallback {
         System.err.println(e.getMessage());
       }
 
-      EventDispatcher.dispatchEvent(eventProcessor, event);
+      Boolean continueMethod = EventDispatcher.dispatchEvent(eventProcessor, event);
 
       MethodCallback.lock.releaseLock();
+
+      return continueMethod;
     }
+
+    return true;
   }
 
   public static void onMethodReturn(Integer behaviorOrdinal,
