@@ -21,10 +21,19 @@ public class HttpTomcatReceiver implements IEventProcessor {
       return;
     }
 
-    EventDispatcher.setEnabled(false);
+    String json = runtimeRecorder.dumpJson();
+    res.setContentType("application/json");
+    res.setContentLength(json.length());
 
-    String json = HttpTomcatReceiver.runtimeRecorder.dumpJson();
-    System.out.println(json);
+    try {
+      PrintWriter writer = res.getWriter();
+      writer.write(json);
+      writer.flush();
+    } catch (IOException e) {
+      System.err.printf("failed to write response: %s\n", e.getMessage());
+    }
+
+    EventDispatcher.setEnabled(false);
   }
 
   private void doGet(HttpServletRequest req, HttpServletResponse res) {
