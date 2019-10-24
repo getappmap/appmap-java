@@ -11,6 +11,7 @@ public class RuntimeRecorder {
 
   private CodeObjectTree classMap = new CodeObjectTree();
   private Vector<Event> events = new Vector<Event>();
+  private Object mutex = new Object();
 
   private RuntimeRecorder() { }
 
@@ -19,26 +20,27 @@ public class RuntimeRecorder {
   }
 
   public void recordEvent(Event event) {
-    events.add(event.freeze());
+    synchronized (mutex) {
+      events.add(event.freeze());
+    }
   }
 
   public void recordCodeObject(CodeObject codeObject) {
-    classMap.add(codeObject);
-  }
-
-  public String serializeJson() {
-    AppMap appMap = new AppMap();
-    appMap.classMap = classMap.toArray();
-    appMap.events = new Event[this.events.size()];
-    this.events.copyInto(appMap.events);
-
-    return JSON.toJSONString(appMap);
+    synchronized (mutex) {
+      classMap.add(codeObject);
+    }
   }
 
   public String dumpJson() {
-    // TODO: make me thread safe :)
-    String json = this.serializeJson();
-    this.events.clear();
-    return json;
+    AppMap appMap = new AppMap();
+
+    synchronized (mutex) {
+      appMap.classMap = classMap.toArray();
+      appMap.events = new Event[this.events.size()];
+      this.events.copyInto(appMap.events);
+      this.events.clear();
+    }
+
+    return JSON.toJSONString(appMap);
   }
 }
