@@ -49,12 +49,17 @@ public class Event {
   @JSONField(name = "sql_query")
   public SqlQuery sqlQuery;
 
-  public Event() {
+  private synchronized Integer issueId() {
+    return ++globalEventId;
+  }
 
+  public Event() {
+    this.setId(issueId());
   }
 
   public Event(Event master) {
-    this.setMethodId(master.methodId)
+    this.setId(issueId())
+        .setMethodId(master.methodId)
         .setDefinedClass(master.definedClass)
         .setPath(master.path)
         .setLineNumber(master.lineNumber)
@@ -62,14 +67,14 @@ public class Event {
   }
 
   public Event(Method method, String eventType) {
-    this.setId(globalEventId++)
+    this.setId(issueId())
         .setMethodId(method.getName())
         .setDefinedClass(method.getDeclaringClass().getName())
         .setEvent(eventType)
         .setThreadId(Thread.currentThread().getId());
   }
 
-  public Event setId(Integer id) {
+  private Event setId(Integer id) {
     this.id = id;
     return this;
   }
@@ -172,6 +177,22 @@ public class Event {
       if (param.name.equals(name)) {
         return param;
       }
+    }
+
+    return null;
+  }
+
+  public Value getParameter(Integer index) {
+    if (this.parameters == null) {
+      return null;
+    }
+
+    try {
+      return this.parameters.get(index);
+    } catch (IndexOutOfBoundsException e) {
+      System.err.printf("failed to get param at index %d: %s\n",
+          index,
+          e.getMessage());
     }
 
     return null;

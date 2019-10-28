@@ -113,7 +113,6 @@ public class EventFactory {
     try {
       Event eventTemplate = eventTemplates.get(templateId);
       event = new Event(eventTemplate)
-          .setId(getEventId())
           .setThreadId(Thread.currentThread().getId())
           .setEvent(eventAction == EventAction.CALL ? "call" : "return");
 
