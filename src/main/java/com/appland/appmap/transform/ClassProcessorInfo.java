@@ -107,20 +107,33 @@ class ClassProcessorInfo {
     return null;
   }
 
-  public Boolean isKnownInterfaceBehavior(CtBehavior behavior) {
+  public BehaviorInfo getInterfaceBehavior(CtBehavior behavior) {
     final CtClass classType = behavior.getDeclaringClass();
     List<BehaviorInfo> behaviorInfos = this.getInterfaceBehaviors(classType);
 
     if (behaviorInfos == null) {
-      return false;
+      return null;
     }
 
     for (BehaviorInfo behaviorInfo : behaviorInfos) {
       if (behaviorInfo.describesBehavior(behavior)) {
-        return true;
+        return behaviorInfo;
       }
     }
 
-    return false;
+    return null;
+  }
+
+  public Boolean isKnownInterfaceBehavior(CtBehavior behavior) {
+    final BehaviorInfo behaviorInfo = this.getInterfaceBehavior(behavior);
+    return behaviorInfo != null;
+  }
+
+  public EventProcessorType getInterfaceEventProcessorType(CtBehavior behavior) {
+    final BehaviorInfo behaviorInfo = this.getInterfaceBehavior(behavior);
+    if (behaviorInfo != null) {
+      return behaviorInfo.getEventProcessorType();
+    }
+    return null;
   }
 }

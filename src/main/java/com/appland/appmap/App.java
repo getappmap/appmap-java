@@ -14,6 +14,7 @@ import com.appland.appmap.record.RuntimeRecorder;
 import com.appland.appmap.transform.AppMapClassTransformer;
 import com.appland.appmap.transform.SqlClassTransformer;
 import com.appland.appmap.transform.HttpClassTransformer;
+import com.appland.appmap.transform.ServletFilterClassTransformer;
 import com.appland.appmap.transform.TraceClassTransformer;
 
 import picocli.CommandLine;
@@ -50,26 +51,15 @@ public class App implements Runnable {
       return;
     }
 
-    TraceClassTransformer   traceTransformer = new TraceClassTransformer(config);
-    SqlClassTransformer     sqlTransformer   = new SqlClassTransformer();
-    HttpClassTransformer    httpTransformer  = new HttpClassTransformer();
-    AppMapClassTransformer  transformer      = new AppMapClassTransformer();
-    transformer.addSubTransform(sqlTransformer)
-               .addSubTransform(httpTransformer)
-               .addSubTransform(traceTransformer);
-
-    // TraceListenerRecord recording = new TraceListenerRecord();
-    // Agent agent = Agent.get()
-    //     .config(config)
-    //     .addListener(recording);
-
-    // if (System.getenv("APPMAP_DEBUG") != null) {
-    //   agent.addListener(new TraceListenerDebug());
-    // }
+    // This is the order class transformers are applied.
+    // The first has highest priority, and last has lowest.
+    AppMapClassTransformer transformer = new AppMapClassTransformer()
+        .addSubTransform(new HttpClassTransformer())
+        .addSubTransform(new SqlClassTransformer())
+        .addSubTransform(new ServletFilterClassTransformer())
+        .addSubTransform(new TraceClassTransformer(config));
 
     inst.addTransformer(transformer);
-
-    // agent.initialize();
 
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         public void run() {

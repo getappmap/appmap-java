@@ -9,9 +9,15 @@ import com.appland.appmap.process.PassThroughReceiver;
 import com.appland.appmap.record.EventFactory;
 import com.appland.appmap.record.RuntimeRecorder;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class EventDispatcher {
+  public interface Callback {
+    void invoke();
+  }
+
   public static final int    EVENT_DISCARD = (1 << 0);
   public static final int     EVENT_RECORD = (1 << 1);
   public static final int EVENT_EXIT_EARLY = (1 << 2);
@@ -22,11 +28,29 @@ public class EventDispatcher {
         put(EventProcessorType.PassThrough, new PassThroughReceiver());
         put(EventProcessorType.Http_Tomcat, new HttpTomcatReceiver());
         put(EventProcessorType.Sql_Jdbc, new SqlJdbcReceiver());
+        put(EventProcessorType.ServletFilter, new ServletFilterReceiver());
       }};
 
   private static Boolean               isEnabled = false;
-  private static EventFactory       eventFactory = EventFactory.get();
   private static RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
+  private static List<Callback>        callbacks = new ArrayList<>();
+
+  public static void invoke(Callback c) {
+    EventDispatcher.callbacks.add(c);
+  }
+
+  public static void runCallbacks() {
+    if (EventDispatcher.callbacks.size() < 1) {
+      return;
+    }
+
+    List<Callback> callbacks = new ArrayList<>(EventDispatcher.callbacks);
+    EventDispatcher.callbacks.clear();
+
+    for (Callback callback : callbacks) {
+      callback.invoke();
+    }
+  }
 
   public static Boolean dispatchEvent(EventProcessorType type, Event event) {
     IEventProcessor eventProcessor = EventDispatcher.eventProcessors.get(type);

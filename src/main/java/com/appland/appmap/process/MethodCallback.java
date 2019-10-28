@@ -42,6 +42,8 @@ public class MethodCallback {
 
       MethodCallback.lock.releaseLock();
 
+      EventDispatcher.runCallbacks();
+
       return continueMethod;
     }
 

@@ -66,9 +66,10 @@ public class HttpTomcatReceiver implements IEventProcessor {
       return false;
     }
 
-    Value requestValue = event.getParameter("req");
-    Value responseValue = event.getParameter("resp");
+    Value requestValue = event.getParameter(0);
+    Value responseValue = event.getParameter(1);
     if (requestValue == null || responseValue == null) {
+      System.out.println("1");
       return false;
     }
 
@@ -76,6 +77,7 @@ public class HttpTomcatReceiver implements IEventProcessor {
     HttpServletResponse res = responseValue.get();
 
     if (req.getRequestURI().equals(recordRoute) == false) {
+      System.out.println("1");
       return false;
     }
 
@@ -85,7 +87,9 @@ public class HttpTomcatReceiver implements IEventProcessor {
         break;
       }
       case "GET": {
+        System.out.println("3");
         this.doGet(req, res);
+        System.out.println("4");
         break;
       }
       case "POST": {
@@ -159,6 +163,12 @@ public class HttpTomcatReceiver implements IEventProcessor {
 
   @Override
   public int processEvent(Event event) {
+    Value rr = event.getParameter("req");
+    if (rr != null) {
+      HttpServletRequest request = event.getParameter("req").get();
+      System.out.printf("got %s %s\n", request.getMethod(), request.getRequestURI());
+    }
+
     if (this.handleRequest(event)) {
       return (EventDispatcher.EVENT_DISCARD | EventDispatcher.EVENT_EXIT_EARLY);
     }

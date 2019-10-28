@@ -5,4 +5,5 @@ public enum EventProcessorType {
   PassThrough,
   Http_Tomcat,
   Sql_Jdbc,
+  ServletFilter,
 }
