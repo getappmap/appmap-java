@@ -78,7 +78,7 @@ public class App implements Runnable {
           try {
             System.err.print("writing data to appmap.json... ");
             PrintWriter out = new PrintWriter("appmap.json");
-            out.print(runtimeRecorder.serializeJson());
+            out.print(runtimeRecorder.dumpJson());
             out.close();
 
             System.err.print("done.\n");
