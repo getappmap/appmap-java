@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+# run smoke tests
+set -e
+
+IMAGE_NAME=appmap-test
+IMAGE_TAG=latest
+
+docker build \
+  -t "${IMAGE_NAME}:${IMAGE_TAG}" \
+  -f test/Dockerfile \
+  $(pwd)
+
+printf '\n=== begin tests ===\n'
+docker run \
+  --rm \
+  "${IMAGE_NAME}:${IMAGE_TAG}"

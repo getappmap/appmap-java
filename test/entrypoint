@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+java -javaagent:/appmap.jar -jar /petclinic.jar &>/dev/null &
+JVM_PID=$!
+
+export WS_URL="http://localhost:8080"
+
+printf 'getting set up'
+while [ -z "$(curl -sI "${WS_URL}" | grep 'HTTP/1.1 200')" ]; do
+  printf '.'
+  sleep 1
+done
+printf ' ok\n\n'
+
+bats /tests/*.bats
+
+kill ${JVM_PID}
