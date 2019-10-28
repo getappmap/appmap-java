@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
-public class HttpTomcatReceiver implements IEventProcessor {
+public class HttpServletReceiver implements IEventProcessor {
   private static final String recordRoute = "/_appmap/record";
   private static final RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
 
@@ -104,30 +104,6 @@ public class HttpTomcatReceiver implements IEventProcessor {
     return true;
   }
 
-  private void injectHtml(Event event) {
-    if (event.event.equals("return") == false) {
-      return;
-    }
-
-    Value responseValue = event.getParameter("resp");
-    if (responseValue == null) {
-      return;
-    }
-
-    HttpServletResponse res = responseValue.get();
-    if (res.getContentType().startsWith("text/html;") == false) {
-      return;
-    }
-
-    // Read the current response
-    //   -> we may need to proxy access to the buffer to do this... all "writes" would be written
-    //      to our proxy buffer, parsed by us, then we'd write everything back into the real buffer
-    //      once we've finished everything we need to do. AFAIK there's no reliable way of
-    //      recovering bytes written to a writer, nonetheless re-ordering them.
-    // Parse the HTML
-    // Inject HTML/CSS/JS
-  }
-
   private int onMethodInvocation(Event event) {
     Value requestParam = event.popParameter("req");
     if (requestParam == null) {
@@ -163,12 +139,6 @@ public class HttpTomcatReceiver implements IEventProcessor {
 
   @Override
   public int processEvent(Event event) {
-    Value rr = event.getParameter("req");
-    if (rr != null) {
-      HttpServletRequest request = event.getParameter("req").get();
-      System.out.printf("got %s %s\n", request.getMethod(), request.getRequestURI());
-    }
-
     if (this.handleRequest(event)) {
       return (EventDispatcher.EVENT_DISCARD | EventDispatcher.EVENT_EXIT_EARLY);
     }

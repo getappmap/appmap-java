@@ -2,11 +2,10 @@ package com.appland.appmap.process;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.EventProcessorType;
-import com.appland.appmap.process.HttpTomcatReceiver;
+import com.appland.appmap.process.HttpServletReceiver;
 import com.appland.appmap.process.NullReceiver;
-import com.appland.appmap.process.SqlJdbcReceiver;
 import com.appland.appmap.process.PassThroughReceiver;
-import com.appland.appmap.record.EventFactory;
+import com.appland.appmap.process.SqlJdbcReceiver;
 import com.appland.appmap.record.RuntimeRecorder;
 
 import java.util.ArrayList;
@@ -26,8 +25,8 @@ public class EventDispatcher {
       new HashMap<>() {{
         put(EventProcessorType.Null, new NullReceiver());
         put(EventProcessorType.PassThrough, new PassThroughReceiver());
-        put(EventProcessorType.Http_Tomcat, new HttpTomcatReceiver());
-        put(EventProcessorType.Sql_Jdbc, new SqlJdbcReceiver());
+        put(EventProcessorType.HttpServlet, new HttpServletReceiver());
+        put(EventProcessorType.SqlJdbc, new SqlJdbcReceiver());
         put(EventProcessorType.ServletFilter, new ServletFilterReceiver());
       }};
 

@@ -9,15 +9,14 @@ import java.util.HashSet;
 import javassist.CtBehavior;
 import javassist.CtClass;
 
-public class HttpClassTransformer extends SelectiveClassFileTransformer {
+public class HttpServletClassTransformer extends SelectiveClassFileTransformer {
   private static final ClassProcessorInfo httpClasses = new ClassProcessorInfo()
       .addClass("javax.servlet.http.HttpServlet",
         new BehaviorInfo("service")
           .addParam("javax.servlet.http.HttpServletRequest")
-          .addParam("javax.servlet.http.HttpServletResponse")
-          .processedBy(EventProcessorType.Http_Tomcat));
+          .addParam("javax.servlet.http.HttpServletResponse"));
 
-  public HttpClassTransformer() {
+  public HttpServletClassTransformer() {
     super();
   }
 
@@ -33,6 +32,6 @@ public class HttpClassTransformer extends SelectiveClassFileTransformer {
 
   @Override
   public EventProcessorType getProcessorType(CtBehavior behavior) {
-    return EventProcessorType.Http_Tomcat;
+    return EventProcessorType.HttpServlet;
   }
 }

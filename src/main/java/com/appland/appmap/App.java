@@ -13,7 +13,7 @@ import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.record.RuntimeRecorder;
 import com.appland.appmap.transform.AppMapClassTransformer;
 import com.appland.appmap.transform.SqlClassTransformer;
-import com.appland.appmap.transform.HttpClassTransformer;
+import com.appland.appmap.transform.HttpServletClassTransformer;
 import com.appland.appmap.transform.ServletFilterClassTransformer;
 import com.appland.appmap.transform.TraceClassTransformer;
 
@@ -54,9 +54,9 @@ public class App implements Runnable {
     // This is the order class transformers are applied.
     // The first has highest priority, and last has lowest.
     AppMapClassTransformer transformer = new AppMapClassTransformer()
-        .addSubTransform(new HttpClassTransformer())
-        .addSubTransform(new SqlClassTransformer())
+        .addSubTransform(new HttpServletClassTransformer())
         .addSubTransform(new ServletFilterClassTransformer())
+        .addSubTransform(new SqlClassTransformer())
         .addSubTransform(new TraceClassTransformer(config));
 
     inst.addTransformer(transformer);

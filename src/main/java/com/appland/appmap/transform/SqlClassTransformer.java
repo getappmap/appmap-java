@@ -32,6 +32,6 @@ public class SqlClassTransformer extends SelectiveClassFileTransformer {
 
   @Override
   public EventProcessorType getProcessorType(CtBehavior behavior) {
-    return EventProcessorType.Sql_Jdbc;
+    return EventProcessorType.SqlJdbc;
   }
 }
