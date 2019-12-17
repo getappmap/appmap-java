@@ -1,10 +1,11 @@
-FROM openjdk:12 AS build
+FROM openjdk:9 AS build
 
 # Build the Spring "Pet Clinic" sample application
 WORKDIR /
 
 RUN mkdir -p /build \
-    && yum install -y git \
+    && apt-get update
+    && apt-get install -y git \
     && git clone https://github.com/spring-projects/spring-petclinic.git \
     && cd spring-petclinic \
     && ./mvnw package -Dmaven.test.skip=true \
@@ -22,7 +23,7 @@ ADD src                 ./src/
 RUN ./gradlew --no-daemon build-release \
     && mv build/libs/*.jar /build/appmap.jar
 
-FROM openjdk:12-alpine
+FROM openjdk:13-alpine
 LABEL maintainer="Dustin Byrne <dustin@app.land>"
 
 RUN apk add -U bash curl git jq \
