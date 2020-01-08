@@ -37,7 +37,6 @@ dependencies {
 
 application {
     mainClassName = "com.appland.appmap.AppTest"
-
 }
 
 tasks.withType<Jar> {
