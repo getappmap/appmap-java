@@ -10,6 +10,7 @@ import org.yaml.snakeyaml.Yaml;
 public class AppMapConfig {
   public String name;
   public AppMapPackage[] packages;
+  private static AppMapConfig singleton;
 
   public static AppMapConfig load(File configFile) {
     InputStream inputStream = null;
@@ -22,7 +23,21 @@ public class AppMapConfig {
     }
 
     Yaml yaml = new Yaml();
-    return yaml.loadAs(inputStream, AppMapConfig.class);
-    // return yaml.<AppMapConfig>load(inputStream);
+    singleton = yaml.loadAs(inputStream, AppMapConfig.class);
+    return singleton;
+  }
+
+  public static AppMapConfig get() {
+    return singleton;
+  }
+
+  public Boolean includes(String className) {
+    for (AppMapPackage pkg : this.packages) {
+      if (pkg.includes(className)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

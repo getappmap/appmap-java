@@ -11,11 +11,7 @@ import com.appland.appmap.commands.Record;
 import com.appland.appmap.commands.Upload;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.record.RuntimeRecorder;
-import com.appland.appmap.transform.AppMapClassTransformer;
-import com.appland.appmap.transform.SqlClassTransformer;
-import com.appland.appmap.transform.HttpServletClassTransformer;
-import com.appland.appmap.transform.ServletFilterClassTransformer;
-import com.appland.appmap.transform.TraceClassTransformer;
+import com.appland.appmap.transform.ClassFileTransformer;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -46,20 +42,11 @@ public class App implements Runnable {
   }
 
   public static void premain(String agentArgs, Instrumentation inst) {
-    AppMapConfig config = AppMapConfig.load(new File("appmap.yml"));
-    if (config == null) {
+    if (AppMapConfig.load(new File("appmap.yml")) == null) {
       return;
     }
 
-    // This is the order class transformers are applied.
-    // The first has highest priority, and last has lowest.
-    AppMapClassTransformer transformer = new AppMapClassTransformer()
-        .addSubTransform(new HttpServletClassTransformer())
-        .addSubTransform(new ServletFilterClassTransformer())
-        .addSubTransform(new SqlClassTransformer())
-        .addSubTransform(new TraceClassTransformer(config));
-
-    inst.addTransformer(transformer);
+    inst.addTransformer(new ClassFileTransformer());
 
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         public void run() {
