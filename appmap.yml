@@ -1,5 +1,6 @@
 name: AppMap - Java
 packages:
-- path: com.appland
+- path: com.appland.appmap
   exclude:
-    - com.appland.appmap.agent
+  # hooking process classes will result in a stack overflow
+  - com.appland.appmap.process
