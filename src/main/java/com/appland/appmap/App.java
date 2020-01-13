@@ -51,19 +51,11 @@ public class App implements Runnable {
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         public void run() {
           RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
-
-          try {
-            System.err.print("writing data to appmap.json... ");
-            PrintWriter out = new PrintWriter("appmap.json");
-            out.print(runtimeRecorder.dumpJson());
-            out.close();
-
-            System.err.print("done.\n");
-          } catch (FileNotFoundException e) {
-            System.err.printf("failed: %s\n", e.getMessage());
-          } catch (Exception e) {
-            System.err.printf("failed: %s\n", e.getMessage());
+          if (runtimeRecorder.isEmpty()) {
+            return;
           }
+
+          runtimeRecorder.flushToFile("appmap.json");
         }
     }, "Shutdown-thread"));
   }

@@ -3,12 +3,6 @@ package com.appland.appmap.transform;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.EventProcessorType;
 import com.appland.appmap.record.EventFactory;
-import com.appland.appmap.transform.metadata.BehaviorProcessorPair;
-import com.appland.appmap.transform.metadata.Hookable;
-import com.appland.appmap.transform.metadata.HookableClassName;
-import com.appland.appmap.transform.metadata.HookableConfigPath;
-import com.appland.appmap.transform.metadata.HookableInterfaceName;
-import com.appland.appmap.transform.metadata.HookableMethodSignature;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -48,12 +42,14 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         new HookableMethodSignature("prepareStatement").processedBy(EventProcessorType.SqlJdbc)
       ),
 
-      new HookableInterfaceName("java.sql.Statement", 
+      new HookableInterfaceName("java.sql.Statement",
         new HookableMethodSignature("addBatch").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("execute").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("executeQuery").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("executeUpdate").processedBy(EventProcessorType.SqlJdbc)
       ),
+
+      new HookableAnnotated("org.junit.Test").processedBy(EventProcessorType.ToggleRecord),
 
       new HookableConfigPath().processedBy(EventProcessorType.PassThrough)
   );
@@ -79,6 +75,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       for (BehaviorProcessorPair pair : hooks.getBehaviors(ctClass)) {
         final CtBehavior behavior = pair.getBehavior();
+        System.err.println(behavior.getName());
         Integer behaviorOrdinal = eventFactory.register(behavior);
         Event eventTemplate = eventFactory.getTemplate(behaviorOrdinal);
 
@@ -158,7 +155,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     behavior.insertAfter(buildPostHook(behavior, behaviorOrdinal, eventTemplate, processorType));
 
     if (System.getenv("APPMAP_DEBUG") != null) {
-      System.out.printf("Hooking %s.%s with %s\n",
+      System.err.printf("Hooking %s.%s with %s\n",
           behavior.getDeclaringClass().getName(),
           behavior.getName(),
           processorType);

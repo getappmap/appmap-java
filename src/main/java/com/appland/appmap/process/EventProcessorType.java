@@ -6,4 +6,5 @@ public enum EventProcessorType {
   HttpServlet,
   SqlJdbc,
   ServletFilter,
+  ToggleRecord,
 }

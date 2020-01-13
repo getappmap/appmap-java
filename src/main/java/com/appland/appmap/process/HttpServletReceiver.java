@@ -16,12 +16,12 @@ public class HttpServletReceiver implements IEventProcessor {
   private static final RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
 
   private void doDelete(HttpServletRequest req, HttpServletResponse res) {
-    if (EventDispatcher.isEnabled() == false) {
+    if (!runtimeRecorder.isRecording()) {
       res.setStatus(HttpServletResponse.SC_CONFLICT);
       return;
     }
 
-    String json = runtimeRecorder.dumpJson();
+    String json = runtimeRecorder.flushJson();
     res.setContentType("application/json");
     res.setContentLength(json.length());
 
@@ -33,13 +33,13 @@ public class HttpServletReceiver implements IEventProcessor {
       System.err.printf("failed to write response: %s\n", e.getMessage());
     }
 
-    EventDispatcher.setEnabled(false);
+    runtimeRecorder.setRecording(false);
   }
 
   private void doGet(HttpServletRequest req, HttpServletResponse res) {
     res.setStatus(HttpServletResponse.SC_OK);
 
-    String responseJson = String.format("{\"enabled\":%b}", EventDispatcher.isEnabled());
+    String responseJson = String.format("{\"enabled\":%b}", runtimeRecorder.isRecording());
     res.setContentType("application/json");
     res.setContentLength(responseJson.length());
 
@@ -53,12 +53,12 @@ public class HttpServletReceiver implements IEventProcessor {
   }
 
   private void doPost(HttpServletRequest req, HttpServletResponse res) {
-    if (EventDispatcher.isEnabled()) {
+    if (runtimeRecorder.isRecording()) {
       res.setStatus(HttpServletResponse.SC_CONFLICT);
       return;
     }
 
-    EventDispatcher.setEnabled(true);
+    runtimeRecorder.setRecording(true);
   }
 
   private Boolean handleRequest(Event event) {
@@ -69,7 +69,6 @@ public class HttpServletReceiver implements IEventProcessor {
     Value requestValue = event.getParameter(0);
     Value responseValue = event.getParameter(1);
     if (requestValue == null || responseValue == null) {
-      System.out.println("1");
       return false;
     }
 
@@ -77,7 +76,6 @@ public class HttpServletReceiver implements IEventProcessor {
     HttpServletResponse res = responseValue.get();
 
     if (req.getRequestURI().equals(recordRoute) == false) {
-      System.out.println("1");
       return false;
     }
 
@@ -87,9 +85,7 @@ public class HttpServletReceiver implements IEventProcessor {
         break;
       }
       case "GET": {
-        System.out.println("3");
         this.doGet(req, res);
-        System.out.println("4");
         break;
       }
       case "POST": {
