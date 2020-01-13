@@ -9,8 +9,8 @@ import org.yaml.snakeyaml.Yaml;
 
 public class AppMapConfig {
   public String name;
-  public AppMapPackage[] packages;
-  private static AppMapConfig singleton;
+  public AppMapPackage[] packages = new AppMapPackage[0];
+  private static AppMapConfig singleton = new AppMapConfig();
 
   public static AppMapConfig load(File configFile) {
     InputStream inputStream = null;
@@ -23,7 +23,7 @@ public class AppMapConfig {
     }
 
     Yaml yaml = new Yaml();
-    singleton = yaml.loadAs(inputStream, AppMapConfig.class);
+    AppMapConfig.singleton = yaml.loadAs(inputStream, AppMapConfig.class);
     return singleton;
   }
 

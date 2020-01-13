@@ -28,9 +28,9 @@ public class EventDispatcher {
         put(EventProcessorType.HttpServlet, new HttpServletReceiver());
         put(EventProcessorType.SqlJdbc, new SqlJdbcReceiver());
         put(EventProcessorType.ServletFilter, new ServletFilterReceiver());
+        put(EventProcessorType.ToggleRecord, new ToggleRecordReceiver());
       }};
 
-  private static Boolean               isEnabled = false;
   private static RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
   private static List<Callback>        callbacks = new ArrayList<>();
 
@@ -57,26 +57,23 @@ public class EventDispatcher {
       return true;
     }
 
-    // track if we were enabled before processing this event. if the flag changes, we don't want
-    // to record this event.
-    Boolean wasEnabled = EventDispatcher.isEnabled();
+    if (System.getenv("APPMAP_DEBUG") != null) {
+      System.err.printf("%s %s#%s -> %s\n",
+          event.event,
+          event.definedClass,
+          event.methodId,
+          eventProcessor.getClass().getName());
+    }
+
     int eventAction = eventProcessor.processEvent(event);
 
     Boolean recordEvent = (eventAction & EventDispatcher.EVENT_RECORD) != 0;
     Boolean continueExecution = (eventAction & EventDispatcher.EVENT_EXIT_EARLY) == 0;
 
-    if (recordEvent && wasEnabled == true) {
+    if (recordEvent) {
       EventDispatcher.runtimeRecorder.recordEvent(event);
     }
 
     return continueExecution;
-  }
-
-  public static Boolean isEnabled() {
-    return EventDispatcher.isEnabled;
-  }
-
-  public static void setEnabled(Boolean val) {
-    EventDispatcher.isEnabled = val;
   }
 }

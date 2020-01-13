@@ -1,4 +1,4 @@
-package com.appland.appmap.transform.metadata;
+package com.appland.appmap.transform;
 
 import com.appland.appmap.process.EventProcessorType;
 import java.util.ArrayList;

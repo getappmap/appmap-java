@@ -1,4 +1,4 @@
-package com.appland.appmap.transform.metadata;
+package com.appland.appmap.transform;
 
 import com.appland.appmap.process.EventProcessorType;
 import java.util.ArrayList;
@@ -25,8 +25,7 @@ public class Hookable {
     for (Hookable hookable : this.children) {
       Boolean hasChildren = (hookable.children.size() > 0);
       if (hasChildren && hookable.match(classType)) {
-        List<BehaviorProcessorPair> childBehaviors = hookable.getBehaviors(classType);
-        pairs.addAll(childBehaviors);
+        pairs.addAll(hookable.getBehaviors(classType));
       }
 
       for (CtBehavior behavior : classType.getDeclaredMethods()) {
