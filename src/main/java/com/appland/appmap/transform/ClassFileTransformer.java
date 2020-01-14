@@ -50,6 +50,9 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       ),
 
       new HookableAnnotated("org.junit.Test").processedBy(EventProcessorType.ToggleRecord),
+      new HookableClassName("org.elasticsearch.test.ESTestCase",
+        new HookableAllMethods().processedBy(EventProcessorType.ToggleRecord)
+      ),
 
       new HookableConfigPath().processedBy(EventProcessorType.PassThrough)
   );
@@ -64,7 +67,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           Class redefiningClass,
                           ProtectionDomain domain,
                           byte[] bytes) throws IllegalClassFormatException {
-    ClassPool classPool = new ClassPool();
+    ClassPool classPool = ClassPool.getDefault();
     classPool.appendClassPath(new LoaderClassPath(loader));
 
     try {
