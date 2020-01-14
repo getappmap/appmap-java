@@ -28,9 +28,11 @@ public class Hookable {
         pairs.addAll(hookable.getBehaviors(classType));
       }
 
-      for (CtBehavior behavior : classType.getDeclaredMethods()) {
-        if (hookable.match(behavior)) {
-          pairs.add(new BehaviorProcessorPair(behavior, hookable.getProcessorType()));
+      if (!hasChildren) {
+        for (CtBehavior behavior : classType.getDeclaredMethods()) {
+          if (hookable.match(behavior)) {
+            pairs.add(new BehaviorProcessorPair(behavior, hookable.getProcessorType()));
+          }
         }
       }
     }
@@ -44,11 +46,11 @@ public class Hookable {
   }
 
   protected Boolean match(CtClass classType) {
-    return false;
+    return true;
   }
 
   protected Boolean match(CtBehavior behavior) {
-    return false;
+    return true;
   }
 
   private EventProcessorType getProcessorType() {
