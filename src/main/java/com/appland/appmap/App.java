@@ -42,7 +42,10 @@ public class App implements Runnable {
   }
 
   public static void premain(String agentArgs, Instrumentation inst) {
+    System.err.println("AppMap: loaded");
+
     if (AppMapConfig.load(new File("appmap.yml")) == null) {
+      System.err.println("AppMap: failed to load appmap.yml");
       return;
     }
 
