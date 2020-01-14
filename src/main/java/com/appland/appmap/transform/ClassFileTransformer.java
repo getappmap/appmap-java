@@ -75,7 +75,6 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       for (BehaviorProcessorPair pair : hooks.getBehaviors(ctClass)) {
         final CtBehavior behavior = pair.getBehavior();
-        System.err.println(behavior.getName());
         Integer behaviorOrdinal = eventFactory.register(behavior);
         Event eventTemplate = eventFactory.getTemplate(behaviorOrdinal);
 
