@@ -25,6 +25,8 @@ import picocli.CommandLine.Command;
 })
 public class App implements Runnable {
 
+  private final static String DEFAULT_CONFIG_FILE = "appmap.yml";
+
   @Override public void run() { }
 
   /**
@@ -44,8 +46,13 @@ public class App implements Runnable {
   public static void premain(String agentArgs, Instrumentation inst) {
     System.err.println("AppMap: loaded");
 
-    if (AppMapConfig.load(new File("appmap.yml")) == null) {
-      System.err.println("AppMap: failed to load appmap.yml");
+    String appmapPath = System.getProperty("appmap.config.file");
+    if (appmapPath == null) {
+      appmapPath = DEFAULT_CONFIG_FILE;
+    }
+
+    if (AppMapConfig.load(new File(appmapPath)) == null) {
+      System.err.printf("AppMap: failed to load config %s\n", appmapPath);
       return;
     }
 

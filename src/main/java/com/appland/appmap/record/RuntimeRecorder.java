@@ -6,6 +6,7 @@ import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.nio.file.Paths;
 import java.util.Vector;
 
 // RuntimeRecorder is responsible for recording events and classmap objects
@@ -14,15 +15,22 @@ import java.util.Vector;
 // parent
 public class RuntimeRecorder {
   private static RuntimeRecorder instance = new RuntimeRecorder();
+  private final static String DEFAULT_OUTPUT_DIRECTORY = "./";
 
   private Boolean recording = false;
   private String recordingName = "appmap.json";
+  private String outputDirectory = DEFAULT_OUTPUT_DIRECTORY;
 
   private CodeObjectTree classMap = new CodeObjectTree();
   private Vector<Event> events = new Vector<Event>();
   private Object mutex = new Object();
 
-  private RuntimeRecorder() { }
+  private RuntimeRecorder() {
+    String outputDirectory = System.getProperty("appmap.output.directory");
+    if (outputDirectory != null) {
+      this.outputDirectory = outputDirectory;
+    }
+  }
 
   public static RuntimeRecorder get() {
     return RuntimeRecorder.instance;
@@ -68,11 +76,12 @@ public class RuntimeRecorder {
   }
 
   public void flushToFile(String filename) {
+    String finalDestination = Paths.get(this.outputDirectory, filename).toString();
     String json = this.flushJson();
-    System.err.printf("writing data to %s... ", filename);
+    System.err.printf("writing data to %s... ", finalDestination);
 
     try {
-      PrintWriter out = new PrintWriter(filename);
+      PrintWriter out = new PrintWriter(finalDestination);
       out.print(json);
       out.close();
 
