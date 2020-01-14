@@ -36,3 +36,11 @@ test {
 <plugin>
 ```
 
+## System Properties
+`appmap.config.file`  
+specify the path of an `appmap.yml` config file  
+default: _appmap.yml_
+
+`appmap.output.directory`  
+specify the output directory of `appmap.json` files  
+default: _./_
