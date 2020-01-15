@@ -22,14 +22,6 @@ public class HookableConfigPath extends Hookable {
     }
 
     final String className = behavior.getDeclaringClass().getName();
-    // if (className.contains("$")) {
-    //   return false;
-    // }
-
-    if (className.equals("com.appland.appmap.App")) {
-      System.out.println("xxx");
-    }
-
     return AppMapConfig.get().includes(className);
   }
 }

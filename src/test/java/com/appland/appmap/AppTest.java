@@ -4,13 +4,11 @@
 package com.appland.appmap;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
-import com.appland.appmap.commands.Inspect;
 
 public class AppTest {
   @Test
   public void testAppHasAGreeting() {
-    Inspect classUnderTest = new Inspect();
-    classUnderTest.call();
+    SayHello classUnderTest = new SayHello();
+    classUnderTest.hello();
   }
 }

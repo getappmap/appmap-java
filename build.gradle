@@ -12,7 +12,7 @@ plugins {
 }
 
 application {
-  mainClassName = 'com.appland.appmap.App'
+  mainClassName = 'com.appland.appmap.Agent'
 }
 
 repositories {
