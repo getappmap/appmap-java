@@ -26,7 +26,10 @@ public class HookableInterfaceName extends Hookable {
         }
       }
     } catch (NotFoundException e) {
-      // fall through
+      // TODO: May want to handle this exception in a dedicated method, so we
+      // can be sure where the exception has occurred.
+      //
+      // In general, allow this exception to fall through.
     }
 
     return false;
