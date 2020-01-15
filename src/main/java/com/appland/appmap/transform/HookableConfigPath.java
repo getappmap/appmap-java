@@ -9,6 +9,9 @@ import javassist.Modifier;
 import javassist.NotFoundException;
 
 
+/**
+ * HookableConfigPath matches a class if it's listed in the <code>appmap.yaml</code>.
+ */
 public class HookableConfigPath extends Hookable {
   @Override
   protected Boolean match(CtBehavior behavior) {

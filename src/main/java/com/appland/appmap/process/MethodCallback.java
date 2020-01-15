@@ -101,9 +101,7 @@ public class MethodCallback {
     return new Integer(value);
   }
 
-  public static Object boxValue(boolean value) {
-    return new Boolean(value);
-  }
+  public static Object boxValue(boolean value) { return new Boolean(value); }
 
   public static Object boxValue(Object value) {
     return value;

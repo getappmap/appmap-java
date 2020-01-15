@@ -9,6 +9,10 @@ import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 
+/**
+ * Hookable is a base class which is used to decide which code should be instrumented by the AppMap agent. Subclasses
+ * of Hookable implement various strategies, such as matching by class name, interface name, or method signature.
+ */
 public class Hookable {
   private ArrayList<Hookable> children = new ArrayList<Hookable>();
   private EventProcessorType processorType = EventProcessorType.Null;

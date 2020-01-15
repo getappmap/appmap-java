@@ -9,10 +9,10 @@ import java.io.PrintWriter;
 import java.nio.file.Paths;
 import java.util.Vector;
 
-// RuntimeRecorder is responsible for recording events and classmap objects
-//
-// TODO: this class needs to be restricted to a single thread or group of threads with a common
-// parent
+/**
+ * RuntimeRecorder is responsible for recording the classMap and runtime events.
+ */
+// TODO: this class needs to be restricted to a single thread or group of threads with a common parent.
 public class RuntimeRecorder {
   private static RuntimeRecorder instance = new RuntimeRecorder();
   private final static String DEFAULT_OUTPUT_DIRECTORY = "./";

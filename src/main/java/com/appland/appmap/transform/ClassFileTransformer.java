@@ -18,8 +18,14 @@ import javassist.CtMethod;
 import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 
+/**
+ * ClassFileTransformer transforms classes to send callback notifications to com.appland.appmap.process.
+ * Only classes and methods which match the <code>appmap.yml</code> are transformed in this way.
+ */
 public class ClassFileTransformer implements java.lang.instrument.ClassFileTransformer {
   private static final EventFactory eventFactory = EventFactory.get();
+
+  // TODO: Enable appmap.yml to build all these Hookable objects.
   private static final Hookable hooks = new Hookable(
       new HookableInterfaceName("javax.servlet.Filter",
         new HookableMethodSignature("doFilter")

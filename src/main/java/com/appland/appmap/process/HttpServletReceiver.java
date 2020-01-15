@@ -2,17 +2,23 @@ package com.appland.appmap.process;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.output.v1.Value;
-import com.appland.appmap.process.EventDispatcher;
 import com.appland.appmap.record.RuntimeRecorder;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 
+/**
+ * HttpServletReceiver hooks the method <code>javax.servlet.http.HttpServlet#service</code>. If the request
+ * route is the remote recording path, the request is hijacked and interpreted as a remote recording command.
+ * Otherwise, it's recorded as an appmap event, and processed by the application services.
+ *
+ * @see recordRoute
+ */
 public class HttpServletReceiver implements IEventProcessor {
-  private static final String recordRoute = "/_appmap/record";
+  public static final String recordRoute = "/_appmap/record";
   private static final RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
 
   private void doDelete(HttpServletRequest req, HttpServletResponse res) {
