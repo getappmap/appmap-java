@@ -28,19 +28,17 @@ public class Agent {
    * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html">Package java.lang.instrument</a>
    */
   public static void premain(String agentArgs, Instrumentation inst) {
-    System.err.println("AppMap agent is loaded");
-
     String appmapPath = System.getProperty("appmap.config.file");
     if (appmapPath == null) {
       appmapPath = DEFAULT_CONFIG_FILE;
     }
 
-    System.err.println("Reading appmap configuration from " + appmapPath);
-
     if (AppMapConfig.load(new File(appmapPath)) == null) {
       System.err.printf("AppMap: failed to load config %s\n", appmapPath);
       return;
     }
+
+    System.err.printf("AppMap: agent loaded using config %s\n", appmapPath);
 
     inst.addTransformer(new ClassFileTransformer());
 

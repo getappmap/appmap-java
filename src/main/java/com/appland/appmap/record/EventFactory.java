@@ -107,7 +107,7 @@ public class EventFactory {
     return null;
   }
 
-  public Event create(Integer templateId, EventAction eventAction) {
+  public Event create(Integer templateId, EventAction eventAction) throws UnknownEventException {
     Event event = null;
 
     try {
@@ -122,7 +122,7 @@ public class EventFactory {
         }
       }
     } catch (ArrayIndexOutOfBoundsException e) {
-      System.err.println(e.getMessage());
+      throw new UnknownEventException(String.format("unknown template for ordinal %d", templateId));
     }
     
     return event;
