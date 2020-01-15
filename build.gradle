@@ -7,12 +7,8 @@
  */
 
 plugins {
-  id 'application'
+  id 'java'
   id 'com.github.johnrengelman.shadow' version '5.2.0'
-}
-
-application {
-  mainClassName = 'com.appland.appmap.Agent'
 }
 
 repositories {
@@ -21,8 +17,6 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.google.guava:guava:28.0-jre'
-  implementation 'info.picocli:picocli:4.0.4'
   implementation 'org.yaml:snakeyaml:1.25'
   implementation 'com.alibaba:fastjson:1.2.61'
   implementation 'org.javassist:javassist:3.25.0-GA'
@@ -36,7 +30,7 @@ dependencies {
 
 jar {
   manifest {
-    attributes 'Premain-Class': application.mainClassName
+    attributes 'Premain-Class': 'com.appland.appmap.Agent'
   }
 }
 
