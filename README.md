@@ -44,3 +44,10 @@ default: _appmap.yml_
 `appmap.output.directory`  
 specify the output directory of `appmap.json` files  
 default: _./_
+
+
+# Build status
+
+[![Build Status](https://travis-ci.com/applandinc/appmap-java.svg?branch=master)](https://travis-ci.org/applandinc/appmap-java)
+
+
