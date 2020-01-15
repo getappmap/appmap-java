@@ -66,7 +66,14 @@ public class Value {
 
   public Value freeze() {
     if (this.value != null) {
-      this.value = this.value.toString();
+      try {
+        this.value = this.value.toString();
+      } catch(RuntimeException e) {
+        // it's possible our value object has been partially cleaned up and
+        // calls toString on a null object or the operation is otherwise
+        // unsupported
+        this.value = "< invalid >";
+      }
     }
     return this;
   }
