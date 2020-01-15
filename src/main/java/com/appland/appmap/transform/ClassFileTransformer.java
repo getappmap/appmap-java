@@ -59,6 +59,9 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       new HookableClassName("org.elasticsearch.test.ESTestCase",
         new HookableAllMethods().processedBy(EventProcessorType.ToggleRecord)
       ),
+      new HookableClassName("org.elasticsearch.test.ESIntegTestCase",
+        new HookableAllMethods().processedBy(EventProcessorType.ToggleRecord)
+      ),
 
       new HookableConfigPath().processedBy(EventProcessorType.PassThrough)
   );
