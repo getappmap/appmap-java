@@ -16,9 +16,7 @@ public class ToggleRecordReceiver implements IEventProcessor {
       runtimeRecorder.setRecordingName(event.methodId);
     } else {
       runtimeRecorder.setRecording(false);
-      if (!runtimeRecorder.isEmpty()) {
-        runtimeRecorder.flushToFile();
-      }
+      runtimeRecorder.flushToFile();
     }
 
     return EventDispatcher.EVENT_DISCARD;
