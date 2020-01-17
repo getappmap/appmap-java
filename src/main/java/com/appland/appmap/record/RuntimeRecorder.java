@@ -32,7 +32,7 @@ public class RuntimeRecorder {
     }
   }
 
-  public static RuntimeRecorder get() {
+  public static RuntimeRecorder getInstance() {
     return RuntimeRecorder.instance;
   }
 

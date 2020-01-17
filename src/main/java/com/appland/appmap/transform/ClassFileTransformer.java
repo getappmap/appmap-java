@@ -1,5 +1,6 @@
 package com.appland.appmap.transform;
 
+import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.EventProcessorType;
 import com.appland.appmap.record.EventFactory;
@@ -116,7 +117,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     if (eventTemplate.parameters.size() > 0) {
       paramArray = eventTemplate.parameters
           .stream()
-          .map(p -> String.format("com.appland.appmap.process.MethodCallback.boxValue(%s)", p.name))
+          .map(p -> String.format("com.appland.appmap.process.HookedBehavior.boxValue(%s)", p.name))
           .collect(Collectors.joining(", ", "new Object[]{ ", " }"));
     }
 
@@ -138,7 +139,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
 
     return String.format("if (%s(new Integer(%d), %s.%s, %s, %s) == false) { %s }",
-        "com.appland.appmap.process.MethodCallback.onMethodInvocation",
+        "com.appland.appmap.process.HookedBehavior.onEnter",
         behaviorOrdinal,
         "com.appland.appmap.process.EventProcessorType",
         eventProcessor,
@@ -152,11 +153,11 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                                       Event eventTemplate,
                                       EventProcessorType processorType) {
     return String.format("%s(new Integer(%d), %s.%s, %s($_));",
-        "com.appland.appmap.process.MethodCallback.onMethodReturn",
+        "com.appland.appmap.process.HookedBehavior.onExit",
         behaviorOrdinal,
         "com.appland.appmap.process.EventProcessorType",
         processorType,
-        "com.appland.appmap.process.MethodCallback.boxValue");
+        "com.appland.appmap.process.HookedBehavior.boxValue");
   }
 
   public void transformBehavior(CtBehavior behavior,
@@ -172,5 +173,10 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           behavior.getName(),
           processorType);
     }
+
+    // TODO
+    // record the code behavior
+    // CodeObject rootObject = CodeObject.createTree(behavior);
+    // RuntimeRecorder.get().recordCodeObject(rootObject);
   }
 }

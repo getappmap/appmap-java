@@ -12,17 +12,21 @@ import com.appland.appmap.record.UnknownEventException;
 import java.util.HashMap;
 import javassist.CtBehavior;
 
-public class MethodCallback {
+public class HookedBehavior {
   public static ThreadLock lock = new ThreadLock();
   private static EventFactory eventFactory = EventFactory.get();
   private static RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
+  private static HashMap<EventProcessorType, IEventProcessor> eventProcessors =
+      new HashMap<>() {{
+        put(EventProcessorType.Null, new NullReceiver());
+        put(EventProcessorType.PassThrough, new PassThroughReceiver());
+        put(EventProcessorType.HttpServlet, new HttpServletReceiver());
+        put(EventProcessorType.SqlJdbc, new SqlJdbcReceiver());
+        put(EventProcessorType.ServletFilter, new ServletFilterReceiver());
+        put(EventProcessorType.ToggleRecord, new ToggleRecordReceiver());
+      }};
 
-  public static void onBehaviorTransformed(CtBehavior behavior) {
-    CodeObject rootObject = CodeObject.createTree(behavior);
-    MethodCallback.runtimeRecorder.recordCodeObject(rootObject);
-  }
-
-  public static boolean onMethodInvocation(Integer behaviorOrdinal,
+  public static boolean onEnter(Integer behaviorOrdinal,
                                         EventProcessorType eventProcessor,
                                         Object selfValue,
                                         Object[] params) {
@@ -59,7 +63,7 @@ public class MethodCallback {
     return true;
   }
 
-  public static void onMethodReturn(Integer behaviorOrdinal,
+  public static void onExit(Integer behaviorOrdinal,
                                     EventProcessorType eventProcessor,
                                     Object returnValue) {
     if (MethodCallback.lock.tryLock()) {
