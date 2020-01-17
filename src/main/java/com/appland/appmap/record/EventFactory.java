@@ -62,20 +62,15 @@ public class EventFactory {
       Value[] params = new Value[parameterTypes.length];
 
       for (int i = 0; i < numberLocals; ++i) {
+        // parameters are not neccesarily the first local variables
         Integer localIndex = locals.index(i);
-        if (localIndex > parameterTypes.length) {
+        if (localIndex >= parameterTypes.length) {
           continue;
         }
 
-        if (event.isStatic == false) {
-          if (localIndex == 0) {
-            // index 0 is `this` for nonstatic methods
-            // we don't need it
-            continue;
-          } else {
-            // shift back by one to account for `this`
-            localIndex -= 1;
-          }
+        if (!event.isStatic && localIndex == 0) {
+          // index 0 is `this` for nonstatic methods
+          // we don't need it
         }
 
         Value param = new Value()
@@ -88,11 +83,6 @@ public class EventFactory {
 
       for (int i = 0; i < params.length; ++i) {
         Value param = params[i];
-        // if (TraceUtil.isDebugMode()) {
-        //   System.out.printf("- %s\t%s\n",
-        //       param.classType,
-        //       param.name);
-        // }
         event.addParameter(param);
       }
     }
