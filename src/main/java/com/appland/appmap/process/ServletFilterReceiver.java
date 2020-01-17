@@ -3,8 +3,7 @@ package com.appland.appmap.process;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.output.v1.HttpServerRequest;
 import com.appland.appmap.output.v1.Value;
-import com.appland.appmap.process.EventDispatcher;
-import com.appland.appmap.record.RuntimeRecorder;
+import com.appland.appmap.record.Recorder;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
@@ -19,7 +18,7 @@ public class ServletFilterReceiver implements IEventProcessor {
   private static final String recordRoute = "/_appmap/record";
 
   @Override
-  public int processEvent(Event event) {
+  public Boolean processEvent(Event event, ThreadLock lock) {
     if (event.event.equals("call")) {
       Value   reqValue = event.getParameter(0);
       Value   resValue = event.getParameter(1);
@@ -27,7 +26,7 @@ public class ServletFilterReceiver implements IEventProcessor {
 
       if (reqValue == null || resValue == null || chainValue == null) {
         System.err.println("failed to handle servlet filter chain");
-        return EventDispatcher.EVENT_DISCARD;
+        return true;
       }
 
       HttpServletRequest  req = reqValue.get();
@@ -35,17 +34,17 @@ public class ServletFilterReceiver implements IEventProcessor {
       FilterChain chain = chainValue.get();
 
       if (req.getRequestURI().equals(ServletFilterReceiver.recordRoute)) {
-        EventDispatcher.invoke(() -> {
-          try {
-            chain.doFilter(req, res);
-          } catch (Throwable e) {
-            System.err.printf("failed to override servlet filter: %s\n", e.getMessage());
-          }
-        });
-        return EventDispatcher.EVENT_DISCARD | EventDispatcher.EVENT_EXIT_EARLY;
+        try {
+          // Allow the next filter in the chain to be handled by releasing the lock on this thread
+          lock.releaseLock();
+          chain.doFilter(req, res);
+        } catch (Throwable e) {
+          System.err.printf("failed to override servlet filter: %s\n", e.getMessage());
+        }
+        return false;
       }
     }
 
-    return EventDispatcher.EVENT_DISCARD;
+    return true;
   }
 }

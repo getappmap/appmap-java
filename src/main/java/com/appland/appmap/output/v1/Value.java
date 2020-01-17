@@ -68,7 +68,7 @@ public class Value {
     if (this.value != null) {
       try {
         this.value = this.value.toString();
-      } catch(RuntimeException e) {
+      } catch(Throwable e) {
         // it's possible our value object has been partially cleaned up and
         // calls toString on a null object or the operation is otherwise
         // unsupported
