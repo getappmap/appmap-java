@@ -44,54 +44,57 @@ public class EventFactory {
     LocalVariableAttribute locals = (LocalVariableAttribute) codeAttribute.getAttribute(
         javassist.bytecode.LocalVariableAttribute.tag);
 
-    Integer numberLocals = locals.tableLength();
-    CtClass[] parameterTypes = new CtClass[]{};
+    // if a method has no local variables, this attribute will be NULL
+    if (locals != null) {
+      Integer numberLocals = locals.tableLength();
+      CtClass[] parameterTypes = new CtClass[]{};
 
-    try {
-      parameterTypes = behavior.getParameterTypes();
-    } catch (NotFoundException e) {
-      System.err.println(
-          String.format("failed to get parameter types for %s.%s: %s",
-              event.definedClass,
-              event.methodId,
-              e.getMessage()));
-    }
-
-    Value[] params = new Value[parameterTypes.length];
-
-    for (int i = 0; i < numberLocals; ++i) {
-      Integer localIndex = locals.index(i);
-      if (localIndex > parameterTypes.length) {
-        continue;
+      try {
+        parameterTypes = behavior.getParameterTypes();
+      } catch (NotFoundException e) {
+        System.err.println(
+            String.format("failed to get parameter types for %s.%s: %s",
+                event.definedClass,
+                event.methodId,
+                e.getMessage()));
       }
 
-      if (event.isStatic == false) {
-        if (localIndex == 0) {
-          // index 0 is `this` for nonstatic methods
-          // we don't need it
+      Value[] params = new Value[parameterTypes.length];
+
+      for (int i = 0; i < numberLocals; ++i) {
+        Integer localIndex = locals.index(i);
+        if (localIndex > parameterTypes.length) {
           continue;
-        } else {
-          // shift back by one to account for `this`
-          localIndex -= 1;
         }
+
+        if (event.isStatic == false) {
+          if (localIndex == 0) {
+            // index 0 is `this` for nonstatic methods
+            // we don't need it
+            continue;
+          } else {
+            // shift back by one to account for `this`
+            localIndex -= 1;
+          }
+        }
+
+        Value param = new Value()
+            .setClassType(parameterTypes[localIndex].getName())
+            .setName(locals.variableName(i))
+            .setKind("req");
+
+        params[localIndex] = param;
       }
 
-      Value param = new Value()
-          .setClassType(parameterTypes[localIndex].getName())
-          .setName(locals.variableName(i))
-          .setKind("req");
-
-      params[localIndex] = param;
-    }
-
-    for (int i = 0; i < params.length; ++i) {
-      Value param = params[i];
-      // if (TraceUtil.isDebugMode()) {
-      //   System.out.printf("- %s\t%s\n",
-      //       param.classType,
-      //       param.name);
-      // }
-      event.addParameter(param);
+      for (int i = 0; i < params.length; ++i) {
+        Value param = params[i];
+        // if (TraceUtil.isDebugMode()) {
+        //   System.out.printf("- %s\t%s\n",
+        //       param.classType,
+        //       param.name);
+        // }
+        event.addParameter(param);
+      }
     }
 
     eventTemplates.add(event);
@@ -107,7 +110,7 @@ public class EventFactory {
     return null;
   }
 
-  public Event create(Integer templateId, EventAction eventAction) {
+  public Event create(Integer templateId, EventAction eventAction) throws UnknownEventException {
     Event event = null;
 
     try {
@@ -122,7 +125,7 @@ public class EventFactory {
         }
       }
     } catch (ArrayIndexOutOfBoundsException e) {
-      System.err.println(e.getMessage());
+      throw new UnknownEventException(String.format("unknown template for ordinal %d", templateId));
     }
     
     return event;

@@ -8,37 +8,32 @@ import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 
-class BehaviorInfo {
-  private String name;
-  private ArrayList<String> paramTypes = new ArrayList<>();
+public class HookableMethodSignature extends Hookable {
+  private String methodName;
+  private ArrayList<String> paramTypes = new ArrayList<String>();
   private String returnType;
-  private EventProcessorType processorType = EventProcessorType.Null;
 
-  public BehaviorInfo(String name) {
-    this.name = name;
+  public HookableMethodSignature(String methodName) {
+    this.methodName = methodName;
   }
 
-  public BehaviorInfo addParam(String typeName) {
+  public HookableMethodSignature addParam(String typeName) {
     this.paramTypes.add(typeName);
     return this;
   }
 
-  public BehaviorInfo returns(String typeName) {
+  public HookableMethodSignature returns(String typeName) {
     this.returnType = typeName;
     return this;
   }
 
-  public BehaviorInfo processedBy(EventProcessorType eventProcessor) {
-    this.processorType = eventProcessor;
-    return this;
-  }
-
-  public Boolean describesBehavior(CtBehavior behavior) {
-    if (this.name.equals(behavior.getName()) == false) {
+  @Override
+  protected Boolean match(CtBehavior behavior) {
+    if (!behavior.getName().equals(this.methodName)) {
       return false;
     }
 
-    if (this.paramTypes.isEmpty() == false) {
+    if (!this.paramTypes.isEmpty()) {
       try {
         CtClass[] paramTypes = behavior.getParameterTypes();
         if (this.paramTypes.size() != paramTypes.length) {
@@ -47,7 +42,7 @@ class BehaviorInfo {
 
         for (int i = 0; i < paramTypes.length; ++i) {
           final String paramName = this.paramTypes.get(i);
-          if (paramName.equals(paramTypes[i].getName()) == false) {
+          if (!paramName.equals(paramTypes[i].getName())) {
             return false;
           }
         }
@@ -62,10 +57,9 @@ class BehaviorInfo {
         return false;
       }
 
-      CtMethod method = (CtMethod) behavior;
-
       Boolean returnTypeMatches = false;
       try {
+        CtMethod method = (CtMethod) behavior;
         returnTypeMatches = this.returnType.equals(method.getReturnType().getName());
       } catch (NotFoundException e) {
         // fall through
@@ -74,9 +68,5 @@ class BehaviorInfo {
     }
 
     return true;
-  }
-
-  public EventProcessorType getEventProcessorType() {
-    return this.processorType;
   }
 }

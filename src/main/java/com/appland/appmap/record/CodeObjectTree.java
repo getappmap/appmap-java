@@ -16,21 +16,6 @@ public class CodeObjectTree {
   }
 
   private void add(CodeObject rootObject, ArrayList<CodeObject> newObjects) {
-    // for (CodeObject newChild : newObjects) {
-    //   Boolean foundMatch = false;
-
-    //   for (CodeObject rootChild : rootObject.children) {
-    //     if (rootChild.equals(newChild)) {
-    //       this.add(rootChild, newChild.children);
-    //       foundMatch = true;
-    //       break;
-    //     }
-    //   }
-
-    //   if (foundMatch == false) {
-    //     rootObject.addChild(newChild);
-    //   }
-    // }
     for (CodeObject newObject : newObjects) {
       this.add(rootObject, newObject);
     }
@@ -52,6 +37,10 @@ public class CodeObjectTree {
 
   public void clear() {
     this.root = new CodeObject();
+  }
+
+  public Boolean isEmpty() {
+    return this.root == null || this.root.children.size() < 1;
   }
 
   public CodeObject[] toArray() {

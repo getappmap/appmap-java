@@ -1,0 +1,49 @@
+transforms:
+- type: interface
+  processor: jdbc
+  name: java.sql.Connection
+  children:
+  - type: method_signature
+    name: nativeSQL
+  - type: method_signature
+    name: prepareCall
+  - type: method_signature
+    name: prepareStatement
+
+- type: interface
+  processor: jdbc
+  name: java.sql.Statement
+  children:
+  - type: method_signature
+    name: addBatch
+  - type: method_signature
+    name: execute
+  - type: method_signature
+    name: executeQuery
+  - type: method_signature
+    name: executeUpdate
+
+- type: interface
+  processor: servlet_filter
+  name: javax.servlet.Filter
+  children:
+  - type: method_signature
+    name: doFilter
+    params:
+    - javax.servlet.ServletRequest
+    - javax.servlet.ServletResponse
+    - javax.servlet.FilterChain
+
+- type: class
+  processor: http_servlet
+  name: javax.servlet.http.HttpServlet
+  children:
+    - type: method_signature
+      name: service
+      params:
+      - javax.servlet.http.HttpServletRequest
+      - javax.servlet.http.HttpServletResponse
+
+- type: annotation
+  processor: toggle_record
+  name: org.junit.Test

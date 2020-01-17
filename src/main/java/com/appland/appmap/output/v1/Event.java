@@ -44,7 +44,7 @@ public class Event {
   public HttpServerResponse httpResponse;
 
   @JSONField(name = "message")
-  public Map<String, String> message;
+  public ArrayList<Value> message;
 
   @JSONField(name = "sql_query")
   public SqlQuery sqlQuery;
@@ -230,12 +230,18 @@ public class Event {
     return this;
   }
 
-  public Event addMessageParam(String key, String val) {
+  public Event addMessageParam(Value val) {
     if (this.message == null) {
-      this.message = new HashMap<>();
+      this.message = new ArrayList<Value>();
     }
 
-    this.message.put(key, val);
+    this.message.add(val);
+    return this;
+  }
+
+  public Event addMessageParam(String name, Object val) {
+    Value valObject = new Value(val, name);
+    this.addMessageParam(valObject);
     return this;
   }
 

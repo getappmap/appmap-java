@@ -21,7 +21,6 @@ public class SqlJdbcReceiver implements IEventProcessor {
     Value sqlParam = event.parameters.get(0);
     event.setParameters(null);
     event.setSqlQuery(sqlParam.value.toString());
-    System.out.println(sqlParam.value.toString());
 
     return EventDispatcher.EVENT_RECORD;
   }

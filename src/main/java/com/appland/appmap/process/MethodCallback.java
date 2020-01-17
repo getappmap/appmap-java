@@ -7,6 +7,8 @@ import com.appland.appmap.process.EventProcessorType;
 import com.appland.appmap.record.EventAction;
 import com.appland.appmap.record.EventFactory;
 import com.appland.appmap.record.RuntimeRecorder;
+import com.appland.appmap.record.UnknownEventException;
+
 import java.util.HashMap;
 import javassist.CtBehavior;
 
@@ -25,9 +27,16 @@ public class MethodCallback {
                                         Object selfValue,
                                         Object[] params) {
     if (MethodCallback.lock.tryLock()) {
-      Event event = MethodCallback.eventFactory
+      Event event = null;
+
+      try {
+        event = MethodCallback.eventFactory
           .create(behaviorOrdinal, EventAction.CALL)
           .setReceiver(selfValue);
+      } catch (UnknownEventException e) {
+        System.err.printf("AppMap: %s\n", e);
+        return true;
+      }
 
       try {
         for (int i = 0; i < params.length; i++) {
@@ -92,9 +101,7 @@ public class MethodCallback {
     return new Integer(value);
   }
 
-  public static Object boxValue(boolean value) {
-    return new Boolean(value);
-  }
+  public static Object boxValue(boolean value) { return new Boolean(value); }
 
   public static Object boxValue(Object value) {
     return value;

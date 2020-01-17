@@ -52,13 +52,6 @@ public class CodeObject {
   }
 
   public CodeObject(CtBehavior behavior) {
-    // note that MethodInfo.getLineNumber can return -1
-    // http://www.javassist.org/html/javassist/bytecode/MethodInfo.html#getLineNumber(int)
-    //
-    // however, as of the time this comment was written, methods with a negative line
-    // number have been previously filtered out in TraceUtil.isRelevant
-    // -db
-
     String location = String.format("%s:%d",
         CodeObject.getSourceFilePath(behavior.getDeclaringClass()),
         behavior.getMethodInfo().getLineNumber(0));
