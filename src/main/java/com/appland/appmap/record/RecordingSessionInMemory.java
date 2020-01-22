@@ -1,3 +1,5 @@
+package com.appland.appmap.record;
+
 import com.alibaba.fastjson.JSON;
 import com.appland.appmap.output.v1.AppMap;
 import com.appland.appmap.output.v1.CodeObject;

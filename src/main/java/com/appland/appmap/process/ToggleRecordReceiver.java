@@ -1,24 +1,25 @@
 package com.appland.appmap.process;
 
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.process.EventDispatcher;
-import com.appland.appmap.record.RuntimeRecorder;
+import com.appland.appmap.record.ActiveSessionException;
+import com.appland.appmap.record.Recorder;
 
 
 public class ToggleRecordReceiver implements IEventProcessor {
-  private static final RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
+  private static final Recorder recorder = Recorder.getInstance();
 
   @Override
-  public int processEvent(Event event) {
-    Boolean isEnteringMethod = event.event.equals("call");
-    if (isEnteringMethod) {
-      runtimeRecorder.setRecording(true);
-      runtimeRecorder.setRecordingName(event.methodId);
-    } else {
-      runtimeRecorder.setRecording(false);
-      runtimeRecorder.flushToFile();
+  public Boolean processEvent(Event event, ThreadLock lock) {
+    try {
+      if (event.event.equals("call")) {
+        recorder.start(event.methodId);
+      } else {
+        recorder.stop();
+      }
+    } catch (ActiveSessionException e) {
+      System.err.printf("AppMap: %s\n", e.getMessage());
     }
 
-    return EventDispatcher.EVENT_DISCARD;
+    return true;
   }
 }

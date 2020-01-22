@@ -1,3 +1,5 @@
+package com.appland.appmap.record;
+
 import java.util.Vector;
 
 import com.appland.appmap.output.v1.CodeObject;

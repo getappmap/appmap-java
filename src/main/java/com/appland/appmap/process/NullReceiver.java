@@ -4,7 +4,7 @@ import com.appland.appmap.output.v1.Event;
 
 public class NullReceiver implements IEventProcessor {
   @Override
-  public int processEvent(Event event) {
-    return EventDispatcher.EVENT_DISCARD;
+  public Boolean processEvent(Event event, ThreadLock lock) {
+    return true;
   }
 }

@@ -117,7 +117,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     if (eventTemplate.parameters.size() > 0) {
       paramArray = eventTemplate.parameters
           .stream()
-          .map(p -> String.format("com.appland.appmap.process.HookedBehavior.boxValue(%s)", p.name))
+          .map(p -> String.format("com.appland.appmap.process.BehaviorEntrypoints.boxValue(%s)", p.name))
           .collect(Collectors.joining(", ", "new Object[]{ ", " }"));
     }
 
@@ -139,7 +139,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
 
     return String.format("if (%s(new Integer(%d), %s.%s, %s, %s) == false) { %s }",
-        "com.appland.appmap.process.HookedBehavior.onEnter",
+        "com.appland.appmap.process.BehaviorEntrypoints.onEnter",
         behaviorOrdinal,
         "com.appland.appmap.process.EventProcessorType",
         eventProcessor,
@@ -153,11 +153,11 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                                       Event eventTemplate,
                                       EventProcessorType processorType) {
     return String.format("%s(new Integer(%d), %s.%s, %s($_));",
-        "com.appland.appmap.process.HookedBehavior.onExit",
+        "com.appland.appmap.process.BehaviorEntrypoints.onExit",
         behaviorOrdinal,
         "com.appland.appmap.process.EventProcessorType",
         processorType,
-        "com.appland.appmap.process.HookedBehavior.boxValue");
+        "com.appland.appmap.process.BehaviorEntrypoints.boxValue");
   }
 
   public void transformBehavior(CtBehavior behavior,

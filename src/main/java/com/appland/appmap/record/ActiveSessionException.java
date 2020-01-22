@@ -1,3 +1,5 @@
+package com.appland.appmap.record;
+
 import java.lang.RuntimeException;
 
 public class ActiveSessionException extends RuntimeException {

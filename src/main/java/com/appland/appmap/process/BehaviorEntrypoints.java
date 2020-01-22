@@ -6,35 +6,47 @@ import com.appland.appmap.output.v1.Value;
 import com.appland.appmap.process.EventProcessorType;
 import com.appland.appmap.record.EventAction;
 import com.appland.appmap.record.EventFactory;
-import com.appland.appmap.record.RuntimeRecorder;
 import com.appland.appmap.record.UnknownEventException;
 
 import java.util.HashMap;
 import javassist.CtBehavior;
 
-public class HookedBehavior {
+public class BehaviorEntrypoints {
   public static ThreadLock lock = new ThreadLock();
   private static EventFactory eventFactory = EventFactory.get();
-  private static RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
-  private static HashMap<EventProcessorType, IEventProcessor> eventProcessors =
-      new HashMap<>() {{
-        put(EventProcessorType.Null, new NullReceiver());
-        put(EventProcessorType.PassThrough, new PassThroughReceiver());
-        put(EventProcessorType.HttpServlet, new HttpServletReceiver());
-        put(EventProcessorType.SqlJdbc, new SqlJdbcReceiver());
-        put(EventProcessorType.ServletFilter, new ServletFilterReceiver());
-        put(EventProcessorType.ToggleRecord, new ToggleRecordReceiver());
-      }};
+  private static final HashMap<EventProcessorType, IEventProcessor> eventProcessors;
+
+  static {
+    lock.tryLock();
+    eventProcessors = new HashMap<EventProcessorType, IEventProcessor>();
+    eventProcessors.put(EventProcessorType.Null, new NullReceiver());
+    eventProcessors.put(EventProcessorType.PassThrough, new PassThroughReceiver());
+    eventProcessors.put(EventProcessorType.HttpServlet, new HttpServletReceiver());
+    eventProcessors.put(EventProcessorType.SqlJdbc, new SqlJdbcReceiver());
+    eventProcessors.put(EventProcessorType.ServletFilter, new ServletFilterReceiver());
+    eventProcessors.put(EventProcessorType.ToggleRecord, new ToggleRecordReceiver());
+    lock.releaseLock();
+  }
+
+  private static Boolean processEvent(Event event, EventProcessorType eventProcessorType) {
+    IEventProcessor eventProcessor = BehaviorEntrypoints.eventProcessors.get(eventProcessorType);
+    if (eventProcessor == null) {
+      return true;
+    }
+
+    return eventProcessor.processEvent(event, BehaviorEntrypoints.lock);
+  }
 
   public static boolean onEnter(Integer behaviorOrdinal,
                                         EventProcessorType eventProcessor,
                                         Object selfValue,
                                         Object[] params) {
-    if (MethodCallback.lock.tryLock()) {
+    if (BehaviorEntrypoints.lock.tryLock()) {
       Event event = null;
 
       try {
-        event = MethodCallback.eventFactory
+        event = BehaviorEntrypoints
+          .eventFactory
           .create(behaviorOrdinal, EventAction.CALL)
           .setReceiver(selfValue);
       } catch (UnknownEventException e) {
@@ -51,13 +63,11 @@ public class HookedBehavior {
         System.err.println(e.getMessage());
       }
 
-      Boolean continueMethod = EventDispatcher.dispatchEvent(eventProcessor, event);
+      Boolean continueBehaviorExecution = BehaviorEntrypoints.processEvent(event, eventProcessor);
 
-      MethodCallback.lock.releaseLock();
+      BehaviorEntrypoints.lock.releaseLock();
 
-      EventDispatcher.runCallbacks();
-
-      return continueMethod;
+      return continueBehaviorExecution;
     }
 
     return true;
@@ -66,15 +76,23 @@ public class HookedBehavior {
   public static void onExit(Integer behaviorOrdinal,
                                     EventProcessorType eventProcessor,
                                     Object returnValue) {
-    if (MethodCallback.lock.tryLock()) {
-      Event event = MethodCallback.eventFactory
+    if (BehaviorEntrypoints.lock.tryLock()) {
+      Event event = BehaviorEntrypoints.eventFactory
           .create(behaviorOrdinal, EventAction.RETURN)
           .setReturnValue(returnValue);
 
-      EventDispatcher.dispatchEvent(eventProcessor, event);
+      BehaviorEntrypoints.processEvent(event, eventProcessor);
 
-      MethodCallback.lock.releaseLock();
+      BehaviorEntrypoints.lock.releaseLock();
     }
+  }
+
+  public static void lockThread() {
+    BehaviorEntrypoints.lock.tryLock();
+  }
+
+  public static void releaseThread() {
+    BehaviorEntrypoints.lock.releaseLock();
   }
 
   public static Object boxValue(byte value) {
