@@ -7,6 +7,8 @@
  */
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+
 plugins {
   id 'java'
   id 'com.github.johnrengelman.shadow' version '5.2.0'
