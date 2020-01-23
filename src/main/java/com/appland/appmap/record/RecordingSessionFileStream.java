@@ -72,8 +72,9 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
     this.eventWriter.writeKey("version");
     this.eventWriter.writeValue("1.2");
 
-    this.eventWriter.writeKey("metadata");
-    this.eventWriter.writeValue("{}");
+    // TODO: write some metadata
+    // this.eventWriter.writeKey("metadata");
+    // this.eventWriter.writeValue("{}");
 
     this.eventWriter.writeKey("events");
     this.eventWriter.startArray();
