@@ -25,10 +25,11 @@ import javassist.NotFoundException;
  */
 public class ClassFileTransformer implements java.lang.instrument.ClassFileTransformer {
   private static final EventFactory eventFactory = EventFactory.get();
+  private static final Boolean debug = System.getProperty("appmap.debug") != null;
 
   // TODO: Enable appmap.yml to build all these Hookable objects.
   private static final Hookable hooks = new Hookable(
-      new HookableInterfaceName("javax.servlet.Filter",
+      new HookableInterfaceName(ClassReference.create("javax", "servlet", "Filter"),
         new HookableMethodSignature("doFilter")
           .addParam("javax.servlet.ServletRequest")
           .addParam("javax.servlet.ServletResponse")
@@ -36,31 +37,30 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           .processedBy(EventProcessorType.ServletFilter)
       ),
 
-      new HookableClassName("javax.servlet.http.HttpServlet",
+      new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
         new HookableMethodSignature("service")
-          .addParam("javax.servlet.http.HttpServletRequest")
-          .addParam("javax.servlet.http.HttpServletResponse")
+          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
+          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
           .processedBy(EventProcessorType.HttpServlet)
       ),
 
-      new HookableInterfaceName("java.sql.Connection",
+      new HookableInterfaceName(ClassReference.create("java", "sql", "Connection"),
         new HookableMethodSignature("nativeSQL").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("prepareCall").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("prepareStatement").processedBy(EventProcessorType.SqlJdbc)
       ),
 
-      new HookableInterfaceName("java.sql.Statement",
+      new HookableInterfaceName(ClassReference.create("java", "sql", "Statement"),
         new HookableMethodSignature("addBatch").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("execute").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("executeQuery").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("executeUpdate").processedBy(EventProcessorType.SqlJdbc)
       ),
 
-      new HookableAnnotated("org.junit.Test").processedBy(EventProcessorType.ToggleRecord),
-      new HookableClassName("org.elasticsearch.test.ESTestCase",
-        new HookableAllMethods().processedBy(EventProcessorType.ToggleRecord)
-      ),
-      new HookableClassName("org.elasticsearch.test.ESIntegTestCase",
+      new HookableAnnotated(ClassReference.create("org", "junit", "Test"))
+        .processedBy(EventProcessorType.ToggleRecord),
+
+      new HookableClassName(ClassReference.create("org", "apache", "lucene", "util", "LuceneTestCase"),
         new HookableAllMethods().processedBy(EventProcessorType.ToggleRecord)
       ),
 
@@ -167,7 +167,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     behavior.insertBefore(buildPreHook(behavior, behaviorOrdinal, eventTemplate, processorType));
     behavior.insertAfter(buildPostHook(behavior, behaviorOrdinal, eventTemplate, processorType));
 
-    if (System.getenv("APPMAP_DEBUG") != null) {
+    if (debug) {
       System.err.printf("Hooking %s.%s with %s\n",
           behavior.getDeclaringClass().getName(),
           behavior.getName(),
