@@ -97,10 +97,11 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       }
 
       return ctClass.toBytecode();
-    } catch (IOException e) {
-      System.err.println(e.getMessage());
-    } catch (CannotCompileException e) {
-      System.err.println(e.getMessage());
+    } catch (Exception e) {
+      // Don't allow this exception to propagate out of this method, because it will be swallowed
+      // by sun.instrument.TransformerManager.
+      System.err.println("An error occurred transforming class " + className);
+      System.err.println(e.getClass() + ": " + e.getMessage());
     }
 
     return bytes;
