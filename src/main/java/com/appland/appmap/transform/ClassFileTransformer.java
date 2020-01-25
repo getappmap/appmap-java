@@ -81,7 +81,23 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     classPool.appendClassPath(new LoaderClassPath(loader));
 
     try {
-      CtClass ctClass = classPool.makeClass(new ByteArrayInputStream(bytes));
+      CtClass ctClass = null;
+
+      try {
+        ctClass = classPool.makeClass(new ByteArrayInputStream(bytes));
+      } catch (RuntimeException e) {
+        // The class is frozen
+        // We can defrost it and apply our changes, though in practice I've observed this to be
+        // unstable. Particularly, exceptions thrown from the Groovy runtime due to missing methods.
+        // There's likely a way to do this safely, but further investigation is needed.
+        //
+        // ctClass = classPool.get(className.replace('/', '.'));
+        // ctClass.defrost();
+        //
+        // For now, just skip this class
+        return bytes;
+      }
+
       if (ctClass.isInterface()) {
         return bytes;
       }
