@@ -29,6 +29,11 @@ public class ServletFilterReceiver implements IEventProcessor {
         return true;
       }
 
+      if ( !(reqValue.get() instanceof HttpServletRequest) ) {
+        System.err.println("Servlet request value " + reqValue.get().getClass().getName() + " is not an HttpServletRequest");
+        return true;
+      }
+
       HttpServletRequest  req = reqValue.get();
       HttpServletResponse res = resValue.get();
       FilterChain chain = chainValue.get();
