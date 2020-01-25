@@ -71,6 +71,7 @@ public class EventFactory {
         if (!event.isStatic && localIndex == 0) {
           // index 0 is `this` for nonstatic methods
           // we don't need it
+          continue;
         }
 
         Value param = new Value()
