@@ -103,6 +103,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       // by sun.instrument.TransformerManager.
       System.err.println("An error occurred transforming class " + className);
       System.err.println(e.getClass() + ": " + e.getMessage());
+      e.printStackTrace(System.err);
     }
 
     return bytes;
