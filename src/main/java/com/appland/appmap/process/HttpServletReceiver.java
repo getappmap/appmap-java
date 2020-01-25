@@ -1,6 +1,7 @@
 package com.appland.appmap.process;
 
 import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.output.v1.HttpServerRequest;
 import com.appland.appmap.output.v1.Value;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
@@ -70,6 +71,11 @@ public class HttpServletReceiver implements IEventProcessor {
     Value requestValue = event.getParameter(0);
     Value responseValue = event.getParameter(1);
     if (requestValue == null || responseValue == null) {
+      return false;
+    }
+
+    if ( !(requestValue.get() instanceof HttpServletRequest) ) {
+      System.err.println("Servlet request value " + requestValue.get().getClass().getName() + " is not an HttpServletRequest");
       return false;
     }
 
