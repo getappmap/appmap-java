@@ -31,9 +31,9 @@ public class AppMapConfig {
     return singleton;
   }
 
-  public Boolean includes(String className) {
+  public Boolean includes(String className, String methodName, boolean isStatic) {
     for (AppMapPackage pkg : this.packages) {
-      if (pkg.includes(className)) {
+      if (pkg.includes(className, methodName, isStatic)) {
         return true;
       }
     }
