@@ -102,7 +102,11 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       // Don't allow this exception to propagate out of this method, because it will be swallowed
       // by sun.instrument.TransformerManager.
       System.err.println("An error occurred transforming class " + className);
-      System.err.println(e.getClass() + ": " + e.getMessage());
+      if ( e.getMessage().indexOf("frozen class") != -1 ) {
+        System.err.println(e.toString());
+      } else {
+        e.printStackTrace();
+      }
     }
 
     return bytes;
