@@ -4,7 +4,6 @@ import java.util.Vector;
 
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.record.CodeObjectTree;
 
 public class RecordingSessionGeneric implements IRecordingSession {
   protected Vector<Event> events = new Vector<Event>();

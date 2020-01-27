@@ -3,7 +3,6 @@ package com.appland.appmap.record;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.BehaviorEntrypoints;
-import com.appland.appmap.record.CodeObjectTree;
 
 public class Recorder {
   private static final String DEFAULT_OUTPUT_DIRECTORY = "./";
@@ -15,7 +14,6 @@ public class Recorder {
   private CodeObjectTree globalCodeObjects = new CodeObjectTree();
 
   private static Recorder instance = new Recorder();
-
 
   private Recorder() {
     String outputDirectory = System.getProperty("appmap.output.directory");
@@ -48,12 +46,8 @@ public class Recorder {
     return this.activeSession != null;
   }
 
-  public synchronized void start() throws ActiveSessionException {
-    this.setActiveSession(new RecordingSessionInMemory());
-  }
-
-  public synchronized void start(String scenarioName) throws ActiveSessionException {
-    this.setActiveSession(new RecordingSessionFileStream(scenarioName));
+  public synchronized void start(String fileName, IRecordingSession.Metadata metadata) throws ActiveSessionException {
+    this.setActiveSession(new RecordingSessionFileStream(fileName, metadata));
   }
 
   public synchronized String stop() throws ActiveSessionException {

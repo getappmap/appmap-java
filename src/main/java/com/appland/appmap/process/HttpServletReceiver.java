@@ -1,9 +1,9 @@
 package com.appland.appmap.process;
 
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.output.v1.HttpServerRequest;
 import com.appland.appmap.output.v1.Value;
 import com.appland.appmap.record.ActiveSessionException;
+import com.appland.appmap.record.IRecordingSession;
 import com.appland.appmap.record.Recorder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,8 +56,10 @@ public class HttpServletReceiver implements IEventProcessor {
   }
 
   private void doPost(HttpServletRequest req, HttpServletResponse res) {
+    IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
+    metadata.recorderName = "remote_recording";
     try {
-      recorder.start();
+      recorder.start("remote_recording", metadata);
     } catch (ActiveSessionException e) {
       res.setStatus(HttpServletResponse.SC_CONFLICT);
     }

@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 import com.alibaba.fastjson.JSONWriter;
-import com.appland.appmap.output.v1.CodeObject;
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 
 public class RecordingSessionFileStream extends RecordingSessionGeneric {
@@ -14,6 +14,7 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
   private static String OUTPUT_DIRECTORY = "./";
 
   private JSONWriter eventWriter;
+  private final Metadata metadata;
   private String fileName = DEFAULT_FILENAME;
 
   static {
@@ -23,12 +24,10 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
     }
   }
 
-  public RecordingSessionFileStream(String scenarioName) {
-    if (scenarioName.isEmpty()) {
-      return;
-    }
-
-    this.fileName = String.format("%s.appmap.json", scenarioName);
+  public RecordingSessionFileStream(String fileName, Metadata metadata) {
+    this.metadata = metadata;
+    if ( fileName != null )
+      this.fileName = String.format("%s.appmap.json", fileName);
   }
 
   private synchronized void flushEvents() {
@@ -72,9 +71,72 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
     this.eventWriter.writeKey("version");
     this.eventWriter.writeValue("1.2");
 
-    // TODO: write some metadata
-    // this.eventWriter.writeKey("metadata");
-    // this.eventWriter.writeValue("{}");
+    this.eventWriter.writeKey("metadata");
+    this.eventWriter.startObject();
+    {
+      if ( metadata.scenarioName != null ) {
+        this.eventWriter.writeKey("name");
+        this.eventWriter.writeValue(metadata.scenarioName);
+      }
+
+      this.eventWriter.writeKey("app");
+      this.eventWriter.writeValue(AppMapConfig.get().name);
+
+      this.eventWriter.writeKey("language");
+      this.eventWriter.startObject();
+      {
+        this.eventWriter.writeKey("name");
+        this.eventWriter.writeValue("java");
+      }
+      this.eventWriter.endObject();
+
+      this.eventWriter.writeKey("client");
+      this.eventWriter.startObject();
+      {
+        this.eventWriter.writeKey("name");
+        this.eventWriter.writeValue("appmap-java");
+        this.eventWriter.writeKey("url");
+        this.eventWriter.writeValue("https://github.com/appland/appmap-java");
+      }
+      this.eventWriter.endObject();
+
+      this.eventWriter.writeKey("recorder");
+      this.eventWriter.startObject();
+      {
+        this.eventWriter.writeKey("name");
+        this.eventWriter.writeValue(metadata.recorderName);
+      }
+      this.eventWriter.endObject();
+
+      this.eventWriter.writeKey("recording");
+      this.eventWriter.startObject();
+      {
+        if ( metadata.recordedClassName != null ) {
+          this.eventWriter.writeKey("defined_class");
+          this.eventWriter.writeValue(metadata.recordedClassName);
+        }
+        if ( metadata.recordedMethodName != null ) {
+          this.eventWriter.writeKey("method_id");
+          this.eventWriter.writeValue(metadata.recordedMethodName);
+        }
+      }
+      this.eventWriter.endObject();
+
+      this.eventWriter.writeKey("framework");
+      this.eventWriter.startObject();
+      {
+        if ( metadata.framework != null ) {
+          this.eventWriter.writeKey("name");
+          this.eventWriter.writeValue(metadata.framework);
+        }
+        if ( metadata.frameworkVersion != null ) {
+          this.eventWriter.writeKey("version");
+          this.eventWriter.writeValue(metadata.frameworkVersion);
+        }
+      }
+      this.eventWriter.endObject();
+    }
+    this.eventWriter.endObject();
 
     this.eventWriter.writeKey("events");
     this.eventWriter.startArray();
