@@ -43,7 +43,7 @@ public class ServletFilterReceiver implements IEventProcessor {
           // Allow the next filter in the chain to be handled by releasing the lock on this thread
           lock.releaseLock();
           chain.doFilter(req, res);
-        } catch (Throwable e) {
+        } catch (Exception e) {
           System.err.printf("failed to override servlet filter: %s\n", e.getMessage());
         }
         return false;
