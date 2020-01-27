@@ -168,21 +168,34 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
   private static String buildPostHook(CtBehavior behavior,
                                       Integer behaviorOrdinal,
                                       Event eventTemplate,
-                                      EventProcessorType processorType) {
-    return String.format("%s(new Integer(%d), %s.%s, %s($_));",
+                                      EventProcessorType processorType,
+                                      String returnValue) {
+    return String.format("%s(new Integer(%d), %s.%s, %s(%s));",
         "com.appland.appmap.process.BehaviorEntrypoints.onExit",
         behaviorOrdinal,
         "com.appland.appmap.process.EventProcessorType",
         processorType,
-        "com.appland.appmap.process.BehaviorEntrypoints.boxValue");
+        "com.appland.appmap.process.BehaviorEntrypoints.boxValue",
+        returnValue);
   }
 
   public void transformBehavior(CtBehavior behavior,
                                 EventProcessorType processorType,
                                 Integer behaviorOrdinal,
-                                Event eventTemplate) throws CannotCompileException {
-    behavior.insertBefore(buildPreHook(behavior, behaviorOrdinal, eventTemplate, processorType));
-    behavior.insertAfter(buildPostHook(behavior, behaviorOrdinal, eventTemplate, processorType));
+                                Event eventTemplate) 
+                                throws CannotCompileException, NotFoundException {
+    behavior.insertBefore(
+        buildPreHook(behavior, behaviorOrdinal, eventTemplate, processorType)
+    );
+    behavior.insertAfter(
+        buildPostHook(behavior, behaviorOrdinal, eventTemplate, processorType, "$_")
+    );
+    behavior.addCatch(
+        String.format("%s throw e;",
+            buildPostHook(behavior, behaviorOrdinal, eventTemplate, processorType, "null")),
+        ClassPool.getDefault().get("java.lang.Throwable"),
+        "e"
+    );
 
     if (debug) {
       System.err.printf("Hooking %s.%s with %s\n",
