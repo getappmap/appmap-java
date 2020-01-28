@@ -13,7 +13,7 @@ public class ToggleRecordReceiver implements IEventProcessor {
   }
 
   @Override
-  public Boolean processEvent(Event event, ThreadLock lock) {
+  public Boolean processEvent(Event event) {
     try {
       if (event.event.equals("call")) {
         final String fileName = String.join("_", event.definedClass, event.methodId)

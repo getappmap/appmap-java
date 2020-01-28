@@ -8,7 +8,7 @@ public class SqlJdbcReceiver implements IEventProcessor {
   private static final Recorder recorder = Recorder.getInstance();
 
   @Override
-  public Boolean processEvent(Event event, ThreadLock lock) {
+  public Boolean processEvent(Event event) {
     if (event.event.equals("return")) {
       recorder.add(event);
       return true;

@@ -18,7 +18,7 @@ public class ServletFilterReceiver implements IEventProcessor {
   private static final String recordRoute = "/_appmap/record";
 
   @Override
-  public Boolean processEvent(Event event, ThreadLock lock) {
+  public Boolean processEvent(Event event) {
     if (event.event.equals("call")) {
       Value   reqValue = event.getParameter(0);
       Value   resValue = event.getParameter(1);
@@ -41,7 +41,7 @@ public class ServletFilterReceiver implements IEventProcessor {
       if (req.getRequestURI().equals(ServletFilterReceiver.recordRoute)) {
         try {
           // Allow the next filter in the chain to be handled by releasing the lock on this thread
-          lock.releaseLock();
+          BehaviorEntrypoints.releaseThread();
           chain.doFilter(req, res);
         } catch (Exception e) {
           System.err.printf("failed to override servlet filter: %s\n", e.getMessage());

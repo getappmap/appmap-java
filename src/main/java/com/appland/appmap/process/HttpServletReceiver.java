@@ -143,7 +143,7 @@ public class HttpServletReceiver implements IEventProcessor {
   }
 
   @Override
-  public Boolean processEvent(Event event, ThreadLock lock) {
+  public Boolean processEvent(Event event) {
     if (this.handleRequest(event)) {
       return false;
     }

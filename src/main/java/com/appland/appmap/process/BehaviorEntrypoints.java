@@ -34,7 +34,7 @@ public class BehaviorEntrypoints {
       return true;
     }
 
-    return eventProcessor.processEvent(event, BehaviorEntrypoints.lock);
+    return eventProcessor.processEvent(event);
   }
 
   public static boolean onEnter(Integer behaviorOrdinal,
