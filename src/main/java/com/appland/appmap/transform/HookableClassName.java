@@ -8,7 +8,6 @@ import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
-import javassist.bytecode.ClassFile;
 
 public class HookableClassName extends Hookable {
   private String className;
@@ -20,13 +19,24 @@ public class HookableClassName extends Hookable {
 
   @Override
   protected Boolean match(CtClass classType) {
+    if (classType.getName().equals("org.kohsuke.stapler.Stapler")) {
+      System.err.println("loaded");
+    }
+    
     if (classType.getName().equals(this.className)) {
       return true;
     }
 
-    final ClassFile classFile = classType.getClassFile();
-    if (classFile.getSuperclass().equals(this.className)) {
-      return true;
+    try {
+      CtClass superClass = classType.getSuperclass();
+      while (superClass != null) {
+        if (superClass.getName().equals(this.className)) {
+          return true;
+        }
+        superClass = superClass.getSuperclass();
+      }
+    } catch (NotFoundException e) {
+      return false;
     }
 
     return false;

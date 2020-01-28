@@ -60,25 +60,31 @@ public class EventFactory {
       }
 
       Value[] params = new Value[parameterTypes.length];
-
       for (int i = 0; i < numberLocals; ++i) {
         // parameters are not neccesarily the first local variables
-        Integer localIndex = locals.index(i);
-        if (localIndex >= parameterTypes.length) {
+        Integer paramIndex = locals.index(i);
+
+        if (!event.isStatic) {
+          // index 0 is `this` for nonstatic methods
+          // we don't need it
+          if (paramIndex == 0) {
+            continue;
+          }
+
+          // similarly, `parameterTypes` does not contain `this`, so shift our index back by one
+          paramIndex -= 1;
+        }
+
+        if (paramIndex >= parameterTypes.length) {
           continue;
         }
 
-        if (!event.isStatic && localIndex == 0) {
-          // index 0 is `this` for nonstatic methods
-          // we don't need it
-        }
-
         Value param = new Value()
-            .setClassType(parameterTypes[localIndex].getName())
+            .setClassType(parameterTypes[paramIndex].getName())
             .setName(locals.variableName(i))
             .setKind("req");
 
-        params[localIndex] = param;
+        params[paramIndex] = param;
       }
 
       for (int i = 0; i < params.length; ++i) {

@@ -2,7 +2,9 @@ package com.appland.appmap.process;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.output.v1.Value;
-import com.appland.appmap.record.RuntimeRecorder;
+import com.appland.appmap.record.ActiveSessionException;
+import com.appland.appmap.record.IRecordingSession;
+import com.appland.appmap.record.Recorder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,33 +21,28 @@ import java.util.Map;
  */
 public class HttpServletReceiver implements IEventProcessor {
   public static final String recordRoute = "/_appmap/record";
-  private static final RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
+  private static final Recorder recorder = Recorder.getInstance();
 
   private void doDelete(HttpServletRequest req, HttpServletResponse res) {
-    if (!runtimeRecorder.isRecording()) {
-      res.setStatus(HttpServletResponse.SC_CONFLICT);
-      return;
-    }
-
-    String json = runtimeRecorder.flushJson();
-    res.setContentType("application/json");
-    res.setContentLength(json.length());
-
     try {
+      String json = recorder.stop();
+      res.setContentType("application/json");
+      res.setContentLength(json.length());
+
       PrintWriter writer = res.getWriter();
       writer.write(json);
       writer.flush();
+    } catch(ActiveSessionException e) {
+      res.setStatus(HttpServletResponse.SC_NOT_FOUND);
     } catch (IOException e) {
       System.err.printf("failed to write response: %s\n", e.getMessage());
     }
-
-    runtimeRecorder.setRecording(false);
   }
 
   private void doGet(HttpServletRequest req, HttpServletResponse res) {
     res.setStatus(HttpServletResponse.SC_OK);
 
-    String responseJson = String.format("{\"enabled\":%b}", runtimeRecorder.isRecording());
+    String responseJson = String.format("{\"enabled\":%b}", recorder.hasActiveSession());
     res.setContentType("application/json");
     res.setContentLength(responseJson.length());
 
@@ -59,12 +56,13 @@ public class HttpServletReceiver implements IEventProcessor {
   }
 
   private void doPost(HttpServletRequest req, HttpServletResponse res) {
-    if (runtimeRecorder.isRecording()) {
+    IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
+    metadata.recorderName = "remote_recording";
+    try {
+      recorder.start("remote_recording", metadata);
+    } catch (ActiveSessionException e) {
       res.setStatus(HttpServletResponse.SC_CONFLICT);
-      return;
     }
-
-    runtimeRecorder.setRecording(true);
   }
 
   private Boolean handleRequest(Event event) {
@@ -75,6 +73,11 @@ public class HttpServletReceiver implements IEventProcessor {
     Value requestValue = event.getParameter(0);
     Value responseValue = event.getParameter(1);
     if (requestValue == null || responseValue == null) {
+      return false;
+    }
+
+    if ( !(requestValue.get() instanceof HttpServletRequest) ) {
+      System.err.println("Servlet request value " + requestValue.get().getClass().getName() + " is not an HttpServletRequest");
       return false;
     }
 
@@ -106,11 +109,12 @@ public class HttpServletReceiver implements IEventProcessor {
     return true;
   }
 
-  private int onMethodInvocation(Event event) {
+  private void onMethodInvocation(Event event) {
     Value requestParam = event.popParameter("req");
     if (requestParam == null) {
-      return EventDispatcher.EVENT_DISCARD;
+      return;
     }
+
     event.popParameter("resp");
 
     HttpServletRequest request = requestParam.get();
@@ -123,10 +127,10 @@ public class HttpServletReceiver implements IEventProcessor {
 
     event.setParameters(null);
 
-    return EventDispatcher.EVENT_RECORD;
+    recorder.add(event);
   }
 
-  private int onMethodReturn(Event event) {
+  private void onMethodReturn(Event event) {
     // Value responseParam = event.getParameter("resp");
     // if (responseParam == null) {
     //   return null;
@@ -135,22 +139,21 @@ public class HttpServletReceiver implements IEventProcessor {
     // HttpServletResponse response = responseParam.get();
     // HttpServletResponseWrapper responseWrapper = new HttpServletResponseWrapper(response);
     // event.setHttpServerResponse(responseWrapper.getStatus());
-
-    return EventDispatcher.EVENT_RECORD;
+    recorder.add(event);
   }
 
   @Override
-  public int processEvent(Event event) {
+  public Boolean processEvent(Event event, ThreadLock lock) {
     if (this.handleRequest(event)) {
-      return (EventDispatcher.EVENT_DISCARD | EventDispatcher.EVENT_EXIT_EARLY);
+      return false;
     }
 
     if (event.event.equals("call")) {
-      return this.onMethodInvocation(event);
+      this.onMethodInvocation(event);
     } else if (event.event.equals("return")) {
-      return this.onMethodReturn(event);
+      this.onMethodReturn(event);
     }
 
-    return EventDispatcher.EVENT_DISCARD;
+    return true;
   }
 }

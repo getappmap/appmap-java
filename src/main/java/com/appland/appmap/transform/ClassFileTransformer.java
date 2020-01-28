@@ -1,5 +1,6 @@
 package com.appland.appmap.transform;
 
+import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.EventProcessorType;
 import com.appland.appmap.record.EventFactory;
@@ -24,10 +25,11 @@ import javassist.NotFoundException;
  */
 public class ClassFileTransformer implements java.lang.instrument.ClassFileTransformer {
   private static final EventFactory eventFactory = EventFactory.get();
+  private static final Boolean debug = System.getProperty("appmap.debug") != null;
 
   // TODO: Enable appmap.yml to build all these Hookable objects.
   private static final Hookable hooks = new Hookable(
-      new HookableInterfaceName("javax.servlet.Filter",
+      new HookableInterfaceName(ClassReference.create("javax", "servlet", "Filter"),
         new HookableMethodSignature("doFilter")
           .addParam("javax.servlet.ServletRequest")
           .addParam("javax.servlet.ServletResponse")
@@ -35,31 +37,30 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           .processedBy(EventProcessorType.ServletFilter)
       ),
 
-      new HookableClassName("javax.servlet.http.HttpServlet",
+      new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
         new HookableMethodSignature("service")
-          .addParam("javax.servlet.http.HttpServletRequest")
-          .addParam("javax.servlet.http.HttpServletResponse")
+          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
+          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
           .processedBy(EventProcessorType.HttpServlet)
       ),
 
-      new HookableInterfaceName("java.sql.Connection",
+      new HookableInterfaceName(ClassReference.create("java", "sql", "Connection"),
         new HookableMethodSignature("nativeSQL").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("prepareCall").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("prepareStatement").processedBy(EventProcessorType.SqlJdbc)
       ),
 
-      new HookableInterfaceName("java.sql.Statement",
+      new HookableInterfaceName(ClassReference.create("java", "sql", "Statement"),
         new HookableMethodSignature("addBatch").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("execute").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("executeQuery").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("executeUpdate").processedBy(EventProcessorType.SqlJdbc)
       ),
 
-      new HookableAnnotated("org.junit.Test").processedBy(EventProcessorType.ToggleRecord),
-      new HookableClassName("org.elasticsearch.test.ESTestCase",
-        new HookableAllMethods().processedBy(EventProcessorType.ToggleRecord)
-      ),
-      new HookableClassName("org.elasticsearch.test.ESIntegTestCase",
+      new HookableAnnotated(ClassReference.create("org", "junit", "Test"))
+        .processedBy(EventProcessorType.ToggleRecord),
+
+      new HookableClassName(ClassReference.create("org", "apache", "lucene", "util", "LuceneTestCase"),
         new HookableAllMethods().processedBy(EventProcessorType.ToggleRecord)
       ),
 
@@ -80,7 +81,23 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     classPool.appendClassPath(new LoaderClassPath(loader));
 
     try {
-      CtClass ctClass = classPool.makeClass(new ByteArrayInputStream(bytes));
+      CtClass ctClass = null;
+
+      try {
+        ctClass = classPool.makeClass(new ByteArrayInputStream(bytes));
+      } catch (RuntimeException e) {
+        // The class is frozen
+        // We can defrost it and apply our changes, though in practice I've observed this to be
+        // unstable. Particularly, exceptions thrown from the Groovy runtime due to missing methods.
+        // There's likely a way to do this safely, but further investigation is needed.
+        //
+        // ctClass = classPool.get(className.replace('/', '.'));
+        // ctClass.defrost();
+        //
+        // For now, just skip this class
+        return bytes;
+      }
+
       if (ctClass.isInterface()) {
         return bytes;
       }
@@ -102,6 +119,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       // by sun.instrument.TransformerManager.
       System.err.println("An error occurred transforming class " + className);
       System.err.println(e.getClass() + ": " + e.getMessage());
+      e.printStackTrace(System.err);
     }
 
     return bytes;
@@ -116,7 +134,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     if (eventTemplate.parameters.size() > 0) {
       paramArray = eventTemplate.parameters
           .stream()
-          .map(p -> String.format("com.appland.appmap.process.MethodCallback.boxValue(%s)", p.name))
+          .map(p -> String.format("com.appland.appmap.process.BehaviorEntrypoints.boxValue(%s)", p.name))
           .collect(Collectors.joining(", ", "new Object[]{ ", " }"));
     }
 
@@ -138,7 +156,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
 
     return String.format("if (%s(new Integer(%d), %s.%s, %s, %s) == false) { %s }",
-        "com.appland.appmap.process.MethodCallback.onMethodInvocation",
+        "com.appland.appmap.process.BehaviorEntrypoints.onEnter",
         behaviorOrdinal,
         "com.appland.appmap.process.EventProcessorType",
         eventProcessor,
@@ -150,27 +168,45 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
   private static String buildPostHook(CtBehavior behavior,
                                       Integer behaviorOrdinal,
                                       Event eventTemplate,
-                                      EventProcessorType processorType) {
-    return String.format("%s(new Integer(%d), %s.%s, %s($_));",
-        "com.appland.appmap.process.MethodCallback.onMethodReturn",
+                                      EventProcessorType processorType,
+                                      String returnValue) {
+    return String.format("%s(new Integer(%d), %s.%s, %s(%s));",
+        "com.appland.appmap.process.BehaviorEntrypoints.onExit",
         behaviorOrdinal,
         "com.appland.appmap.process.EventProcessorType",
         processorType,
-        "com.appland.appmap.process.MethodCallback.boxValue");
+        "com.appland.appmap.process.BehaviorEntrypoints.boxValue",
+        returnValue);
   }
 
   public void transformBehavior(CtBehavior behavior,
                                 EventProcessorType processorType,
                                 Integer behaviorOrdinal,
-                                Event eventTemplate) throws CannotCompileException {
-    behavior.insertBefore(buildPreHook(behavior, behaviorOrdinal, eventTemplate, processorType));
-    behavior.insertAfter(buildPostHook(behavior, behaviorOrdinal, eventTemplate, processorType));
+                                Event eventTemplate) 
+                                throws CannotCompileException, NotFoundException {
+    behavior.insertBefore(
+        buildPreHook(behavior, behaviorOrdinal, eventTemplate, processorType)
+    );
+    behavior.insertAfter(
+        buildPostHook(behavior, behaviorOrdinal, eventTemplate, processorType, "$_")
+    );
+    behavior.addCatch(
+        String.format("%s throw e;",
+            buildPostHook(behavior, behaviorOrdinal, eventTemplate, processorType, "null")),
+        ClassPool.getDefault().get("java.lang.Throwable"),
+        "e"
+    );
 
-    if (System.getenv("APPMAP_DEBUG") != null) {
+    if (debug) {
       System.err.printf("Hooking %s.%s with %s\n",
           behavior.getDeclaringClass().getName(),
           behavior.getName(),
           processorType);
     }
+
+    // TODO
+    // record the code behavior
+    // CodeObject rootObject = CodeObject.createTree(behavior);
+    // RuntimeRecorder.get().recordCodeObject(rootObject);
   }
 }

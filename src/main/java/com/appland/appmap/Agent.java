@@ -1,7 +1,9 @@
 package com.appland.appmap;
 
 import com.appland.appmap.config.AppMapConfig;
-import com.appland.appmap.record.RuntimeRecorder;
+import com.appland.appmap.process.BehaviorEntrypoints;
+import com.appland.appmap.record.ActiveSessionException;
+import com.appland.appmap.record.Recorder;
 import com.appland.appmap.transform.ClassFileTransformer;
 
 import java.io.File;
@@ -44,13 +46,14 @@ public class Agent {
 
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         public void run() {
-          RuntimeRecorder runtimeRecorder = RuntimeRecorder.get();
-          if (runtimeRecorder.isEmpty()) {
+          Recorder recorder = Recorder.getInstance();
+          try {
+            recorder.stop();
+          } catch (ActiveSessionException e) {
+            // do nothing
             return;
           }
-
-          runtimeRecorder.flushToFile("appmap.json");
         }
-    }, "Shutdown-thread"));
+    }, "AppMap Shutdown Thread"));
   }
 }

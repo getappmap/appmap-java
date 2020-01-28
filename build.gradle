@@ -7,9 +7,10 @@
  */
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 
+import com.appland.tasks.ShadowRelocation
+
 plugins {
   id 'java'
-  id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 repositories {
@@ -35,15 +36,28 @@ jar {
   }
 }
 
+apply plugin: 'com.github.johnrengelman.shadow'
+
 test {
   useJUnit()
   dependsOn shadowJar
   jvmArgs "-javaagent:${shadowJar.archivePath}"
 }
 
-task relocateShadowJar(type: ConfigureShadowRelocation) {
+shadowJar {
+  minimize()
+  dependencies {
+    exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
+  }
+}
+
+task relocateShadowJar(type: ShadowRelocation) {
     target = tasks.shadowJar
-    prefix = "appmap"
+    prefix = "com.appland.shade"
+    excludes = [
+      "javax.",
+      "java."
+    ]
 }
 
 tasks.shadowJar.dependsOn tasks.relocateShadowJar
