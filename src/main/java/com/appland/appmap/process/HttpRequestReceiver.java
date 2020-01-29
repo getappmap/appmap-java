@@ -112,7 +112,7 @@ public class HttpRequestReceiver implements IEventProcessor {
     }
 
     HttpServletResponseWrapper responseWrapper = new HttpServletResponseWrapper(this.response);
-    event.setHttpServerResponse(responseWrapper.getStatus());
+    event.setHttpServerResponse(responseWrapper.getStatus(), responseWrapper.getContentType());
 
     recorder.add(event);
   }

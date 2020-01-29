@@ -226,6 +226,13 @@ public class Event {
     return this;
   }
 
+  public Event setHttpServerResponse(Integer status, String mimeType) {
+    this.httpResponse = new HttpServerResponse()
+        .setStatus(status)
+        .setMimeType(mimeType);
+    return this;
+  }
+
   public Event addMessageParam(Value val) {
     if (this.message == null) {
       this.message = new ArrayList<Value>();
