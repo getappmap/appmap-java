@@ -2,7 +2,7 @@ package com.appland.appmap.record;
 
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.process.BehaviorEntrypoints;
+import com.appland.appmap.process.ThreadProcessorStack;
 
 public class Recorder {
   private static final String DEFAULT_OUTPUT_DIRECTORY = "./";
@@ -57,13 +57,14 @@ public class Recorder {
 
     String output = "";
 
+    ThreadProcessorStack processorStack = ThreadProcessorStack.current();
     try {
-      BehaviorEntrypoints.lockThread();
+      processorStack.setLock(true);
       output = this.activeSession.stop();
     } catch (ActiveSessionException e) {
       System.err.printf("AppMap: failed to stop recording\n%s\n", e.getMessage());
     } finally {
-      BehaviorEntrypoints.releaseThread();
+      processorStack.setLock(false);
     }
 
     this.activeSession = null;

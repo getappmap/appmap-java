@@ -8,13 +8,7 @@ public class SqlJdbcReceiver implements IEventProcessor {
   private static final Recorder recorder = Recorder.getInstance();
 
   @Override
-  public Boolean processEvent(Event event) {
-    if (event.event.equals("return")) {
-      recorder.add(event);
-      return true;
-    }
-
-
+  public Boolean onEnter(Event event) {
     if (event.parameters == null || event.parameters.size() < 1) {
       return true;
     }
@@ -25,5 +19,10 @@ public class SqlJdbcReceiver implements IEventProcessor {
 
     recorder.add(event);
     return true;
+  }
+
+  @Override
+  public void onExit(Event event) {
+    recorder.add(event);
   }
 }

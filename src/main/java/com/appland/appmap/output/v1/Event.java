@@ -182,20 +182,16 @@ public class Event {
     return null;
   }
 
-  public Value getParameter(Integer index) {
+  public Value getParameter(Integer index) throws IllegalArgumentException {
     if (this.parameters == null) {
-      return null;
+      throw new IllegalArgumentException();
     }
 
     try {
       return this.parameters.get(index);
     } catch (IndexOutOfBoundsException e) {
-      System.err.printf("failed to get param at index %d: %s\n",
-          index,
-          e.getMessage());
+      throw new IllegalArgumentException();
     }
-
-    return null;
   }
 
   public Value popParameter(String name) {

@@ -37,12 +37,20 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           .processedBy(EventProcessorType.ServletFilter)
       ),
 
-      new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
-        new HookableMethodSignature("service")
-          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
-          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
-          .processedBy(EventProcessorType.HttpServlet)
+      new HookableInterfaceName(ClassReference.create("javax", "servlet", "Filter"),
+        new HookableMethodSignature("doFilter")
+          .addParam("javax.servlet.ServletRequest")
+          .addParam("javax.servlet.ServletResponse")
+          .addParam("javax.servlet.FilterChain")
+          .processedBy(EventProcessorType.HttpRequest)
       ),
+
+      // new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
+      //   new HookableMethodSignature("service")
+      //     .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
+      //     .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
+      //     .processedBy(EventProcessorType.HttpServlet)
+      // ),
 
       new HookableInterfaceName(ClassReference.create("java", "sql", "Connection"),
         new HookableMethodSignature("nativeSQL").processedBy(EventProcessorType.SqlJdbc),

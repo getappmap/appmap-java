@@ -17,10 +17,10 @@ import java.util.Map;
  * route is the remote recording path, the request is hijacked and interpreted as a remote recording command.
  * Otherwise, it's recorded as an appmap event, and processed by the application services.
  *
- * @see recordRoute
+ * @see RecordRoute
  */
 public class HttpServletReceiver implements IEventProcessor {
-  public static final String recordRoute = "/_appmap/record";
+  public static final String RecordRoute = "/_appmap/record";
   private static final Recorder recorder = Recorder.getInstance();
 
   private void doDelete(HttpServletRequest req, HttpServletResponse res) {
@@ -77,14 +77,15 @@ public class HttpServletReceiver implements IEventProcessor {
     }
 
     if ( !(requestValue.get() instanceof HttpServletRequest) ) {
-      System.err.println("Servlet request value " + requestValue.get().getClass().getName() + " is not an HttpServletRequest");
+      System.err.printf("Servlet request value %s is not an HttpServletRequest\n",
+          requestValue.get().getClass().getName());
       return false;
     }
 
     HttpServletRequest req = requestValue.get();
     HttpServletResponse res = responseValue.get();
 
-    if (req.getRequestURI().equals(recordRoute) == false) {
+    if (req.getRequestURI().equals(RecordRoute) == false) {
       return false;
     }
 
@@ -109,15 +110,21 @@ public class HttpServletReceiver implements IEventProcessor {
     return true;
   }
 
-  private void onMethodInvocation(Event event) {
+  @Override
+  public Boolean onEnter(Event event) {
+    if (this.handleRequest(event)) {
+      return false;
+    }
+
     Value requestParam = event.popParameter("req");
     if (requestParam == null) {
-      return;
+      return true;
     }
 
     event.popParameter("resp");
 
     HttpServletRequest request = requestParam.get();
+
     event.setHttpServerRequest(request.getMethod(), request.getRequestURI(), request.getProtocol());
 
     Map<String, String[]> params = request.getParameterMap();
@@ -126,34 +133,17 @@ public class HttpServletReceiver implements IEventProcessor {
     }
 
     event.setParameters(null);
-
     recorder.add(event);
-  }
 
-  private void onMethodReturn(Event event) {
-    // Value responseParam = event.getParameter("resp");
-    // if (responseParam == null) {
-    //   return null;
-    // }
-
-    // HttpServletResponse response = responseParam.get();
-    // HttpServletResponseWrapper responseWrapper = new HttpServletResponseWrapper(response);
-    // event.setHttpServerResponse(responseWrapper.getStatus());
-    recorder.add(event);
+    return true;
   }
 
   @Override
-  public Boolean processEvent(Event event) {
+  public void onExit(Event event) {
     if (this.handleRequest(event)) {
-      return false;
+      return;
     }
 
-    if (event.event.equals("call")) {
-      this.onMethodInvocation(event);
-    } else if (event.event.equals("return")) {
-      this.onMethodReturn(event);
-    }
-
-    return true;
+    recorder.add(event);
   }
 }

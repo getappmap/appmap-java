@@ -12,47 +12,64 @@ import java.util.HashMap;
 import javassist.CtBehavior;
 
 public class BehaviorEntrypoints {
-  public static ThreadLock lock = new ThreadLock();
   private static EventFactory eventFactory = EventFactory.get();
-  private static final HashMap<EventProcessorType, IEventProcessor> eventProcessors;
+  private static HashMap<EventProcessorType, Class<? extends IEventProcessor>> eventProcessors;
 
   static {
-    lock.tryLock();
-    eventProcessors = new HashMap<EventProcessorType, IEventProcessor>();
-    eventProcessors.put(EventProcessorType.Null, new NullReceiver());
-    eventProcessors.put(EventProcessorType.PassThrough, new PassThroughReceiver());
-    eventProcessors.put(EventProcessorType.HttpServlet, new HttpServletReceiver());
-    eventProcessors.put(EventProcessorType.SqlJdbc, new SqlJdbcReceiver());
-    eventProcessors.put(EventProcessorType.ServletFilter, new ServletFilterReceiver());
-    eventProcessors.put(EventProcessorType.ToggleRecord, new ToggleRecordReceiver());
-    lock.releaseLock();
+    ThreadProcessorStack processorStack = ThreadProcessorStack.current();
+    processorStack.setLock(true); {
+      eventProcessors = new HashMap<EventProcessorType, Class<? extends IEventProcessor>>();
+      eventProcessors.put(EventProcessorType.Null, NullReceiver.class);
+      eventProcessors.put(EventProcessorType.PassThrough, PassThroughReceiver.class);
+      eventProcessors.put(EventProcessorType.HttpServlet, HttpServletReceiver.class);
+      eventProcessors.put(EventProcessorType.SqlJdbc, SqlJdbcReceiver.class);
+      eventProcessors.put(EventProcessorType.ServletFilter, ServletFilterReceiver.class);
+      eventProcessors.put(EventProcessorType.ToggleRecord, ToggleRecordReceiver.class);
+      eventProcessors.put(EventProcessorType.HttpRequest, HttpRequestReceiver.class);
+    }
+    processorStack.setLock(false);
   }
 
-  private static Boolean processEvent(Event event, EventProcessorType eventProcessorType) {
-    IEventProcessor eventProcessor = BehaviorEntrypoints.eventProcessors.get(eventProcessorType);
-    if (eventProcessor == null) {
-      return true;
+  private static IEventProcessor buildProcessor(EventProcessorType eventProcessorType) {
+    Class<? extends IEventProcessor> processorClass =
+        BehaviorEntrypoints.eventProcessors.get(eventProcessorType);
+
+    if (processorClass == null) {
+      return null;
     }
 
-    return eventProcessor.processEvent(event);
+    IEventProcessor instance = null;
+
+    try {
+      instance = processorClass.newInstance();
+    } catch(Exception e) {
+      System.err.printf("AppMap: failed to create instance of %s\n", eventProcessorType);
+      System.err.println(e.getClass() + ": " + e.getMessage());
+      e.printStackTrace(System.err);
+    }
+
+    return instance;
   }
 
   public static boolean onEnter(Integer behaviorOrdinal,
-                                        EventProcessorType eventProcessor,
+                                        EventProcessorType eventProcessorType,
                                         Object selfValue,
                                         Object[] params) {
-    if (BehaviorEntrypoints.lock.tryLock()) {
-      Event event = null;
+    ThreadProcessorStack processorStack = ThreadProcessorStack.current();
+    if (processorStack.isLocked()) {
+      // another method is blocking us from being processed
+      return true;
+    }
 
-      try {
-        event = BehaviorEntrypoints
+    Boolean continueMethodExecution = true;
+
+    try {
+      processorStack.setLock(true);
+
+      Event event = BehaviorEntrypoints
           .eventFactory
           .create(behaviorOrdinal, EventAction.CALL)
           .setReceiver(selfValue);
-      } catch (UnknownEventException e) {
-        System.err.printf("AppMap: %s\n", e);
-        return true;
-      }
 
       try {
         for (int i = 0; i < params.length; i++) {
@@ -63,36 +80,44 @@ public class BehaviorEntrypoints {
         System.err.println(e.getMessage());
       }
 
-      Boolean continueBehaviorExecution = BehaviorEntrypoints.processEvent(event, eventProcessor);
-
-      BehaviorEntrypoints.lock.releaseLock();
-
-      return continueBehaviorExecution;
+      IEventProcessor processor = BehaviorEntrypoints.buildProcessor(eventProcessorType);
+      if (processor != null) {
+        processorStack.push(processor);
+        processor.onEnter(event);
+      }
+    } catch (UnknownEventException e) {
+      System.err.printf("AppMap: %s\n", e);
+      return continueMethodExecution;
+    } finally {
+      processorStack.setLock(false);
     }
 
-    return true;
+    return continueMethodExecution;
   }
 
   public static void onExit(Integer behaviorOrdinal,
-                                    EventProcessorType eventProcessor,
+                                    EventProcessorType eventProcessorType,
                                     Object returnValue) {
-    if (BehaviorEntrypoints.lock.tryLock()) {
+    ThreadProcessorStack processorStack = ThreadProcessorStack.current();
+    if (processorStack.isLocked()) {
+      // another method is blocking us from being processed
+      return;
+    }
+
+    try {
+      processorStack.setLock(true);
+
       Event event = BehaviorEntrypoints.eventFactory
           .create(behaviorOrdinal, EventAction.RETURN)
           .setReturnValue(returnValue);
 
-      BehaviorEntrypoints.processEvent(event, eventProcessor);
-
-      BehaviorEntrypoints.lock.releaseLock();
+      IEventProcessor eventProcessor = processorStack.pop();
+      if (eventProcessor != null) {
+        eventProcessor.onExit(event);
+      }
+    } finally {
+      processorStack.setLock(false);
     }
-  }
-
-  public static void lockThread() {
-    BehaviorEntrypoints.lock.tryLock();
-  }
-
-  public static void releaseThread() {
-    BehaviorEntrypoints.lock.releaseLock();
   }
 
   public static Object boxValue(byte value) {
