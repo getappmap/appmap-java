@@ -2,8 +2,6 @@ package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.ArrayDeque;
@@ -13,9 +11,9 @@ import javassist.CtClass;
 import javassist.CtBehavior;
 
 public class CodeObject {
-  public String name;
-  public String type;
-  public String location;
+  public String name = "";
+  public String type = "";
+  public String location = "";
   public ArrayList<CodeObject> children = new ArrayList<CodeObject>();
 
   @JSONField(name = "static")
@@ -23,6 +21,10 @@ public class CodeObject {
 
   @Override
   public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+
     if (obj == this) {
       return true;
     }
@@ -32,7 +34,10 @@ public class CodeObject {
     }
 
     CodeObject codeObject = (CodeObject)obj;
-    return codeObject.type == type && codeObject.name.equals(name);
+    return codeObject.type == this.type
+        && codeObject.name.equals(this.name)
+        && codeObject.isStatic == this.isStatic
+        && codeObject.location.equals(this.location);
   }
 
   public CodeObject() {
@@ -62,7 +67,14 @@ public class CodeObject {
         .setStatic((behavior.getModifiers() & Modifier.STATIC) != 0);
   }
 
-  private static String getSourceFilePath(CtClass classType) {
+  public CodeObject(CodeObject src) {
+    this.setType(src.type)
+        .setName(src.name)
+        .setStatic(src.isStatic)
+        .setLocation(src.location);
+  }
+
+  public static String getSourceFilePath(CtClass classType) {
     return String.format("src/main/java/%s/%s",
         classType.getPackageName().replace('.', '/'),
         classType.getClassFile().getSourceFile());
@@ -149,6 +161,28 @@ public class CodeObject {
   public CodeObject get(String path) {
     List<String> tokens = Arrays.asList(path.split("\\."));
     return this.get(new ArrayDeque<String>(tokens));
+  }
+
+  public CodeObject findChild(String name, Boolean isStatic, Integer lineNumber) {
+    for (CodeObject child : this.children) {
+      if (child.name.equals(name)
+          && child.isStatic == isStatic 
+          && child.location.endsWith(":" + lineNumber.toString())) {
+        return child;
+      }
+    }
+
+    return null;
+  }
+
+  public CodeObject findChild(String name) {
+    for (CodeObject child : this.children) {
+      if (child.name.equals(name)) {
+        return child;
+      }
+    }
+
+    return null;
   }
 
   public CodeObject setName(String name) {

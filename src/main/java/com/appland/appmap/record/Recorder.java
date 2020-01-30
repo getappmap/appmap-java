@@ -80,19 +80,22 @@ public class Recorder {
     try {
       event.freeze();
       this.activeSession.add(event);
+
+      CodeObject rootObject = this.globalCodeObjects.getMethodBranch(event.definedClass,
+          event.methodId,
+          event.isStatic,
+          event.lineNumber);
+
+      if (rootObject != null) {
+        this.add(rootObject);
+      }
     } catch (ActiveSessionException e) {
       System.err.printf("AppMap: failed to record event\n%s\n", e.getMessage());
       this.activeSession.stop();
     }
-
-    // TODO
-    // get the code object for this event and emit it
-    // to the active session
   }
 
-  public synchronized void add(CodeObject codeObject) {
-    this.globalCodeObjects.add(codeObject);
-
+  private synchronized void add(CodeObject codeObject) {
     if (!this.hasActiveSession()) {
       return;
     }
@@ -103,5 +106,9 @@ public class Recorder {
       System.err.printf("AppMap: failed to record code object\n%s\n", e.getMessage());
       this.activeSession.stop();
     }
+  }
+
+  public synchronized void register(CodeObject codeObject) {
+    this.globalCodeObjects.add(codeObject);
   }
 }

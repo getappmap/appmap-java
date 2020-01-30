@@ -1,12 +1,10 @@
 package com.appland.appmap.transform;
 
-import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.EventProcessorType;
 import com.appland.appmap.record.EventFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
@@ -211,10 +209,5 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           behavior.getName(),
           processorType);
     }
-
-    // TODO
-    // record the code behavior
-    // CodeObject rootObject = CodeObject.createTree(behavior);
-    // RuntimeRecorder.get().recordCodeObject(rootObject);
   }
 }
