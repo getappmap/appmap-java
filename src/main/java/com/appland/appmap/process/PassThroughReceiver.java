@@ -7,8 +7,13 @@ public class PassThroughReceiver implements IEventProcessor {
   private static final Recorder recorder = Recorder.getInstance();
 
   @Override
-  public Boolean processEvent(Event event, ThreadLock lock) {
+  public Boolean onEnter(Event event) {
     recorder.add(event);
     return true;
+  }
+
+  @Override
+  public void onExit(Event event) {
+    recorder.add(event);
   }
 }

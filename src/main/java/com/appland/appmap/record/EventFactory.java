@@ -1,5 +1,6 @@
 package com.appland.appmap.record;
 
+import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.output.v1.Value;
 import java.lang.reflect.Modifier;
@@ -14,6 +15,8 @@ import javassist.bytecode.MethodInfo;
 public class EventFactory {
   private static Integer eventId = 0;
   private static EventFactory instance = new EventFactory();
+  private static final Recorder recorder = Recorder.getInstance();
+
   private Vector<Event> eventTemplates = new Vector<Event>();
 
   private EventFactory() { }
@@ -26,17 +29,12 @@ public class EventFactory {
     return eventId++;
   }
 
-  private static String getSourcePath(CtClass classType) {
-    String srcPath = classType.getName().replace('.', '/');
-    return String.format("src/main/java/%s.java", srcPath);
-  }
-
   public Integer register(CtBehavior behavior) {
     Event event = new Event()
         .setDefinedClass(behavior.getDeclaringClass().getName())
         .setMethodId(behavior.getName())
         .setStatic((behavior.getModifiers() & Modifier.STATIC) != 0)
-        .setPath(EventFactory.getSourcePath(behavior.getDeclaringClass()))
+        .setPath(CodeObject.getSourceFilePath(behavior.getDeclaringClass()))
         .setLineNumber(behavior.getMethodInfo().getLineNumber(0));
 
     MethodInfo methodInfo = behavior.getMethodInfo();
@@ -93,6 +91,7 @@ public class EventFactory {
       }
     }
 
+    recorder.register(CodeObject.createTree(behavior));
     eventTemplates.add(event);
     return eventTemplates.size() - 1;
   }

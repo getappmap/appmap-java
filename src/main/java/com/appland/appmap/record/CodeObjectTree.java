@@ -2,11 +2,9 @@
 package com.appland.appmap.record;
 
 import com.appland.appmap.output.v1.CodeObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class CodeObjectTree {
   private CodeObject root = new CodeObject();
@@ -37,6 +35,47 @@ public class CodeObjectTree {
 
   public void clear() {
     this.root = new CodeObject();
+  }
+
+  public CodeObject getMethodBranch(String definedClass,
+                                    String methodId,
+                                    Boolean isStatic,
+                                    Integer lineNumber) {
+    final ArrayList<CodeObject> codeObjects = new ArrayList<CodeObject>();
+    final List<String> classTokens = Arrays.asList(definedClass.split("\\."));
+
+    CodeObject currentObject = this.root;
+    for (String name : classTokens) {
+      CodeObject child = currentObject.findChild(name);
+      if (child == null) {
+        return null;
+      }
+
+      codeObjects.add(child);
+      currentObject = child;
+    }
+
+    CodeObject methodObject = currentObject.findChild(methodId, isStatic, lineNumber);
+    if (methodObject == null) {
+      return null;
+    }
+    codeObjects.add(methodObject);
+
+    CodeObject rootObject = null;
+    for (CodeObject codeObject : codeObjects) {
+      CodeObject newObject = new CodeObject(codeObject);
+
+      if (rootObject == null) {
+        rootObject = newObject;
+        currentObject = newObject;
+        continue;
+      }
+
+      currentObject.addChild(newObject);
+      currentObject = newObject;
+    }
+
+    return rootObject;
   }
 
   public Boolean isEmpty() {

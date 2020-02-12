@@ -13,38 +13,43 @@ public class ToggleRecordReceiver implements IEventProcessor {
   }
 
   @Override
-  public Boolean processEvent(Event event, ThreadLock lock) {
+  public Boolean onEnter(Event event) {
     try {
-      if (event.event.equals("call")) {
-        final String fileName = String.join("_", event.definedClass, event.methodId)
-                                      .replaceAll("[^a-zA-Z0-9-_]", "_");
+      final String fileName = String.join("_", event.definedClass, event.methodId)
+                                    .replaceAll("[^a-zA-Z0-9-_]", "_");
 
-        IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
+      IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
 
-        // TODO: Obtain this info in the constructor
-        boolean junit = false;
-        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-        for (int i = 0; !junit && i < stack.length; i++) {
-          if ( stack[i].getClassName().startsWith("org.junit") ) {
-            junit = true;
-          }
+      // TODO: Obtain this info in the constructor
+      boolean junit = false;
+      StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+      for (int i = 0; !junit && i < stack.length; i++) {
+        if ( stack[i].getClassName().startsWith("org.junit") ) {
+          junit = true;
         }
-
-        metadata.recordedClassName = event.definedClass;
-        metadata.recordedMethodName = event.methodId;
-        if ( junit ) {
-          metadata.recorderName = "toggle_record_receiver";
-          metadata.framework = "junit";
-        }
-
-        recorder.start(fileName, metadata);
-      } else {
-        recorder.stop();
       }
+
+      metadata.recordedClassName = event.definedClass;
+      metadata.recordedMethodName = event.methodId;
+      if ( junit ) {
+        metadata.recorderName = "toggle_record_receiver";
+        metadata.framework = "junit";
+      }
+
+      recorder.start(fileName, metadata);
     } catch (ActiveSessionException e) {
       System.err.printf("AppMap: %s\n", e.getMessage());
     }
 
     return true;
+  }
+
+  @Override
+  public void onExit(Event event) {
+    try {
+      recorder.stop();
+    } catch (ActiveSessionException e) {
+      System.err.printf("AppMap: %s\n", e.getMessage());
+    }
   }
 }

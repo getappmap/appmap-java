@@ -2,7 +2,7 @@ package com.appland.appmap.record;
 
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.process.BehaviorEntrypoints;
+import com.appland.appmap.process.ThreadProcessorStack;
 
 public class Recorder {
   private static final String DEFAULT_OUTPUT_DIRECTORY = "./";
@@ -57,13 +57,14 @@ public class Recorder {
 
     String output = "";
 
+    ThreadProcessorStack processorStack = ThreadProcessorStack.current();
     try {
-      BehaviorEntrypoints.lockThread();
+      processorStack.setLock(true);
       output = this.activeSession.stop();
     } catch (ActiveSessionException e) {
       System.err.printf("AppMap: failed to stop recording\n%s\n", e.getMessage());
     } finally {
-      BehaviorEntrypoints.releaseThread();
+      processorStack.setLock(false);
     }
 
     this.activeSession = null;
@@ -79,19 +80,22 @@ public class Recorder {
     try {
       event.freeze();
       this.activeSession.add(event);
+
+      CodeObject rootObject = this.globalCodeObjects.getMethodBranch(event.definedClass,
+          event.methodId,
+          event.isStatic,
+          event.lineNumber);
+
+      if (rootObject != null) {
+        this.add(rootObject);
+      }
     } catch (ActiveSessionException e) {
       System.err.printf("AppMap: failed to record event\n%s\n", e.getMessage());
       this.activeSession.stop();
     }
-
-    // TODO
-    // get the code object for this event and emit it
-    // to the active session
   }
 
-  public synchronized void add(CodeObject codeObject) {
-    this.globalCodeObjects.add(codeObject);
-
+  private synchronized void add(CodeObject codeObject) {
     if (!this.hasActiveSession()) {
       return;
     }
@@ -102,5 +106,9 @@ public class Recorder {
       System.err.printf("AppMap: failed to record code object\n%s\n", e.getMessage());
       this.activeSession.stop();
     }
+  }
+
+  public synchronized void register(CodeObject codeObject) {
+    this.globalCodeObjects.add(codeObject);
   }
 }

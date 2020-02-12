@@ -1,12 +1,10 @@
 package com.appland.appmap.transform;
 
-import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.EventProcessorType;
 import com.appland.appmap.record.EventFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
@@ -37,12 +35,20 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           .processedBy(EventProcessorType.ServletFilter)
       ),
 
-      new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
-        new HookableMethodSignature("service")
-          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
-          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
-          .processedBy(EventProcessorType.HttpServlet)
+      new HookableInterfaceName(ClassReference.create("javax", "servlet", "Filter"),
+        new HookableMethodSignature("doFilter")
+          .addParam("javax.servlet.ServletRequest")
+          .addParam("javax.servlet.ServletResponse")
+          .addParam("javax.servlet.FilterChain")
+          .processedBy(EventProcessorType.HttpRequest)
       ),
+
+      // new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
+      //   new HookableMethodSignature("service")
+      //     .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
+      //     .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
+      //     .processedBy(EventProcessorType.HttpServlet)
+      // ),
 
       new HookableInterfaceName(ClassReference.create("java", "sql", "Connection"),
         new HookableMethodSignature("nativeSQL").processedBy(EventProcessorType.SqlJdbc),
@@ -203,10 +209,5 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           behavior.getName(),
           processorType);
     }
-
-    // TODO
-    // record the code behavior
-    // CodeObject rootObject = CodeObject.createTree(behavior);
-    // RuntimeRecorder.get().recordCodeObject(rootObject);
   }
 }

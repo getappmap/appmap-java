@@ -24,8 +24,12 @@ public class HookableConfigPath extends Hookable {
       return false;
     }
 
-    final String className = behavior.getDeclaringClass().getName();
-    return AppMapConfig.get().includes(behavior.getDeclaringClass().getName(),
+    CtClass classType = behavior.getDeclaringClass();
+    if (!Modifier.isPublic(classType.getModifiers())) {
+      return false;
+    }
+
+    return AppMapConfig.get().includes(classType.getName(),
             behavior.getMethodInfo().getName(),
             Modifier.isStatic(behavior.getModifiers()));
   }
