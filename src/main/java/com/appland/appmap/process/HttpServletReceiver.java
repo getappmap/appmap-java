@@ -6,16 +6,17 @@ import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.IRecordingSession;
 import com.appland.appmap.record.Recorder;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
 /**
- * HttpServletReceiver hooks the method <code>javax.servlet.http.HttpServlet#service</code>. If the request
- * route is the remote recording path, the request is hijacked and interpreted as a remote recording command.
- * Otherwise, it's recorded as an appmap event, and processed by the application services.
+ * HttpServletReceiver hooks the method <code>javax.servlet.http.HttpServlet#service</code>. If the
+ * request route is the remote recording path, the request is hijacked and interpreted as a remote
+ * recording command. Otherwise, it's recorded as an appmap event, and processed by the application
+ * services.
  *
  * @see RecordRoute
  */
@@ -32,7 +33,7 @@ public class HttpServletReceiver implements IEventProcessor {
       PrintWriter writer = res.getWriter();
       writer.write(json);
       writer.flush();
-    } catch(ActiveSessionException e) {
+    } catch (ActiveSessionException e) {
       res.setStatus(HttpServletResponse.SC_NOT_FOUND);
     } catch (IOException e) {
       System.err.printf("failed to write response: %s\n", e.getMessage());
@@ -59,7 +60,7 @@ public class HttpServletReceiver implements IEventProcessor {
     IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
     metadata.recorderName = "remote_recording";
     try {
-      recorder.start("remote_recording", metadata);
+      recorder.start(metadata);
     } catch (ActiveSessionException e) {
       res.setStatus(HttpServletResponse.SC_CONFLICT);
     }
@@ -76,8 +77,8 @@ public class HttpServletReceiver implements IEventProcessor {
       return false;
     }
 
-    if ( !(requestValue.get() instanceof HttpServletRequest) ) {
-      System.err.printf("Servlet request value %s is not an HttpServletRequest\n",
+    if (!(requestValue.get() instanceof HttpServletRequest)) {
+      System.err.printf("servlet request value %s is not an HttpServletRequest\n",
           requestValue.get().getClass().getName());
       return false;
     }
@@ -112,38 +113,12 @@ public class HttpServletReceiver implements IEventProcessor {
 
   @Override
   public Boolean onEnter(Event event) {
-    if (this.handleRequest(event)) {
-      return false;
-    }
-
-    Value requestParam = event.popParameter("req");
-    if (requestParam == null) {
-      return true;
-    }
-
-    event.popParameter("resp");
-
-    HttpServletRequest request = requestParam.get();
-
-    event.setHttpServerRequest(request.getMethod(), request.getRequestURI(), request.getProtocol());
-
-    Map<String, String[]> params = request.getParameterMap();
-    for (Map.Entry<String, String[]> entry : params.entrySet()) {
-      event.addMessageParam(entry.getKey(), String.join(" ", entry.getValue()));
-    }
-
-    event.setParameters(null);
-    recorder.add(event);
-
-    return true;
+    Boolean shouldContinueExecution = (this.handleRequest(event) == false);
+    return shouldContinueExecution;
   }
 
   @Override
   public void onExit(Event event) {
-    if (this.handleRequest(event)) {
-      return;
-    }
-
-    recorder.add(event);
+    // do nothing
   }
 }

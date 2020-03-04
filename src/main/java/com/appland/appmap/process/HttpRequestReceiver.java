@@ -52,30 +52,6 @@ public class HttpRequestReceiver implements IEventProcessor {
     return true;
   }
 
-  private Boolean isExecuting() {
-    return this.isExecuting;
-  }
-
-  private void invokeDoFilter(Event event,
-                              HttpServletRequest req,
-                              HttpServletResponse res,
-                              FilterChain chain) {
-    event.setParameters(null);
-    event.setHttpServerRequest(req.getMethod(), req.getRequestURI(), req.getProtocol());
-
-    recorder.add(event);
-  }
-
-  private void returnDoFilter(Event event,
-                              HttpServletRequest req,
-                              HttpServletResponse res,
-                              FilterChain chain) {
-    event.setParameters(null);
-    event.setHttpServerResponse(200);
-
-    recorder.add(event);
-  }
-
   @Override
   public Boolean onEnter(Event event) {
     if (!this.startExecuting()) {

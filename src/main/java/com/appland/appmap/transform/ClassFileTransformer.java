@@ -43,12 +43,12 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           .processedBy(EventProcessorType.HttpRequest)
       ),
 
-      // new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
-      //   new HookableMethodSignature("service")
-      //     .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
-      //     .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
-      //     .processedBy(EventProcessorType.HttpServlet)
-      // ),
+      new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
+        new HookableMethodSignature("service")
+          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
+          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
+          .processedBy(EventProcessorType.HttpServlet)
+      ),
 
       new HookableInterfaceName(ClassReference.create("java", "sql", "Connection"),
         new HookableMethodSignature("nativeSQL").processedBy(EventProcessorType.SqlJdbc),
@@ -158,6 +158,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
     String returnStatement = "";
     if (unknownReturnType == false) {
+      // note that we're returning an empty object cast to the return type
+      // this is dangerous
       returnStatement = returnsVoid ? "return;" : "return ($r) new Object();";
     }
 

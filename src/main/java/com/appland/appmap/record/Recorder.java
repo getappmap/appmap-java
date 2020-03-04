@@ -50,6 +50,10 @@ public class Recorder {
     this.setActiveSession(new RecordingSessionFileStream(fileName, metadata));
   }
 
+  public synchronized void start(IRecordingSession.Metadata metadata) throws ActiveSessionException {
+    this.setActiveSession(new RecordingSessionMemory(metadata));
+  }
+
   public synchronized String stop() throws ActiveSessionException {
     if (!this.hasActiveSession()) {
       throw new ActiveSessionException(ERROR_NO_SESSION);
