@@ -1,10 +1,15 @@
 package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
+
+import javassist.CtBehavior;
+
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Event {
   private static Integer globalEventId = 0;
@@ -14,7 +19,7 @@ public class Event {
   public String event;
   public String path;
   public Value receiver;
-  public ArrayList<Value> parameters = new ArrayList<Value>();
+  public Parameters parameters = new Parameters();
 
   @JSONField(name = "defined_class")
   public String definedClass;
@@ -72,6 +77,15 @@ public class Event {
         .setDefinedClass(method.getDeclaringClass().getName())
         .setEvent(eventType)
         .setThreadId(Thread.currentThread().getId());
+  }
+
+  public Event(CtBehavior behavior) {
+    this.setDefinedClass(behavior.getDeclaringClass().getName())
+        .setMethodId(behavior.getName())
+        .setStatic((behavior.getModifiers() & Modifier.STATIC) != 0)
+        .setPath(CodeObject.getSourceFilePath(behavior.getDeclaringClass()))
+        .setLineNumber(behavior.getMethodInfo().getLineNumber(0))
+        .setParameters(new Parameters(behavior));
   }
 
   private Event setId(Integer id) {
@@ -136,80 +150,18 @@ public class Event {
   }
 
   public Event addParameter(Object val, String name) {
-    if (val == null) {
-      return this;
-    }
-
-    if (this.parameters == null) {
-      this.parameters = new ArrayList<Value>();
-    }
-
     this.parameters.add(new Value(val, name));
-
     return this;
   }
 
   public Event addParameter(Value val) {
-    if (val == null) {
-      return this;
-    }
-
-    if (this.parameters == null) {
-      this.parameters = new ArrayList<Value>();
-    }
-
     this.parameters.add(new Value(val));
-
     return this;
   }
 
-  public Event setParameters(ArrayList<Value> parameters) {
+  public Event setParameters(Parameters parameters) {
     this.parameters = parameters;
     return this;
-  }
-
-  public Value getParameter(String name) {
-    if (this.parameters == null) {
-      return null;
-    }
-
-    for (Value param : this.parameters) {
-      if (param.name.equals(name)) {
-        return param;
-      }
-    }
-
-    return null;
-  }
-
-  public Value getParameter(Integer index) throws IllegalArgumentException {
-    if (this.parameters == null) {
-      throw new IllegalArgumentException();
-    }
-
-    try {
-      return this.parameters.get(index);
-    } catch (IndexOutOfBoundsException e) {
-      throw new IllegalArgumentException();
-    }
-  }
-
-  public Value popParameter(String name) {
-    if (this.parameters == null) {
-      return null;
-    }
-
-    final int numParams = this.parameters.size();
-    for (int i = 0; i < numParams; ++i) {
-      final Value param = this.parameters.get(i);
-
-      if (param.name.equals(name)) {
-        this.parameters.remove(i);
-        return param;
-      }
-    }
-
-    return null;
   }
 
   public Event setHttpServerRequest(String method, String path, String protocol) {

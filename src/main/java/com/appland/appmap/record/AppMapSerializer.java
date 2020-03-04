@@ -62,10 +62,10 @@ public class AppMapSerializer {
 
     this.currentSection = new SectionInfo(section, type);
 
-    if (this.currentSection.type == "object") {
+    if (this.currentSection.type.equals("object")) {
       this.json.writeKey(section);
       this.json.startObject();
-    } else if (this.currentSection.type == "array") {
+    } else if (this.currentSection.type.equals("array")) {
       this.json.writeKey(section);
       this.json.startArray();
     }

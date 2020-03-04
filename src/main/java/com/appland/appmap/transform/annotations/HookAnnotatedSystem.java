@@ -1,0 +1,35 @@
+package com.appland.appmap.transform.annotations;
+
+import com.appland.appmap.output.v1.Parameters;
+
+import java.lang.reflect.Method;
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.NotFoundException;
+
+public class HookAnnotatedSystem extends SourceMethodSystem {
+  private String annotationClass;
+
+  private HookAnnotatedSystem(CtBehavior behavior, String annotationClass) {
+    super(behavior);
+
+    this.annotationClass = annotationClass;
+  }
+
+  public static ISystem from(CtBehavior behavior) {
+    String annotatedClass = (String) AnnotationUtil.getValue(behavior, HookAnnotated.class, null);
+    if (annotatedClass == null) {
+      return null;
+    }
+    return new HookAnnotatedSystem(behavior, annotatedClass);
+  }
+
+  @Override
+  public Boolean match(CtBehavior behavior) {
+    if (behavior.hasAnnotation(this.annotationClass)) {
+      System.err.println("!!");
+    }
+    return behavior.hasAnnotation(this.annotationClass);
+  }
+}
