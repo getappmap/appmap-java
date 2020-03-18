@@ -44,6 +44,12 @@ public class HttpRequestReceiver extends EventProcessorLock {
       return true;
     }
 
+    if (this.request.getRequestURI().endsWith(ServletFilterReceiver.RecordRoute)) {
+      this.request = null;
+      this.response = null;
+      return true;
+    }
+
     event.setParameters(null);
     event.setHttpServerRequest(this.request.getMethod(),
         this.request.getRequestURI(),

@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 
 public class ServletFilterReceiver implements IEventProcessor {
-  private static final String recordRoute = "/_appmap/record";
+  public static final String RecordRoute = "/_appmap/record";
 
   @Override
   public Boolean onEnter(Event event) {
@@ -37,7 +37,7 @@ public class ServletFilterReceiver implements IEventProcessor {
     HttpServletResponse res = resValue.get();
     FilterChain chain = chainValue.get();
 
-    if (!req.getRequestURI().equals(ServletFilterReceiver.recordRoute)) {
+    if (!req.getRequestURI().equals(ServletFilterReceiver.RecordRoute)) {
       return true;
     }
 
