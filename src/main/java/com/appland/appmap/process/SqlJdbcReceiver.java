@@ -4,11 +4,16 @@ import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.output.v1.Value;
 import com.appland.appmap.record.Recorder;
 
-public class SqlJdbcReceiver implements IEventProcessor {
+public class SqlJdbcReceiver extends EventProcessorLock {
   private static final Recorder recorder = Recorder.getInstance();
 
   @Override
-  public Boolean onEnter(Event event) {
+  protected String getLockKey() {
+    return "sql_query";
+  }
+
+  @Override
+  public Boolean onEnterLock(Event event) {
     if (event.parameters == null || event.parameters.size() < 1) {
       return true;
     }
@@ -22,7 +27,7 @@ public class SqlJdbcReceiver implements IEventProcessor {
   }
 
   @Override
-  public void onExit(Event event) {
+  public void onExitLock(Event event) {
     recorder.add(event);
   }
 }
