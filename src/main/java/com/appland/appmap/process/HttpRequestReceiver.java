@@ -22,73 +22,31 @@ import javax.servlet.http.HttpServletResponseWrapper;
  *
  * @see recordRoute
  */
-public class HttpRequestReceiver implements IEventProcessor {
+public class HttpRequestReceiver extends EventProcessorLock {
   private static final Recorder recorder = Recorder.getInstance();
-  private static final HashSet<Long> runningThreads = new HashSet<Long>();
-
-  private Boolean isExecuting = false;
 
   private HttpServletRequest request;
   private HttpServletResponse response;
-  private FilterChain filterChain;
 
-  private Boolean startExecuting() {
-    Long threadId = Thread.currentThread().getId();
-    Boolean nobodyExecuting = HttpRequestReceiver.runningThreads.contains(threadId) == false;
-    if (nobodyExecuting) {
-      HttpRequestReceiver.runningThreads.add(threadId);
-      this.isExecuting = true;
-    }
-    return nobodyExecuting;
-  }
-
-  private Boolean stopExecuting() {
-    if (!this.isExecuting) {
-      return false;
-    }
-
-    Long threadId = Thread.currentThread().getId();
-    HttpRequestReceiver.runningThreads.remove(threadId);
-    return true;
-  }
-
-  private Boolean isExecuting() {
-    return this.isExecuting;
-  }
-
-  private void invokeDoFilter(Event event,
-                              HttpServletRequest req,
-                              HttpServletResponse res,
-                              FilterChain chain) {
-    event.setParameters(null);
-    event.setHttpServerRequest(req.getMethod(), req.getRequestURI(), req.getProtocol());
-
-    recorder.add(event);
-  }
-
-  private void returnDoFilter(Event event,
-                              HttpServletRequest req,
-                              HttpServletResponse res,
-                              FilterChain chain) {
-    event.setParameters(null);
-    event.setHttpServerResponse(200);
-
-    recorder.add(event);
+  @Override
+  protected String getLockKey() {
+    return "http_server_request";
   }
 
   @Override
-  public Boolean onEnter(Event event) {
-    if (!this.startExecuting()) {
-      return true;
-    }
-
+  public Boolean onEnterLock(Event event) {
     try {
       this.request = event.getParameter(0).get();
       this.response = event.getParameter(1).get();
-      this.filterChain = event.getParameter(2).get();
     } catch (IllegalArgumentException e) {
       System.err.println("AppMap: failed to get parameter");
       System.err.println(e.getMessage());
+      return true;
+    }
+
+    if (this.request.getRequestURI().endsWith(ServletFilterReceiver.RecordRoute)) {
+      this.request = null;
+      this.response = null;
       return true;
     }
 
@@ -102,11 +60,7 @@ public class HttpRequestReceiver implements IEventProcessor {
   }
 
   @Override
-  public void onExit(Event event) {
-    if (!this.stopExecuting()) {
-      return;
-    }
-
+  public void onExitLock(Event event) {
     if (this.response == null) {
       return;
     }

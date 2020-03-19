@@ -27,6 +27,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
   // TODO: Enable appmap.yml to build all these Hookable objects.
   private static final Hookable hooks = new Hookable(
+      new HookableConfigPath().processedBy(EventProcessorType.PassThrough),
+
       new HookableInterfaceName(ClassReference.create("javax", "servlet", "Filter"),
         new HookableMethodSignature("doFilter")
           .addParam("javax.servlet.ServletRequest")
@@ -43,24 +45,83 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           .processedBy(EventProcessorType.HttpRequest)
       ),
 
-      // new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
-      //   new HookableMethodSignature("service")
-      //     .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
-      //     .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
-      //     .processedBy(EventProcessorType.HttpServlet)
-      // ),
+      new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
+        new HookableMethodSignature("doFilter")
+          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
+          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
+          .processedBy(EventProcessorType.HttpRequest)
+      ),
+
+      new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
+        new HookableMethodSignature("service")
+          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
+          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
+          .processedBy(EventProcessorType.HttpServlet)
+      ),
 
       new HookableInterfaceName(ClassReference.create("java", "sql", "Connection"),
-        new HookableMethodSignature("nativeSQL").processedBy(EventProcessorType.SqlJdbc),
         new HookableMethodSignature("prepareCall").processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("prepareStatement").processedBy(EventProcessorType.SqlJdbc)
+        new HookableMethodSignature("prepareStatement")
+            .addParam("java.lang.String")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("prepareStatement")
+            .addParam("java.lang.String")
+            .addParam("int")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("prepareStatement")
+            .addParam("java.lang.String")
+            .addParam("int[]")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("prepareStatement")
+            .addParam("java.lang.String")
+            .addParam("int")
+            .addParam("int")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("prepareStatement")
+            .addParam("java.lang.String")
+            .addParam("int")
+            .addParam("int")
+            .addParam("int")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("prepareStatement")
+            .addParam("java.lang.String")
+            .addParam("java.lang.String[]")
+            .processedBy(EventProcessorType.SqlJdbc)
       ),
 
       new HookableInterfaceName(ClassReference.create("java", "sql", "Statement"),
-        new HookableMethodSignature("addBatch").processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("execute").processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("executeQuery").processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("executeUpdate").processedBy(EventProcessorType.SqlJdbc)
+        new HookableMethodSignature("addBatch")
+            .addParam("java.lang.String")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("execute")
+            .addParam("java.lang.String")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("execute")
+            .addParam("java.lang.String")
+            .addParam("int")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("execute")
+            .addParam("int[]")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("execute")
+            .addParam("java.lang.String")
+            .addParam("java.lang.String[]")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("executeQuery")
+            .addParam("java.lang.String")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("executeUpdate")
+            .addParam("java.lang.String")
+            .addParam("int")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("executeUpdate")
+            .addParam("java.lang.String")
+            .addParam("int[]")
+            .processedBy(EventProcessorType.SqlJdbc),
+        new HookableMethodSignature("executeUpdate")
+            .addParam("java.lang.String")
+            .addParam("java.lang.String[]")
+            .processedBy(EventProcessorType.SqlJdbc)
       ),
 
       new HookableAnnotated(ClassReference.create("org", "junit", "Test"))
@@ -68,9 +129,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       new HookableClassName(ClassReference.create("org", "apache", "lucene", "util", "LuceneTestCase"),
         new HookableAllMethods().processedBy(EventProcessorType.ToggleRecord)
-      ),
-
-      new HookableConfigPath().processedBy(EventProcessorType.PassThrough)
+      )
   );
 
   public ClassFileTransformer() {
@@ -158,6 +217,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
     String returnStatement = "";
     if (unknownReturnType == false) {
+      // note that we're returning an empty object cast to the return type
+      // this is dangerous
       returnStatement = returnsVoid ? "return;" : "return ($r) new Object();";
     }
 

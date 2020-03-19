@@ -1,4 +1,4 @@
-FROM openjdk:9 AS build
+FROM openjdk:11 AS build
 
 # Build the Spring "Pet Clinic" sample application
 WORKDIR /
@@ -19,6 +19,7 @@ ADD gradlew             ./
 ADD settings.gradle     ./
 ADD build.gradle        ./
 ADD src                 ./src/
+ADD buildSrc            ./
 
 RUN ./gradlew --no-daemon build \
     && mv build/libs/appmap-java-all.jar /build/appmap.jar

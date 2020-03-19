@@ -11,6 +11,8 @@ import com.appland.tasks.ShadowRelocation
 
 plugins {
   id 'java'
+  id 'war'
+  id 'org.gretty' version '2.2.0'
 }
 
 repositories {
@@ -47,7 +49,7 @@ test {
 shadowJar {
   minimize()
   dependencies {
-    exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
+    // exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
   }
 }
 

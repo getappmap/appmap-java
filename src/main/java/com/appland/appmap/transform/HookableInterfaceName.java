@@ -12,7 +12,7 @@ import javassist.NotFoundException;
 public class HookableInterfaceName extends Hookable {
   private String interfaceName;
 
-  public HookableInterfaceName(String interfaceName, Hookable ... children) {
+  public HookableInterfaceName(String interfaceName, Hookable ...children) {
     super(children);
     this.interfaceName = interfaceName;
   }
@@ -23,6 +23,10 @@ public class HookableInterfaceName extends Hookable {
       for (CtClass superType : classType.getInterfaces()) {
         if (superType.getName().equals(interfaceName)) {
           return true;
+        } else {
+          if (match(superType)) {
+            return true;
+          }
         }
       }
     } catch (NotFoundException e) {

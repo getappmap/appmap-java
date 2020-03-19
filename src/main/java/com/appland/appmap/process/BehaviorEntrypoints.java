@@ -83,7 +83,7 @@ public class BehaviorEntrypoints {
       IEventProcessor processor = BehaviorEntrypoints.buildProcessor(eventProcessorType);
       if (processor != null) {
         processorStack.push(processor);
-        processor.onEnter(event);
+        continueMethodExecution = processor.onEnter(event);
       }
     } catch (UnknownEventException e) {
       System.err.printf("AppMap: %s\n", e);
