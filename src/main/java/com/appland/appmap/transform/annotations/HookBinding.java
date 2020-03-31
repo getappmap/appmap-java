@@ -23,7 +23,7 @@ public class HookBinding {
 
   public CtBehavior getTargetBehavior() {
     return this.targetBehavior;
-  }
+  } 
 
   public Parameters getTargetParameters() {
     return this.targetParameters;

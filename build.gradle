@@ -26,11 +26,12 @@ dependencies {
   implementation 'org.javassist:javassist:3.25.0-GA'
   implementation 'org.reflections:reflections:0.9.11'
   implementation 'javax.servlet:javax.servlet-api:4.0.1'
-  compile 'com.squareup:javapoet:1.12.1'
 
   annotationProcessor 'info.picocli:picocli-codegen:4.0.4'
 
   testImplementation 'junit:junit:4.12'
+  testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+  testImplementation "org.mockito:mockito-core:2.+"
 }
 
 jar {
@@ -44,10 +45,11 @@ apply plugin: 'com.github.johnrengelman.shadow'
 test {
   useJUnit()
   dependsOn shadowJar
-  jvmArgs "-javaagent:${shadowJar.archivePath}"
-  systemProperty "appmap.debug", "true"
-  systemProperty "appmap.config.file", "$rootDir/appmap.yml"
-  systemProperty "appmap.output.directory", "$rootDir/build/appmap"
+  dependsOn cleanTest
+  // jvmArgs "-javaagent:${shadowJar.archivePath}"
+  // systemProperty "appmap.debug", "true"
+  // systemProperty "appmap.config.file", "$rootDir/appmap.yml"
+  // systemProperty "appmap.output.directory", "$rootDir/build/appmap"
 }
 
 shadowJar {

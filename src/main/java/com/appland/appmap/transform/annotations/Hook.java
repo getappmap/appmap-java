@@ -383,6 +383,10 @@ public class Hook {
     return this.hookParameters;
   }
 
+  public CtBehavior getBehavior() {
+    return this.hookBehavior;
+  }
+
   public Integer getParameterIndex(ParameterType parameterType) {
     return 0;
   }
@@ -421,5 +425,14 @@ public class Hook {
       }
     }
     return returnType;
+  }
+
+  public ISystem getSystem(Class<? extends ISystem> systemClass) {
+    for (ISystem system : this.optionalSystems) {
+      if (systemClass.isInstance(system)) {
+        return system;
+      }
+    }
+    return null;
   }
 }
