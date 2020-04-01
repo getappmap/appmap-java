@@ -13,6 +13,7 @@ plugins {
   id 'java'
   id 'war'
   id 'org.gretty' version '2.2.0'
+  id 'jacoco'
 }
 
 repositories {
@@ -71,3 +72,11 @@ task relocateShadowJar(type: ShadowRelocation) {
 }
 
 tasks.shadowJar.dependsOn tasks.relocateShadowJar
+
+jacocoTestReport {
+  reports {
+    xml.enabled false
+    csv.enabled false
+    html.enabled true
+  }
+}
