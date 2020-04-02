@@ -18,6 +18,12 @@ public class HookConditionSystem extends SourceMethodSystem {
     this.conditionMethod = conditionMethod;
   }
 
+  /**
+   * Factory method. Reads any relevant annotation information and caches it.
+   * @param behavior The hook behavior
+   * @return A new {@code HookConditionSystem} if {@link HookCondition} is found. Otherwise,
+   *         {@code null}.
+   */
   public static ISystem from(CtBehavior behavior) {
     try {
       HookCondition hookCondition = (HookCondition) behavior.getAnnotation(HookCondition.class);

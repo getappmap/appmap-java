@@ -3,17 +3,13 @@ package com.appland.appmap.transform.annotations;
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.output.v1.Value;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.NoSuchElementException;
 
 import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
 
 public class ExcludeReceiverSystem extends BaseSystem {
-  private final static Boolean DEFAULT_VALUE = false;
+  private static final Boolean DEFAULT_VALUE = false;
 
   private Boolean excludeReceiver;
 
@@ -22,6 +18,11 @@ public class ExcludeReceiverSystem extends BaseSystem {
     this.excludeReceiver = excludeReceiver;
   }
 
+  /**
+   * Factory method. Reads any relevant annotation information and caches it.
+   * @param behavior The hook behavior
+   * @return A new ExcludeReceiverSystem
+   */
   public static ISystem from(CtBehavior behavior) {
     Boolean doesExcludeReceiver = (Boolean) AnnotationUtil.getValue(behavior,
         ExcludeReceiver.class,

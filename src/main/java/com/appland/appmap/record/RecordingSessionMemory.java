@@ -2,16 +2,17 @@ package com.appland.appmap.record;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Vector;
 
-import com.appland.appmap.output.v1.CodeObject;
-import com.appland.appmap.output.v1.Event;
-
+/**
+ * Receives recording data and writes it to a buffer in memory.
+ */
 public class RecordingSessionMemory extends RecordingSessionGeneric {
-  // protected Vector<Event> events = new Vector<Event>();
-  // protected CodeObjectTree codeObjects = new CodeObjectTree();
   private final Metadata metadata;
 
+  /**
+   * Constructor. You typically shouldn't be creating this outside of the {@link Recorder}.
+   * @param metadata Recording metadata
+   */
   public RecordingSessionMemory(Metadata metadata) {
     this.metadata = metadata;
   }

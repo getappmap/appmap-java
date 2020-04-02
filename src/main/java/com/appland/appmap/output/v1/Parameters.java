@@ -1,33 +1,37 @@
 package com.appland.appmap.output.v1;
 
-import com.alibaba.fastjson.serializer.JSONSerializer;
-import com.alibaba.fastjson.serializer.ObjectSerializer;
-
-import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.NotFoundException;
-import javassist.bytecode.BadBytecode;
-import javassist.bytecode.CodeAttribute;
-import javassist.bytecode.LocalVariableAttribute;
-import javassist.bytecode.MethodInfo;
-import javassist.bytecode.SignatureAttribute;
-import javassist.bytecode.SignatureAttribute.Type;
-
-import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.NotFoundException;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.LocalVariableAttribute;
+import javassist.bytecode.MethodInfo;
+
+/**
+ * A serializable list of named and typed objects.
+ * @see Event
+ * @see Value
+ * @see <a href="https://github.com/applandinc/appmap#parameter-object-format">GitHub: AppMap - Parameter object format</a>
+ */
 public class Parameters implements Iterable<Value> {
-  private static final Integer MAX_ARGS = 255;
   private final ArrayList<Value> values = new ArrayList<Value>();
 
   public Parameters() { }
 
+  /**
+   * Constructs a Parameters object from an existing CtBehavior. Values will automatically be added,
+   * named and typed after the behaviors parameters.
+   * @param behavior The behavior to construct Parameters from
+   * @throws NoSourceAvailableException If parameter names cannot be read from the behavior
+   * @see <a href="https://github.com/applandinc/appmap#function-call-attributes">GitHub: AppMap - Function call attributes</a>
+   */
   public Parameters(CtBehavior behavior) {
     MethodInfo methodInfo = behavior.getMethodInfo();
     CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
@@ -89,11 +93,19 @@ public class Parameters implements Iterable<Value> {
     }
   }
 
+  /**
+   * Get an iterator for each {@link Value}.
+   * @return A {@link Value} iterator
+   */
   @Override
   public Iterator<Value> iterator() {
     return this.values.iterator();
   }
 
+  /**
+   * Add a new {@link Value} object to the end of the list.
+   * @param param The {@link Value} to be added
+   */
   public boolean add(Value param) {
     if (param == null) {
       return false;
@@ -102,18 +114,36 @@ public class Parameters implements Iterable<Value> {
     return this.values.add(param);
   }
 
+  /**
+   * Get a stream of Values.
+   * @return A {@link Value} Stream
+   */
   public Stream<Value> stream() {
     return this.values.stream();
   }
 
+  /**
+   * Get the number of values stored.
+   * @return The size of the internal value array
+   */
   public int size() {
     return this.values.size();
   }
 
+
+  /**
+   * Clear the internal value array.
+   */
   public void clear() {
     this.values.clear();
   }
 
+  /**
+   * Get a {@Value} object stored by this Parameters object by name/identifier.
+   * @param name The name or identifier of the @{link Value} to be returned
+   * @return The {@link Value} object found
+   * @throws NoSuchElementException If no @{link Value} object is found
+   */
   public Value get(String name) throws NoSuchElementException {
     if (this.values != null) {
       for (Value param : this.values) {
@@ -126,6 +156,12 @@ public class Parameters implements Iterable<Value> {
     throw new NoSuchElementException();
   }
 
+  /**
+   * Get a {@Value} object stored by this Parameters object by index.
+   * @param index The index of the @{link Value} to be returned
+   * @return The {@link Value} object at the given index
+   * @throws NoSuchElementException if no @{link Value} object is found at the given index
+   */
   public Value get(Integer index) throws NoSuchElementException {
     if (this.values == null) {
       throw new NoSuchElementException();
@@ -138,6 +174,13 @@ public class Parameters implements Iterable<Value> {
     }
   }
 
+  /**
+   * Test if the {@link Value} object at the given index is of a given type.
+   * @param index The index to validate
+   * @param type The name of the type to check for
+   * @return {@code true} if the @{link Value} at the given index matches the type given. Otherwise,
+   *         {@code false}.
+   */
   public Boolean validate(Integer index, String type) {
     try {
       Value param = this.get(index);
@@ -147,9 +190,13 @@ public class Parameters implements Iterable<Value> {
     }
   }
 
+  /**
+   * Performs a deep copy of the Parameters object and all of its values.
+   * @return A new Parameters object
+   */
   public Parameters clone() {
     Parameters clonedParams = new Parameters();
-    for(Value param : this.values) {
+    for (Value param : this.values) {
       clonedParams.add(new Value(param));
     }
     return clonedParams;

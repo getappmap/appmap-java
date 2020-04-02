@@ -2,11 +2,10 @@ package com.appland.appmap.process.hooks;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.Recorder;
-import com.appland.appmap.transform.annotations.MethodEvent;
-import com.appland.appmap.transform.annotations.Unique;
 import com.appland.appmap.transform.annotations.CallbackOn;
 import com.appland.appmap.transform.annotations.HookClass;
-
+import com.appland.appmap.transform.annotations.MethodEvent;
+import com.appland.appmap.transform.annotations.Unique;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -16,6 +15,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Hooks to capture @{code http_server_request} and @{code http_server_response} data.
+ */
 @Unique("http_server_request")
 public class HttpServerRequest {
   private static final Recorder recorder = Recorder.getInstance();

@@ -68,6 +68,11 @@ public class Hook {
     this.buildParameters();
   }
 
+  /**
+   * 
+   * @param hookBehavior The behavior to create a hook from
+   * @return If hookBehavior is a valid hook, return a new Hook object. Otherwise, null.
+   */
   public static Hook from(CtBehavior hookBehavior) {
     SourceMethodSystem sourceSystem = null;
     for (Function<CtBehavior, ISystem> factoryFn : requiredHookSystemFactories) {
@@ -385,10 +390,6 @@ public class Hook {
 
   public CtBehavior getBehavior() {
     return this.hookBehavior;
-  }
-
-  public Integer getParameterIndex(ParameterType parameterType) {
-    return 0;
   }
   
   public void validate() throws HookValidationException {

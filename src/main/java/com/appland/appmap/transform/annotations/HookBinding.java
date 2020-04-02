@@ -4,6 +4,9 @@ import com.appland.appmap.output.v1.Parameters;
 
 import javassist.CtBehavior;
 
+/**
+ * Represents the relationship between a hook and a behavior to be transformed.
+ */
 public class HookBinding {
   private final Hook hook;
   private final CtBehavior targetBehavior;

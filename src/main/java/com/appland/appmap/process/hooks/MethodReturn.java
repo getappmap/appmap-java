@@ -8,6 +8,9 @@ import com.appland.appmap.transform.annotations.ArgumentArray;
 import com.appland.appmap.transform.annotations.CallbackOn;
 import com.appland.appmap.transform.annotations.HookCondition;
 
+/**
+ * Hooks to capture method returns from classes included in configuration.
+ */
 public class MethodReturn {
   private static final Recorder recorder = Recorder.getInstance();
 

@@ -17,6 +17,12 @@ public class HookAnnotatedSystem extends SourceMethodSystem {
     this.annotationClass = annotationClass;
   }
 
+  /**
+   * Factory method. Reads any relevant annotation information and caches it.
+   * @param behavior The hook behavior
+   * @return A new {@code HookAnnotatedSystem} if {@link HookAnnotated} is found. Otherwise,
+   *         {@code null}.
+   */
   public static ISystem from(CtBehavior behavior) {
     String annotatedClass = (String) AnnotationUtil.getValue(behavior, HookAnnotated.class, null);
     if (annotatedClass == null) {

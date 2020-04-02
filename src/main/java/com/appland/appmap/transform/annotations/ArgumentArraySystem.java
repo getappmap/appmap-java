@@ -3,18 +3,17 @@ package com.appland.appmap.transform.annotations;
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.output.v1.Value;
 
-import java.lang.reflect.Method;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
 
+/**
+ * Marshals arguments between a behavior and a hook.
+ */
 public class ArgumentArraySystem extends BaseSystem {
-  private final static Boolean DEFAULT_VALUE = false;
+  private static final Boolean DEFAULT_VALUE = false;
 
   private Boolean wantsArgumentArray;
 
@@ -23,6 +22,11 @@ public class ArgumentArraySystem extends BaseSystem {
     this.wantsArgumentArray = wantsArgumentArray;
   }
 
+  /**
+   * Factory method. Reads any relevant annotation information and caches it.
+   * @param hookBehavior The hook behavior
+   * @return A new ArgumentArraySystem
+   */
   public static ISystem from(CtBehavior hookBehavior) {
     final Boolean wantsArgumentArray = (Boolean) AnnotationUtil.getValue(hookBehavior,
         ArgumentArray.class,

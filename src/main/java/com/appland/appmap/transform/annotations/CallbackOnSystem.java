@@ -3,14 +3,16 @@ package com.appland.appmap.transform.annotations;
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.output.v1.Value;
 
-import java.lang.reflect.Method;
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 
+/**
+ * Responsible for handling receiver/exception arguments from a behavior to a hook.
+ */
 public class CallbackOnSystem extends BaseSystem {
-  private final static MethodEvent DEFAULT_VALUE = MethodEvent.METHOD_INVOCATION;
+  private static final MethodEvent DEFAULT_VALUE = MethodEvent.METHOD_INVOCATION;
 
   private MethodEvent methodEvent;
 
@@ -19,6 +21,11 @@ public class CallbackOnSystem extends BaseSystem {
     this.methodEvent = methodEvent;
   }
 
+  /**
+   * Factory method. Reads any relevant annotation information and caches it.
+   * @param behavior The hook behavior
+   * @return A new CallbackOnSystem
+   */
   public static ISystem from(CtBehavior behavior) {
     MethodEvent methodEvent = (MethodEvent) AnnotationUtil.getValue(behavior,
         CallbackOn.class,

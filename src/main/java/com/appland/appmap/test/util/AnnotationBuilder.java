@@ -4,11 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.CtNewMethod;
-import javassist.NotFoundException;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.BooleanMemberValue;
@@ -24,6 +19,11 @@ import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
+/**
+ * Attaches Annotations to Methods created via the {@link MethodBuilder}.
+ * @see MethodBuilder
+ * @see ClassBuilder
+ */
 public class AnnotationBuilder {
   private MethodBuilder declaringMethodBuilder;
   private String typeName;
@@ -48,24 +48,49 @@ public class AnnotationBuilder {
     }
   }
 
+  /**
+   * Constructor. Typically you shouldn't be calling this outside of {@link MethodBuilder}.
+   * @param declaringMethodBuilder The owning {@link MethodBuilder}
+   */
   public AnnotationBuilder(MethodBuilder declaringMethodBuilder) {
     this.declaringMethodBuilder = declaringMethodBuilder;
   }
 
+  /**
+   * Set the Annotation type.
+   * @param typeName The fully qualified name of the Annotation
+   * @return {@code this}
+   */
   public AnnotationBuilder setType(String typeName) {
     this.typeName = typeName;
     return this;
   }
 
+  /**
+   * Set an Annotation member variable.
+   * @param name The name of the member variable
+   * @param value The value of the member variable
+   * @return {@code this}
+   */
   public AnnotationBuilder setMember(String name, Object value) {
     this.annotationMemberValues.add(new AnnotationMemberValue(name, value));
     return this;
   }
 
+  /**
+   * Completes the Annotation.
+   * @return The declaring {@link MethodBuilder}
+   */
   public MethodBuilder endAnnotation() {
     return this.declaringMethodBuilder;
   }
 
+  /**
+   * Build the Annotation. You shouldn't have to call this outside of the {@link MethodBuilder}.
+   * @param constPool The declaring method's Const Pool
+   * @return The newly created Annotation
+   * @throws CannotCompileException If an invalid member value is encountered.
+   */
   public Annotation build(ConstPool constPool) throws CannotCompileException {
     Annotation annotation = new Annotation(this.typeName, constPool);
 

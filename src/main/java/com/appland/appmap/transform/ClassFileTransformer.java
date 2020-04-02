@@ -1,7 +1,6 @@
 package com.appland.appmap.transform;
 
 import com.appland.appmap.output.v1.NoSourceAvailableException;
-import com.appland.appmap.record.EventTemplateRegistry;
 import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
@@ -13,8 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javassist.ClassPool;
 import javassist.CtBehavior;
 import javassist.CtClass;
@@ -29,15 +28,19 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
 /**
- * ClassFileTransformer transforms classes to send callback notifications to com.appland.appmap.process.
- * Only classes and methods which match the <code>appmap.yml</code> are transformed in this way.
+ * The ClassFileTransformer is responsible for loading and caching hooks during {@link Agent}
+ * statup. The {@link ClassFileTransformer#transform} method is used by the Instrumentation API to
+ * modify class bytecode at load time. When a class is loaded, this class will attempt to apply
+ * hooks to each behavior declared by that class.
  */
 public class ClassFileTransformer implements java.lang.instrument.ClassFileTransformer {
-  private static final EventTemplateRegistry eventTemplateRegistry = EventTemplateRegistry.get();
   private static final Boolean debug = (System.getProperty("appmap.debug") != null);
   private static final List<Hook> unkeyedHooks = new ArrayList<Hook>();
   private static final HashMap<String, List<Hook>> keyedHooks = new HashMap<String, List<Hook>>();
 
+  /**
+   * Default constructor. Caches hooks for future class transforms.
+   */
   public ClassFileTransformer() {
     super();
 
@@ -123,12 +126,6 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       if (hookSites.size() < 1) {
         return;
       }
-
-      // final List<String> uniqueKeys = appliedHooks
-      //     .stream()
-      //     .map(hook -> hook.getUniqueKey())
-      //     .filter(key -> !key.isEmpty())
-      //     .collect(Collectors.toList());
 
       Hook.apply(behavior, hookSites);
 

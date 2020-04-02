@@ -8,6 +8,17 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface HookClass {
+  /**
+   * Identifies the name of a class of which a hook shall be applied if the method name and its
+   * parameters are applicable.
+   * @return The fully qualified name of a class
+   */
   public String value() default "";
+
+  /**
+   * If set, overrides the method name to apply a hook to. By default, the name of the method this
+   * annotation is attached to will be used.
+   * @return A method name to apply this hook to.
+   */
   public String method() default "";
 }

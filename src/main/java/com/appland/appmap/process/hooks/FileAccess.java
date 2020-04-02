@@ -8,6 +8,9 @@ import com.appland.appmap.transform.annotations.Unique;
 
 import java.nio.file.Path;
 
+/**
+ * Hooks to capture "file_access" data on event calls.
+ */
 // @ArgumentArray
 // @ExcludeReceiver
 // @HookClass("java.nio.channels.FileChannel")

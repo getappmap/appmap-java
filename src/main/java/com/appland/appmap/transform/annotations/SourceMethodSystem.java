@@ -6,7 +6,7 @@ import com.appland.appmap.output.v1.Value;
 import javassist.CtBehavior;
 
 public abstract class SourceMethodSystem extends BaseSystem {
-  public final static String EVENT_TOKEN = "$evt";
+  public static final String EVENT_TOKEN = "$evt";
 
   private String hookClass;
   private String hookMethod;

@@ -10,5 +10,10 @@ import com.appland.appmap.process.conditions.Condition;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface HookCondition {
+  /**
+   * Identifies a {@link Condition} class. When deciding whether to apply a hook to a behavior,
+   * {@link Condition#match(javassist.CtBehavior)} must return true.
+   * @return A class implementing {@link Condition}
+   */
   public Class<? extends Condition> value() default Condition.class;
 }

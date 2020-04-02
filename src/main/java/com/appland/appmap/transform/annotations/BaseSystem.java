@@ -1,13 +1,8 @@
 package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.output.v1.Parameters;
-import com.appland.appmap.output.v1.Value;
 
-import java.lang.reflect.Method;
 import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
 
 public abstract class BaseSystem implements ISystem {
   private final CtBehavior hookBehavior;
@@ -42,9 +37,5 @@ public abstract class BaseSystem implements ISystem {
 
   public Boolean validate(HookBinding binding) {
     return true;
-  }
-
-  public ParameterType getParameterType() {
-    return null;
   }
 }

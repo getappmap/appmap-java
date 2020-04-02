@@ -1,5 +1,18 @@
 package com.appland.appmap.process.hooks;
 
+import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.process.ExitEarly;
+import com.appland.appmap.record.ActiveSessionException;
+import com.appland.appmap.record.IRecordingSession;
+import com.appland.appmap.record.Recorder;
+import com.appland.appmap.transform.annotations.ArgumentArray;
+import com.appland.appmap.transform.annotations.CallbackOn;
+import com.appland.appmap.transform.annotations.ContinueHooking;
+import com.appland.appmap.transform.annotations.ExcludeReceiver;
+import com.appland.appmap.transform.annotations.HookAnnotated;
+import com.appland.appmap.transform.annotations.HookClass;
+import com.appland.appmap.transform.annotations.MethodEvent;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -8,23 +21,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.output.v1.HttpServerResponse;
-import com.appland.appmap.process.ExitEarly;
-import com.appland.appmap.process.conditions.ConfigCondition;
-import com.appland.appmap.record.ActiveSessionException;
-import com.appland.appmap.record.IRecordingSession;
-import com.appland.appmap.record.Recorder;
-import com.appland.appmap.transform.annotations.MethodEvent;
-import com.appland.appmap.transform.annotations.ArgumentArray;
-import com.appland.appmap.transform.annotations.CallbackOn;
-import com.appland.appmap.transform.annotations.ContinueHooking;
-import com.appland.appmap.transform.annotations.ExcludeReceiver;
-import com.appland.appmap.transform.annotations.Hook;
-import com.appland.appmap.transform.annotations.HookAnnotated;
-import com.appland.appmap.transform.annotations.HookClass;
-import com.appland.appmap.transform.annotations.HookCondition;
-
+/**
+ * Hooks to toggle event recording. This could be either via HTTP or by entering a unit test method.
+ */
 public class ToggleRecord {
   private static final Recorder recorder = Recorder.getInstance();
   public static final String RecordRoute = "/_appmap/record";

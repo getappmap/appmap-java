@@ -19,6 +19,11 @@ public class HookClassSystem extends SourceMethodSystem {
     super(behavior);
   }
 
+  /**
+   * Factory method. Reads any relevant annotation information and caches it.
+   * @param behavior The hook behavior
+   * @return A new {@code HookClassSystem} if {@link HookClass} is found. Otherwise, {@code null}.
+   */
   public static ISystem from(CtBehavior behavior) {
     try {
       HookClass hookClass = (HookClass) behavior.getAnnotation(HookClass.class);

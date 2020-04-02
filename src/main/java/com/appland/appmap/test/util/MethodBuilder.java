@@ -3,7 +3,6 @@ package com.appland.appmap.test.util;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -13,13 +12,14 @@ import javassist.CtNewMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.CodeAttribute;
-import javassist.bytecode.CodeIterator;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
 import javassist.bytecode.LocalVariableAttribute;
 import javassist.bytecode.annotation.Annotation;
-import javassist.compiler.Javac;
 
+/**
+ * Define a new method for a dynamic Class built via the {@link ClassBuilder}.
+ */
 public class MethodBuilder {
   private ClassBuilder declaringClassBuilder;
   private List<CtClass> exceptions = new ArrayList<CtClass>();
@@ -30,45 +30,91 @@ public class MethodBuilder {
   private List<ParameterBuilder> parameters = new ArrayList<ParameterBuilder>();
   private List<AnnotationBuilder> annotations = new ArrayList<AnnotationBuilder>();
 
+  /**
+   * Constructor. Typically you shouldn't be calling this outside of {@link ClassBuilder}.
+   * @param declaringClassBuilder The declaring {@link ClassBuilder}
+   */
   public MethodBuilder(ClassBuilder declaringClassBuilder) {
     this.declaringClassBuilder = declaringClassBuilder;
   }
 
+  /**
+   * Set the method body. Defaults to empty ({@code &#123; &#125;}).
+   * @param body The method body
+   * @return {@code this}
+   */
   public MethodBuilder setBody(String body) {
     this.body = body;
     return this;
   }
 
+  /**
+   * Set the method name.
+   * @param name The name of the method
+   * @return {@code this}
+   */
   public MethodBuilder setName(String name) {
     this.name = name;
     return this;
   }
 
+  /**
+   * Set the method return type.
+   * @param returnType The method return type
+   * @return {@code this}
+   */
   public MethodBuilder setReturnType(CtClass returnType) {
     this.returnType = returnType;
     return this;
   }
 
+  /**
+   * Set the method return type.
+   * @param returnTypeName The name of the method return type
+   * @return {@code this}
+   * @throws NotFoundException If the name of the method return type cannot be resolved to a Class
+   */
   public MethodBuilder setReturnType(String returnTypeName) throws NotFoundException {
     this.setReturnType(ClassPool.getDefault().get(returnTypeName));
     return this;
   }
 
+  /**
+   * Add an exception type that this method will throw.
+   * @param exceptionType The exception type to add
+   * @return {@code this}
+   */
   public MethodBuilder addException(CtClass exceptionType) {
     this.exceptions.add(exceptionType);
     return this;
   }
 
+  /**
+   * Add an exception type that this method will throw.
+   * @param exceptionTypeName The name of the exception type
+   * @return {@code this}
+   * @throws NotFoundException If the name of the exception type cannot be resolved to a Class
+   */
   public MethodBuilder addException(String exceptionTypeName) throws NotFoundException {
     this.addException(ClassPool.getDefault().get(exceptionTypeName));
     return this;
   }
 
+  /**
+   * Add a modifier to this method such as {@code public} or {@code static}.
+   * @param modifier The modifier flag to add
+   * @return {@code this}
+   */
   public MethodBuilder addModifer(Integer modifier) {
     this.modifiers |= modifier;
     return this;
   }
 
+  /**
+   * Add new parameter to this method. Parameter order is maintained.
+   * @param parameterType The parameter type
+   * @return {@code this}
+   */
   public MethodBuilder addParameter(CtClass parameterType, String parameterId) {
     this.beginParameter()
         .setType(parameterType)
@@ -78,6 +124,12 @@ public class MethodBuilder {
     return this;
   }
 
+  /**
+   * Add new parameter to this method. Parameter order is maintained.
+   * @param parameterType The name of the parameter type
+   * @return {@code this}
+   * @throws NotFoundException If the name of the parameter type cannot be resolved to a Class
+   */
   public MethodBuilder addParameter(String parameterType, String parameterId)
       throws NotFoundException {
     this.beginParameter()
@@ -87,27 +139,58 @@ public class MethodBuilder {
     return this;
   }
 
+  /**
+   * Begin building a new parameter. {@link ParameterBuilder#endParameter()} must be called to
+   * return to building this method.
+   * @return A new {@link ParameterBuilder}
+   * @see ParameterBuilder
+   */
   public ParameterBuilder beginParameter() {
     ParameterBuilder builder = new ParameterBuilder(this);
     this.parameters.add(builder);
     return builder;
   }
 
+  /**
+   * Begin building a new annotation bound to this method. {@link AnnotationBuilder#endAnnotation()}
+   * must be called to return to building this method.
+   * @return A new {@link AnnotationBuilder}
+   * @see AnnotationBuilder
+   */
   public AnnotationBuilder beginAnnotation() {
     AnnotationBuilder builder = new AnnotationBuilder(this);
     this.annotations.add(builder);
     return builder;
   }
 
+  /**
+   * Begin building a new annotation bound to this method. {@link AnnotationBuilder#endAnnotation()}
+   * must be called to return to building this method.
+   * @param annotationType The type of Annotation to be built
+   * @return A new {@link AnnotationBuilder}
+   * @see AnnotationBuilder
+   */
   public AnnotationBuilder beginAnnotation(String annotationType) {
     return this.beginAnnotation().setType(annotationType);
   }
 
+  /**
+   * Begin building a new annotation bound to this method. {@link AnnotationBuilder#endAnnotation()}
+   * must be called to return to building this method.
+   * @param annotationType The fully qualified class name of the Annotation to be built
+   * @return A new {@link AnnotationBuilder}
+   * @see AnnotationBuilder
+   */
   public MethodBuilder addAnnotation(String annotationType) {
     return this.beginAnnotation(annotationType)
                .endAnnotation();
   }
 
+  /**
+   * Completes the Method.
+   * @return The declaring {@link ClassBuilder}
+   * @throws CannotCompileException If method compilation fails
+   */
   public ClassBuilder endMethod() throws CannotCompileException {
     this.build();
     return this.declaringClassBuilder;

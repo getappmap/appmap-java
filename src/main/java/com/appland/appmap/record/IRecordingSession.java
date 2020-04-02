@@ -14,7 +14,10 @@ public interface IRecordingSession {
   }
 
   public void add(Event event) throws ActiveSessionException;
+
   public void add(CodeObject codeObject) throws ActiveSessionException;
+
   public void start() throws ActiveSessionException;
+
   public String stop() throws ActiveSessionException;
 }

@@ -12,6 +12,9 @@ import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookClass;
 import com.appland.appmap.transform.annotations.HookCondition;
 
+/**
+ * Hooks to capture {@code sql_query} data from classes included in configuration.
+ */
 @Unique("sql_query")
 @ExcludeReceiver
 public class SqlQuery {

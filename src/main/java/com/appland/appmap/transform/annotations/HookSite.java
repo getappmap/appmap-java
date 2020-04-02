@@ -7,6 +7,10 @@ import com.appland.appmap.output.v1.Parameters;
 
 import javassist.CtBehavior;
 
+/**
+ * Represents a hook to be applied to a behavior. Should be replaced/merged with
+ * {@link HookBinding}.
+ */
 public class HookSite {
   private final Hook hook;
   private final String hookInvocation;

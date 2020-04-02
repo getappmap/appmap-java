@@ -1,9 +1,9 @@
 package com.appland.appmap.record;
 
-import java.util.Vector;
-
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
+
+import java.util.Vector;
 
 public class RecordingSessionGeneric implements IRecordingSession {
   protected Vector<Event> events = new Vector<Event>();

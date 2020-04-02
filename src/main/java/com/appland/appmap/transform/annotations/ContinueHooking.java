@@ -8,5 +8,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface ContinueHooking {
+  /**
+   * Instructs a hook to ignore the global lock.
+   * @return {@code true} if the global lock should be ignored. Otherwise, {@code false}.
+   */
   public boolean value() default false;
 }
