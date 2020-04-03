@@ -44,7 +44,7 @@ public class Recorder {
 
   /**
    * Get the global Recorder instance.
-   * @return the global recorder instance
+   * @return The global recorder instance
    */
   public static Recorder getInstance() {
     return Recorder.instance;
@@ -52,7 +52,7 @@ public class Recorder {
 
   /**
    * Checks whether or not the Recorder has an active recording session.
-   * @return {@code true} if a session is in progress. Otherwise, {@code false}.
+   * @return {@code true} If a session is in progress. Otherwise, {@code false}.
    */
   public synchronized Boolean hasActiveSession() {
     return this.activeSession != null;
@@ -60,9 +60,9 @@ public class Recorder {
 
   /**
    * Start a recording session, writing the output to a file.
-   * @param fileName destination file
-   * @param metadata recording metadata to be written
-   * @throws ActiveSessionException if a session is already in progress
+   * @param fileName Destination file
+   * @param metadata Recording metadata to be written
+   * @throws ActiveSessionException If a session is already in progress
    */
   public synchronized void start(String fileName, IRecordingSession.Metadata metadata)
       throws ActiveSessionException {
@@ -71,8 +71,8 @@ public class Recorder {
 
   /**
    * Start a recording session, storing recording data in memory.
-   * @param metadata recording metadata to be written
-   * @throws ActiveSessionException if a recording session is already in progress
+   * @param metadata Recording metadata to be written
+   * @throws ActiveSessionException If a recording session is already in progress
    */
   public synchronized void start(IRecordingSession.Metadata metadata)
       throws ActiveSessionException {
