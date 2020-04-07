@@ -1,6 +1,7 @@
 package com.appland.appmap.process.hooks;
 
 import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.output.v1.HttpServerResponse;
 import com.appland.appmap.process.ExitEarly;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.IRecordingSession;
@@ -18,6 +19,8 @@ import java.io.PrintWriter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -72,7 +75,7 @@ public class ToggleRecord {
 
   @ExcludeReceiver
   @HookClass("javax.servlet.http.HttpServlet")
-  public static void service(Event event, HttpServletRequest req, HttpServletResponse res) 
+  public static void service(Event event, HttpServletRequest req, HttpServletResponse res)
       throws ExitEarly {
     if (!req.getRequestURI().endsWith(RecordRoute)) {
       return;
@@ -91,13 +94,17 @@ public class ToggleRecord {
 
   @ContinueHooking
   @ExcludeReceiver
-  @HookClass("javax.servlet.http.HttpFilter")
-  public static void service( Event event,
-                              HttpServletRequest req,
-                              HttpServletResponse res,
+  @HookClass("javax.servlet.Filter")
+  public static void doFilter(Event event,
+                              ServletRequest req,
+                              ServletResponse res,
                               FilterChain chain)
                               throws IOException, ServletException, ExitEarly {
-    if (!req.getRequestURI().endsWith(RecordRoute)) {
+    if (!(req instanceof HttpServletRequest)) {
+      return;
+    }
+
+    if (!((HttpServletRequest) req).getRequestURI().endsWith(RecordRoute)) {
       return;
     }
 

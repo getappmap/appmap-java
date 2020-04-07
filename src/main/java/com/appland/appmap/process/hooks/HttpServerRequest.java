@@ -38,7 +38,7 @@ public class HttpServerRequest {
     recorder.add(event);
   }
 
-  @HookClass(value = "javax.servlet.Filter")
+  @HookClass("javax.servlet.Filter")
   public static void doFilter(Event event,
                               Filter self,
                               ServletRequest req,
@@ -48,7 +48,7 @@ public class HttpServerRequest {
   }
 
   @CallbackOn(MethodEvent.METHOD_RETURN)
-  @HookClass(value = "javax.servlet.Filter")
+  @HookClass("javax.servlet.Filter")
   public static void doFilter(Event event,
                               Filter self,
                               Object returnValue,
@@ -59,7 +59,7 @@ public class HttpServerRequest {
   }
 
   @CallbackOn(MethodEvent.METHOD_EXCEPTION)
-  @HookClass(value = "javax.servlet.Filter")
+  @HookClass("javax.servlet.Filter")
   public static void doFilter(Event event,
                               Filter self,
                               Throwable exception,
@@ -71,7 +71,7 @@ public class HttpServerRequest {
     recorder.add(event);
   }
 
-  @HookClass(value = "javax.servlet.http.HttpServlet")
+  @HookClass("javax.servlet.http.HttpServlet")
   public static void service( Event event,
                               HttpServlet self,
                               HttpServletRequest req,
@@ -80,7 +80,7 @@ public class HttpServerRequest {
   }
 
   @CallbackOn(MethodEvent.METHOD_RETURN)
-  @HookClass(value = "javax.servlet.http.HttpServlet")
+  @HookClass("javax.servlet.http.HttpServlet")
   public static void service( Event event,
                               HttpServlet self,
                               Object returnValue,
@@ -90,7 +90,7 @@ public class HttpServerRequest {
   }
 
   @CallbackOn(MethodEvent.METHOD_EXCEPTION)
-  @HookClass(value = "javax.servlet.http.HttpServlet")
+  @HookClass("javax.servlet.http.HttpServlet")
   public static void service( Event event,
                               HttpServlet self,
                               Throwable exception,

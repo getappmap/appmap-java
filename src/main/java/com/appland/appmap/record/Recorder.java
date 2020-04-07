@@ -94,12 +94,14 @@ public class Recorder {
 
     ThreadLock processorStack = ThreadLock.current();
     try {
-      processorStack.setLock(true);
+      processorStack.enter();
+      processorStack.lock();
       output = this.activeSession.stop();
     } catch (ActiveSessionException e) {
       System.err.printf("AppMap: failed to stop recording\n%s\n", e.getMessage());
     } finally {
-      processorStack.setLock(false);
+      processorStack.unlock();
+      processorStack.exit();
     }
 
     this.activeSession = null;

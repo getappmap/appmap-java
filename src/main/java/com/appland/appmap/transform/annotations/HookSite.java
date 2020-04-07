@@ -1,23 +1,28 @@
 package com.appland.appmap.transform.annotations;
 
+import com.appland.appmap.output.v1.Parameters;
+
 import java.io.StringWriter;
 import java.util.stream.Collectors;
-
-import com.appland.appmap.output.v1.Parameters;
 
 import javassist.CtBehavior;
 
 /**
- * Represents a hook to be applied to a behavior. Should be replaced/merged with
- * {@link HookBinding}.
+ * Represents a hook to be applied to a behavior.
  */
 public class HookSite {
   private final Hook hook;
   private final String hookInvocation;
   private final MethodEvent methodEvent;
+  private final Boolean ignoresGlobalLock;
 
   HookSite(Hook hook, Integer behaviorOrdinal, Parameters parameters) {
     this.methodEvent = hook.getMethodEvent();
+    this.hook = hook;
+    this.ignoresGlobalLock = (Boolean) AnnotationUtil.getValue(
+      hook.getBehavior(),
+      ContinueHooking.class,
+      false);
 
     final String event = String.format("%s.get().cloneEventTemplate(%d, \"%s\")",
         "com.appland.appmap.record.EventTemplateRegistry",
@@ -34,8 +39,24 @@ public class HookSite {
         .collect(Collectors.joining(", "))
         .replace(SourceMethodSystem.EVENT_TOKEN, event);
 
-    this.hook = hook;
-    this.hookInvocation = hook.getSourceSystem().toString() + "(" + args + ");";
+    String invocation = hook.getSourceSystem().toString() + "(" + args + ");";
+
+    if (!this.getUniqueKey().isEmpty()) {
+      invocation = "if (com.appland.appmap.process.ThreadLock.current().hasUniqueLock(\""
+          + this.getUniqueKey()
+          + "\")) {"
+          + invocation
+          + "}";
+    }
+
+    if (this.ignoresGlobalLock()) {
+      this.hookInvocation = invocation;
+    } else {
+      this.hookInvocation = "if (com.appland.appmap.process.ThreadLock.current().lock()) {"
+        + invocation
+        + "com.appland.appmap.process.ThreadLock.current().unlock();"
+        + "}";
+    }
   }
 
   public String getHookInvocation() {
@@ -52,5 +73,9 @@ public class HookSite {
 
   public Hook getHook() {
     return this.hook;
+  }
+
+  public Boolean ignoresGlobalLock() {
+    return this.ignoresGlobalLock;
   }
 }

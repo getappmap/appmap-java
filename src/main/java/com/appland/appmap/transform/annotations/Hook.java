@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -48,7 +49,6 @@ public class Hook {
   private Parameters staticParameters = new Parameters();
   private Parameters hookParameters;
   private CtBehavior hookBehavior;
-  private Boolean continueHooking = false;
   private String uniqueKey = "";
 
   private Hook( SourceMethodSystem sourceSystem,
@@ -58,11 +58,6 @@ public class Hook {
     this.optionalSystems = optionalSystems;
     this.hookBehavior = hookBehavior;
     this.hookParameters = new Parameters(hookBehavior);
-
-    this.continueHooking = (Boolean) AnnotationUtil.getValue(hookBehavior,
-        ContinueHooking.class,
-        false);
-
     this.uniqueKey = (String) AnnotationUtil.getValue(hookBehavior, Unique.class, "");
 
     this.buildParameters();
@@ -151,220 +146,72 @@ public class Hook {
     Parameters runtimeParameters = this.getRuntimeParameters(binding);
 
     return new HookSite(this, behaviorOrdinal, runtimeParameters);
-
-    // String hookSource = this.getInvocationSource(behaviorOrdinal, methodEvent, runtimeParameters);
-
-    // try {
-    //   if (methodEvent == MethodEvent.METHOD_INVOCATION) {
-    //     hookSource = this.wrapTryCatchSource(behavior, hookSource);
-    //     behavior.insertBefore(hookSource);
-    //   } else if (methodEvent == MethodEvent.METHOD_RETURN) {
-    //     behavior.insertAfter(hookSource);
-    //   } else if (methodEvent == MethodEvent.METHOD_EXCEPTION) {
-    //     Value exceptionValue = runtimeParameters.get(2);
-
-    //     hookSource = String.format("%s throw %s;", hookSource, exceptionValue.name);
-    //     behavior.addCatch(hookSource,
-    //         ClassPool.getDefault().get("java.lang.Throwable"),
-    //         exceptionValue.name);
-    //   }
-    // } catch (CannotCompileException e) {
-    //   System.err.printf("AppMap: failed to compile\n");
-    //   System.err.printf("        hook   %s\n", this.toString());
-    //   System.err.printf("        method %s.%s\n",
-    //       behavior.getDeclaringClass().getName(),
-    //       behavior.getName());
-    //   System.err.println(e.getMessage());
-    //   System.err.println(hookSource);
-
-    // } catch (Exception e) {
-    //   System.err.println("AppMap: failed to apply hook");
-    //   System.err.printf("%s: %s\n", e.getClass(), e.getMessage());
-    //   e.printStackTrace(System.err);
-    //   return false;
-    // }
-
-    // return true;
-  }
-
-  private static String wrapQuotes(String val) {
-    if (val.isEmpty()) {
-      return "";
-    }
-
-    return "\"" + val + "\"";
-  }
-
-  private static void addBooleanField(CtBehavior behavior, String name, boolean defaultValue)
-      throws CannotCompileException {
-    final CtField field = CtField.make("private static transient boolean " + name + " = " + defaultValue + ";",
-        behavior.getDeclaringClass());
-
-    behavior.getDeclaringClass().addField(field);
   }
 
   public static void apply(CtBehavior targetBehavior, List<HookSite> hookSites) {
-    final String globalLock = RandomIdentifier.build("globalLock");
     final CtClass returnType = getReturnType(targetBehavior);
     final Boolean returnsVoid = (returnType == CtClass.voidType);
 
-    final HashMap<String, String> uniqueLocks = new HashMap<String, String>();
-    final String calls = hookSites
-        .stream()
-        .filter(hookSite -> hookSite.getMethodEvent() == MethodEvent.METHOD_INVOCATION)
-        .map(hookSite -> {
-          if (hookSite.getUniqueKey().isEmpty()) {
-            return (""
-                + globalLock + " = com.appland.appmap.process.ThreadLock.current().acquireLock();"
-                + "if (" + globalLock + ") {"
-                +   hookSite.getHookInvocation()
-                +   "com.appland.appmap.process.ThreadLock.current().releaseLock();"
-                +   globalLock + " = false;"
-                + "}");
-          }
+    final String[] invocations = new String[3];
+    for (HookSite hookSite : hookSites) {
+      final Integer index = hookSite.getMethodEvent().getIndex();
+      if (invocations[index] == null) {
+        invocations[index] = hookSite.getHookInvocation();
+      } else {
+        invocations[index] += hookSite.getHookInvocation();
+      }
+    }
 
-          final String uniqueKey = hookSite.getUniqueKey();
-          String lockId = uniqueLocks.get(uniqueKey);
-
-          if (lockId == null) {
-            lockId = RandomIdentifier.build("uniqueLock");
-            uniqueLocks.put(uniqueKey, lockId);
-          }
-
-          return (""
-              + globalLock + " = " + lockId + " = com.appland.appmap.process.ThreadLock.current().acquireLock(" + wrapQuotes(uniqueKey) + "); "
-              + "if (" + lockId + ") {"
-              +   hookSite.getHookInvocation()
-              +   "com.appland.appmap.process.ThreadLock.current().releaseLock(); "
-              +   globalLock + " = false;"
-              + "}");
-        })
-        .collect(Collectors.joining("\n", "{ ", " }"));
-
-    final String returns = hookSites
-        .stream()
-        .filter(hookSite -> hookSite.getMethodEvent() == MethodEvent.METHOD_RETURN)
-        .map(hookSite -> {
-          if (hookSite.getUniqueKey().isEmpty()) {
-            return (""
-                + globalLock + " = com.appland.appmap.process.ThreadLock.current().acquireLock();"
-                + "if (" + globalLock + ") {"
-                +   hookSite.getHookInvocation()
-                +   "com.appland.appmap.process.ThreadLock.current().releaseLock();"
-                +   globalLock + " = false;"
-                + "}");
-          }
-
-          final String uniqueKey = hookSite.getUniqueKey();
-          String lockId = uniqueLocks.get(uniqueKey);
-
-          if (lockId == null) {
-            lockId = RandomIdentifier.build("uniqueLock");
-            uniqueLocks.put(uniqueKey, lockId);
-          }
-
-          return (""
-              + globalLock + " = com.appland.appmap.process.ThreadLock.current().acquireLock();"
-              + "if (" + globalLock + ") {"
-              +   "if (" + lockId + ") {"
-              +     hookSite.getHookInvocation()
-              +   "} else {"
-              +     lockId + " = com.appland.appmap.process.ThreadLock.current().acquireUniqueLock(" + wrapQuotes(uniqueKey) + ");"
-              +     "if (" + lockId + ") {"
-              +       hookSite.getHookInvocation()
-              +     "}"
-              +   "}"
-              +   "com.appland.appmap.process.ThreadLock.current().releaseLock();"
-              +   globalLock + " = false;"
-              + "}");
-        })
-        .collect(Collectors.joining("\n", "{ ", " }"));
-
-    final String exceptions = hookSites
-        .stream()
-        .filter(hookSite -> hookSite.getMethodEvent() == MethodEvent.METHOD_EXCEPTION)
-        .map(hookSite -> {
-          if (hookSite.getUniqueKey().isEmpty()) {
-            return (""
-                + globalLock + " = com.appland.appmap.process.ThreadLock.current().acquireLock();"
-                + "if (" + globalLock + ") {"
-                +   hookSite.getHookInvocation()
-                +   "com.appland.appmap.process.ThreadLock.current().releaseLock();"
-                +   globalLock + " = false;"
-                + "}");
-          }
-
-          final String uniqueKey = hookSite.getUniqueKey();
-          String lockId = uniqueLocks.get(uniqueKey);
-
-          if (lockId == null) {
-            lockId = RandomIdentifier.build("uniqueLock");
-            uniqueLocks.put(uniqueKey, lockId);
-          }
-
-          return (""
-              + globalLock + " = com.appland.appmap.process.ThreadLock.current().acquireLock();"
-              + "if (" + globalLock + ") {"
-              +   "if (" + lockId + ") {"
-              +     hookSite.getHookInvocation()
-              +   "} else {"
-              +     lockId + " = com.appland.appmap.process.ThreadLock.current().acquireUniqueLock(" + wrapQuotes(uniqueKey) + ");"
-              +     "if (" + lockId + ") {"
-              +       hookSite.getHookInvocation()
-              +     "}"
-              +   "}"
-              +   "com.appland.appmap.process.ThreadLock.current().releaseLock();"
-              +   globalLock + " = false;"
-              + "}");
-        })
-        .collect(Collectors.joining("\n", "{ ", " }"));
-
-    final String unlockUniques = uniqueLocks
-          .entrySet()
+      final String uniqueLocks = hookSites
           .stream()
-          .map(e -> {
-            final String lockId = e.getValue();
-            return (""
-                + "if (" + lockId + ") {"
-                +   "com.appland.appmap.process.ThreadLock.current().releaseUniqueLock(" + wrapQuotes(e.getKey()) + ");"
-                +   lockId + " = false;"
-                + "}"
-                + "if (" + globalLock + ") {"
-                +   "com.appland.appmap.process.ThreadLock.current().releaseLock();"
-                +   globalLock + " = false;"
-                + "}");
-          })
-          .collect(Collectors.joining("\n", "{ ", " }"));
+          .filter(hs -> !hs.getUniqueKey().isEmpty())
+          .map(hs -> (""
+            + "com.appland.appmap.process.ThreadLock.current().lockUnique(\""
+            + hs.getUniqueKey()
+            + "\");"))
+          .collect(Collectors.joining("\n"));
 
     try {
-      addBooleanField(targetBehavior, globalLock, false);
+      targetBehavior.insertBefore("{"
+          + "com.appland.appmap.process.ThreadLock.current().enter();"
+          + uniqueLocks
+          + invocations[MethodEvent.METHOD_INVOCATION.getIndex()]
+          + "}");
 
-      for (String variableId : uniqueLocks.values()) {
-        addBooleanField(targetBehavior, variableId, false);
-      }
-
-      targetBehavior.insertAfter(returns);
-      targetBehavior.insertBefore(calls);
+      targetBehavior.insertAfter("{"
+          + invocations[MethodEvent.METHOD_RETURN.getIndex()]
+          + "com.appland.appmap.process.ThreadLock.current().exit();"
+          + "}");
 
       if (returnsVoid) {
-        targetBehavior.addCatch("return;",
+        targetBehavior.addCatch("{"
+            + "com.appland.appmap.process.ThreadLock.current().exit();"
+            + "return;"
+            + "}",
             ClassPool.getDefault().get("com.appland.appmap.process.ExitEarly"));
       } else if (!returnType.isPrimitive()) {
-        targetBehavior.addCatch("return (" + returnType.getName() + ") $e.getReturnValue();",
+        targetBehavior.addCatch("{"
+            + "com.appland.appmap.process.ThreadLock.current().exit();"
+            + "return ("
+            + returnType.getName()
+            + ") $e.getReturnValue();"
+            + "}",
             ClassPool.getDefault().get("com.appland.appmap.process.ExitEarly"));
       }
 
-      targetBehavior.addCatch("{" + exceptions + "throw $e;}", ClassPool.getDefault().get("java.lang.Throwable"));
-      targetBehavior.insertAfter(unlockUniques, true);
+      targetBehavior.addCatch("{"
+          + invocations[MethodEvent.METHOD_EXCEPTION.getIndex()]
+          + "com.appland.appmap.process.ThreadLock.current().exit();"
+          + "throw $e;"
+          + "}",
+          ClassPool.getDefault().get("java.lang.Throwable"));
     } catch (CannotCompileException e) {
       System.err.println("AppMap: failed to compile");
       System.err.println("        method "
           + targetBehavior.getDeclaringClass().getName()
           + "."
           + targetBehavior.getName());
-      // System.err.println("calls:     " + calls);
-      // System.err.println("returns:   " + returns);
-      // System.err.println("unlocks:   " + unlockUniques);
+
       System.err.println(e.getMessage());
     } catch (NotFoundException e) {
       System.err.println("AppMap: failed to find class\n");

@@ -12,5 +12,5 @@ public @interface ContinueHooking {
    * Instructs a hook to ignore the global lock.
    * @return {@code true} if the global lock should be ignored. Otherwise, {@code false}.
    */
-  public boolean value() default false;
+  public boolean value() default true;
 }
