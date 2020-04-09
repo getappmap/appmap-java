@@ -1,7 +1,6 @@
 package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.output.v1.Parameters;
-
 import javassist.CtBehavior;
 
 /**

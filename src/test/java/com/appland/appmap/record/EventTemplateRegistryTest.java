@@ -7,12 +7,11 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
-
-import static org.junit.Assert.fail;
+import org.junit.Test;
 
 import java.util.ArrayList;
 
-import org.junit.Test;
+import static org.junit.Assert.fail;
 
 public class EventTemplateRegistryTest {
   @Test

@@ -1,12 +1,6 @@
 package com.appland.appmap.transform.annotations;
 
-import com.appland.appmap.output.v1.Parameters;
-
-import java.lang.reflect.Method;
 import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
 
 public class HookClassSystem extends SourceMethodSystem {
   private final static Boolean IGNORE_CHILDREN_DEFAULT = false;

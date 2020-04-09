@@ -1,7 +1,5 @@
 package com.appland.appmap.record;
 
-import java.lang.RuntimeException;
-
 /**
  * This exception is used when a conflict or error occurs in regard to an active recording session.
  */

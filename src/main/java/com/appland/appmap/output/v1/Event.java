@@ -1,12 +1,11 @@
 package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import javassist.CtBehavior;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-
-import javassist.CtBehavior;
 
 /**
  * Represents a snapshot of a method invocation, return, exception or some other kind of runtime

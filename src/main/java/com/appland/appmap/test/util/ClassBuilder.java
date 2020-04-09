@@ -1,11 +1,11 @@
 package com.appland.appmap.test.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Dynamically create Classes.

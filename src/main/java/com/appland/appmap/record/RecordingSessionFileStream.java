@@ -1,9 +1,6 @@
 package com.appland.appmap.record;
 
-import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
-
-import com.alibaba.fastjson.JSONWriter;
 
 import java.io.FileWriter;
 import java.io.IOException;

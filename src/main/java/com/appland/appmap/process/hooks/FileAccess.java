@@ -1,13 +1,5 @@
 package com.appland.appmap.process.hooks;
 
-import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.transform.annotations.ArgumentArray;
-import com.appland.appmap.transform.annotations.ExcludeReceiver;
-import com.appland.appmap.transform.annotations.HookClass;
-import com.appland.appmap.transform.annotations.Unique;
-
-import java.nio.file.Path;
-
 /**
  * Hooks to capture "file_access" data on event calls.
  */

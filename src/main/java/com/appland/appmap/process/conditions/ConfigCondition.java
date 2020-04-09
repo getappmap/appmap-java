@@ -1,11 +1,9 @@
 package com.appland.appmap.process.conditions;
 
 import com.appland.appmap.config.AppMapConfig;
+import javassist.CtBehavior;
 
 import java.lang.reflect.Modifier;
-
-import javassist.CtBehavior;
-import javassist.CtClass;
 
 /**
  * ConfigCondition checks if the behavior should be hooked due to its inclusion in the

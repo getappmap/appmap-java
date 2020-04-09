@@ -2,11 +2,10 @@ package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.output.v1.Value;
+import javassist.CtBehavior;
 
 import java.lang.reflect.Modifier;
 import java.util.NoSuchElementException;
-
-import javassist.CtBehavior;
 
 public class ExcludeReceiverSystem extends BaseSystem {
   private static final Boolean DEFAULT_VALUE = false;

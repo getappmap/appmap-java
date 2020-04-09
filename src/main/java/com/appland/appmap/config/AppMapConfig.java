@@ -1,11 +1,11 @@
 package com.appland.appmap.config;
 
+import org.yaml.snakeyaml.Yaml;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-
-import org.yaml.snakeyaml.Yaml;
 
 public class AppMapConfig {
   public String name;

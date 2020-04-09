@@ -1,7 +1,8 @@
 package com.appland.appmap.transform.annotations;
 
-import java.lang.reflect.Method;
 import javassist.CtBehavior;
+
+import java.lang.reflect.Method;
 
 /**
  * Utility classes for accessing runtime Annotation information.

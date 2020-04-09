@@ -1,21 +1,12 @@
 package com.appland.appmap.test.util;
 
+import javassist.*;
+import javassist.bytecode.*;
+import javassist.bytecode.annotation.Annotation;
+
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.CtNewMethod;
-import javassist.NotFoundException;
-import javassist.bytecode.AnnotationsAttribute;
-import javassist.bytecode.CodeAttribute;
-import javassist.bytecode.ConstPool;
-import javassist.bytecode.Descriptor;
-import javassist.bytecode.LocalVariableAttribute;
-import javassist.bytecode.annotation.Annotation;
 
 /**
  * Define a new method for a dynamic Class built via the {@link ClassBuilder}.

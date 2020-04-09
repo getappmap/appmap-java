@@ -1,11 +1,11 @@
 package com.appland.appmap.transform.annotations;
 
+import com.appland.appmap.process.conditions.Condition;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import com.appland.appmap.process.conditions.Condition;
 
 /**
  * Code matching this {@link Condition} will be hooked.

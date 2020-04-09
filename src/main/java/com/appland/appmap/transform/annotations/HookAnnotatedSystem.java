@@ -1,12 +1,6 @@
 package com.appland.appmap.transform.annotations;
 
-import com.appland.appmap.output.v1.Parameters;
-
-import java.lang.reflect.Method;
 import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
 
 public class HookAnnotatedSystem extends SourceMethodSystem {
   private String annotationClass;

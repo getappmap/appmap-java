@@ -2,12 +2,11 @@ package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.output.v1.Value;
+import javassist.CtBehavior;
 
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import javassist.CtBehavior;
 
 public class ArgumentArraySystem extends BaseSystem {
   private static final Boolean DEFAULT_VALUE = false;

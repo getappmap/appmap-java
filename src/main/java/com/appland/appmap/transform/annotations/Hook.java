@@ -1,31 +1,15 @@
 package com.appland.appmap.transform.annotations;
 
-import javax.lang.model.element.Modifier;
+import com.appland.appmap.output.v1.Parameters;
+import com.appland.appmap.record.EventTemplateRegistry;
+import javassist.*;
+
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import com.appland.appmap.output.v1.Parameters;
-import com.appland.appmap.output.v1.Value;
-import com.appland.appmap.record.EventTemplateRegistry;
-
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtConstructor;
-import javassist.CtField;
-import javassist.CtMethod;
-import javassist.NotFoundException;
-import javassist.expr.ExprEditor;
-import javassist.expr.Handler;
-import javassist.expr.MethodCall;
 
 public class Hook {
   private static final EventTemplateRegistry eventTemplateRegistry = EventTemplateRegistry.get();

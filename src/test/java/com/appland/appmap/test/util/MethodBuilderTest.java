@@ -1,22 +1,16 @@
 package com.appland.appmap.test.util;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-
 import com.appland.appmap.output.v1.Parameters;
-import com.appland.appmap.test.util.MethodBuilder;
-
+import javassist.CtClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.SystemOutRule;
 
-import javassist.CtClass;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class MethodBuilderTest {
   @Rule

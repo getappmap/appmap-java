@@ -2,17 +2,10 @@ package com.appland.appmap.record;
 
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.output.v1.Parameters;
-import com.appland.appmap.output.v1.NoSourceAvailableException;
 import com.appland.appmap.output.v1.Value;
-import java.lang.reflect.Modifier;
-import java.util.Vector;
 import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.NotFoundException;
-import javassist.bytecode.CodeAttribute;
-import javassist.bytecode.LocalVariableAttribute;
-import javassist.bytecode.MethodInfo;
+
+import java.util.Vector;
 
 /**
  * Stores events as templates built from behaviors intended to be hooked. Hooks can then access and

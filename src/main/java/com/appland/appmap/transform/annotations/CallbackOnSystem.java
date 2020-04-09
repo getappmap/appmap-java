@@ -2,7 +2,6 @@ package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.output.v1.Value;
-
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;

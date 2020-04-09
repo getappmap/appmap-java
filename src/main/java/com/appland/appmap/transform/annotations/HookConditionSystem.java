@@ -1,13 +1,9 @@
 package com.appland.appmap.transform.annotations;
 
-import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.process.conditions.Condition;
+import javassist.CtBehavior;
 
 import java.lang.reflect.Method;
-import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
 
 public class HookConditionSystem extends SourceMethodSystem {
   private Method conditionMethod = null;

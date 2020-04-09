@@ -1,11 +1,10 @@
 package com.appland.appmap.test.util;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.SystemOutRule;
+
+import static org.junit.Assert.assertTrue;
 
 public class ClassBuilderTest {
   @Rule

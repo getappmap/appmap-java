@@ -2,10 +2,7 @@ package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.output.v1.Parameters;
 
-import java.io.StringWriter;
 import java.util.stream.Collectors;
-
-import javassist.CtBehavior;
 
 /**
  * An example of hook, applied to a behavior. Holds metadata which can be eventually used to transform the behavior

@@ -1,11 +1,11 @@
 package com.appland.appmap.transform.annotations;
 
-import static org.junit.Assert.fail;
+import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Test;
+import static org.junit.Assert.fail;
 
 public class RandomIdentifierTest {
   private static final int ITERATIONS = 100000;

@@ -1,22 +1,19 @@
 package com.appland.appmap.transform.annotations;
 
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.test.util.ClassBuilder;
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtMethod;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.test.util.ClassBuilder;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 
 public class ExcludeReceiverSystemTest {

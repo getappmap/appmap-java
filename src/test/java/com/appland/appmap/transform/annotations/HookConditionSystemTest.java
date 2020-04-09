@@ -1,24 +1,20 @@
 package com.appland.appmap.transform.annotations;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.conditions.ConfigCondition;
 import com.appland.appmap.test.util.ClassBuilder;
-
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtMethod;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 public class HookConditionSystemTest {
   private final static String TargetClassNameGood = "HookConditionSystemTest.Good.TargetClass";

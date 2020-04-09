@@ -1,15 +1,14 @@
 package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import javassist.CtBehavior;
+import javassist.CtClass;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import javassist.CtBehavior;
-import javassist.CtClass;
 
 /**
  * Represents a package, class or method.

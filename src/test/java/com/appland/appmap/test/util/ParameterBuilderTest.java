@@ -1,16 +1,13 @@
 package com.appland.appmap.test.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import com.appland.appmap.test.util.ParameterBuilder;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class ParameterBuilderTest {
   private String paramId = "myParam";

@@ -3,10 +3,10 @@ package com.appland.appmap.process.hooks;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.conditions.ConfigCondition;
 import com.appland.appmap.record.Recorder;
-import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.transform.annotations.ArgumentArray;
 import com.appland.appmap.transform.annotations.CallbackOn;
 import com.appland.appmap.transform.annotations.HookCondition;
+import com.appland.appmap.transform.annotations.MethodEvent;
 
 /**
  * Hooks to capture method exceptions from classes included in configuration.
