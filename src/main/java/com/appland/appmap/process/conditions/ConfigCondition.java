@@ -13,7 +13,7 @@ import java.lang.reflect.Modifier;
 public abstract class ConfigCondition implements Condition {
   static {
     // HACK
-    // force loading of AppMapConfig
+    // force loading of AppMapConfig to prevent it from being loaded twice
     AppMapConfig.get();
   }
 

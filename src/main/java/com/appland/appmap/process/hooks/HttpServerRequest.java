@@ -66,7 +66,6 @@ public class HttpServerRequest {
                               ServletRequest req,
                               ServletResponse res,
                               FilterChain chain) {
-    event.setEvent("exception");
     event.setReturnValue(exception);
     recorder.add(event);
   }
@@ -96,7 +95,6 @@ public class HttpServerRequest {
                               Throwable exception,
                               HttpServletRequest req,
                               HttpServletResponse res) {
-    event.setEvent("exception");
     event.setReturnValue(exception);
     recorder.add(event);
   }
