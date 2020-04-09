@@ -1,16 +1,8 @@
 package com.appland.appmap.process.hooks;
 
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.process.conditions.ConfigCondition;
 import com.appland.appmap.record.Recorder;
-import com.appland.appmap.transform.annotations.MethodEvent;
-import com.appland.appmap.transform.annotations.Unique;
-import com.appland.appmap.transform.annotations.ArgumentArray;
-import com.appland.appmap.transform.annotations.CallbackOn;
-import com.appland.appmap.transform.annotations.ExcludeReceiver;
-import com.appland.appmap.transform.annotations.Hook;
-import com.appland.appmap.transform.annotations.HookClass;
-import com.appland.appmap.transform.annotations.HookCondition;
+import com.appland.appmap.transform.annotations.*;
 
 /**
  * Hooks to capture {@code sql_query} data from classes included in configuration.
@@ -46,7 +38,6 @@ public class SqlQuery {
   }
 
   @HookClass("java.sql.Connection")
-  
   public static void prepareCall(Event event, String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) {
     recordSql(event, sql);
   }

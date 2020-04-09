@@ -7,12 +7,13 @@ import java.lang.annotation.Target;
 
 import com.appland.appmap.process.conditions.Condition;
 
+/**
+ * Code matching this {@link Condition} will be hooked.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface HookCondition {
   /**
-   * Identifies a {@link Condition} class. When deciding whether to apply a hook to a behavior,
-   * {@link Condition#match(javassist.CtBehavior)} must return true.
    * @return A class implementing {@link Condition}
    */
   public Class<? extends Condition> value() default Condition.class;

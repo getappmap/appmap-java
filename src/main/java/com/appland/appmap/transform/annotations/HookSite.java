@@ -8,7 +8,8 @@ import java.util.stream.Collectors;
 import javassist.CtBehavior;
 
 /**
- * Represents a hook to be applied to a behavior.
+ * An example of hook, applied to a behavior. Holds metadata which can be eventually used to transform the behavior
+ * bytecode to record the AppMap event.
  */
 public class HookSite {
   private final Hook hook;
@@ -16,6 +17,11 @@ public class HookSite {
   private final MethodEvent methodEvent;
   private final Boolean ignoresGlobalLock;
 
+  /**
+   * @param behaviorOrdinal Used to obtain a template for the event from the event template registry.
+   * @param parameters Parameters that will be reported in the AppMap.
+   * @see com.appland.appmap.record.EventTemplateRegistry
+   */
   HookSite(Hook hook, Integer behaviorOrdinal, Parameters parameters) {
     this.methodEvent = hook.getMethodEvent();
     this.hook = hook;

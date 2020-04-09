@@ -15,6 +15,7 @@ AppLand AppMap Recorder for Java
     - [`GET /_appmap/record`](#get-appmaprecord)
     - [`POST /_appmap/record`](#post-appmaprecord)
     - [`DELETE /_appmap/record`](#delete-appmaprecord)
+- [Developing](#developing)
 - [Build status](#build-status)
 
 # Building
@@ -26,26 +27,30 @@ $ ./gradlew build
 # Testing
 Unit tests are run via the `test` task.
 
-
 Docker is required to run integration tests. Run the following command:
+
 ```
 $ ./bin/test
 ```
 
 # Running
-The AppMap recorder is run as a Java agent. Currently, it must be started along with the JVM. This is typically done by passing the `-javaagent` argument to your JVM.  
+The AppMap recorder is run as a Java agent. Currently, it must be started along with the JVM. This is typically done by passing the `-javaagent` argument to your JVM. 
 For example:
+
 ```bash
 $ java -javaagent:lib/appmap.jar myapp.jar
 ```
 
 ## Other examples
+
 ### Maven
+
 ```bash
 $ mvn -DargLine="-javaagent:lib/appmap.jar" test
 ```
 
 ### Maven Surefire
+
 ```xml
 <plugin>
   <artifactId>maven-surefire-plugin</artifactId>
@@ -56,6 +61,7 @@ $ mvn -DargLine="-javaagent:lib/appmap.jar" test
 ```
 
 ### Gradle
+
 ```groovy
 test {
   jvmArgs "-javaagent:$rootDir/lib/appmap.jar"
@@ -63,6 +69,7 @@ test {
 ```
 
 # System Properties
+
 `appmap.config.file`  
 specify the path of an `appmap.yml` config file  
 default: _appmap.yml_
@@ -72,8 +79,9 @@ specify the output directory of `appmap.json` files
 default: _./_
 
 # Operation
+
 ## Recording test cases
-When running test cases with the agent attached to the JVM, methods marked with JUnits `@Test` annotation will be recorded. A new AppMap file will be created for each unique test case.
+When running test cases with the agent attached to the JVM, methods marked with JUnit's `@Test` annotation will be recorded. A new AppMap file will be created for each unique test case.
 
 ## HTTP recording controls
 AppMap will hook an existing servlet, serving HTTP requests to toggle recording on and off. These routes are used by the [AppLand browser extention](https://github.com/applandinc/appland-browser-extension).
@@ -82,7 +90,7 @@ AppMap will hook an existing servlet, serving HTTP requests to toggle recording 
 Retreive the current recording status
 
 **Status**  
-`200`  
+`200`
 
 **Body**  
 _`application/json`_  
@@ -120,6 +128,32 @@ _`application/json`_
   "classMap": [],
   "events": [],
 }
+```
+
+# Developing
+
+The [Spring PetClinic](https://github.com/spring-projects/spring-petclinic) provides a convenient way to develop on `appmap-java`. 
+
+Obtain the `spring-petclinic` JAR file, and launch it with the AppMap Java agent:
+
+```shell script
+$ export PETCLINIC_DIR=<path-to-petclinic>
+$ java -Dappmap.debug \
+  -javaagent:build/libs/appmap.jar \
+  -Dappmap.config.file=test/appmap.yml \
+  -jar $(PETCLINIC_DIR)/target/spring-petclinic-2.2.0.BUILD-SNAPSHOT.jar
+```
+
+You can use Java remote debug settings to attach a debugger:
+
+```shell script
+$ export PETCLINIC_DIR=<path-to-petclinic>
+$ java -Dappmap.debug \
+  -javaagent:build/libs/appmap.jar \
+  -Dappmap.config.file=test/appmap.yml \
+  -Xdebug \
+  -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=y \
+  -jar $PETCLINIC_DIR/target/spring-petclinic-2.2.0.BUILD-SNAPSHOT.jar
 ```
 
 # Build status

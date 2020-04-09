@@ -8,9 +8,6 @@ import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 
-/**
- * Responsible for handling receiver/exception arguments from a behavior to a hook.
- */
 public class CallbackOnSystem extends BaseSystem {
   private static final MethodEvent DEFAULT_VALUE = MethodEvent.METHOD_INVOCATION;
 

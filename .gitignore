@@ -8,5 +8,6 @@ build
 .project
 .settings
 .vscode
+.idea
 
 *appmap.json

@@ -16,6 +16,7 @@ import javassist.bytecode.MethodInfo;
 
 /**
  * A serializable list of named and typed objects.
+ *
  * @see Event
  * @see Value
  * @see <a href="https://github.com/applandinc/appmap#parameter-object-format">GitHub: AppMap - Parameter object format</a>
@@ -28,6 +29,7 @@ public class Parameters implements Iterable<Value> {
   /**
    * Constructs a Parameters object from an existing CtBehavior. Values will automatically be added,
    * named and typed after the behaviors parameters.
+   *
    * @param behavior The behavior to construct Parameters from
    * @throws NoSourceAvailableException If parameter names cannot be read from the behavior
    * @see <a href="https://github.com/applandinc/appmap#function-call-attributes">GitHub: AppMap - Function call attributes</a>
@@ -115,7 +117,7 @@ public class Parameters implements Iterable<Value> {
   }
 
   /**
-   * Get a stream of Values.
+   * Gets a stream of Values.
    * @return A {@link Value} Stream
    */
   public Stream<Value> stream() {
@@ -123,7 +125,7 @@ public class Parameters implements Iterable<Value> {
   }
 
   /**
-   * Get the number of values stored.
+   * Gets the number of values stored.
    * @return The size of the internal value array
    */
   public int size() {
@@ -132,14 +134,14 @@ public class Parameters implements Iterable<Value> {
 
 
   /**
-   * Clear the internal value array.
+   * Clears the internal value array.
    */
   public void clear() {
     this.values.clear();
   }
 
   /**
-   * Get a {@Value} object stored by this Parameters object by name/identifier.
+   * Gets a {@Value} object stored by this Parameters object by name/identifier.
    * @param name The name or identifier of the @{link Value} to be returned
    * @return The {@link Value} object found
    * @throws NoSuchElementException If no @{link Value} object is found
@@ -157,7 +159,7 @@ public class Parameters implements Iterable<Value> {
   }
 
   /**
-   * Get a {@Value} object stored by this Parameters object by index.
+   * Gets a {@Value} object stored by this Parameters object by index.
    * @param index The index of the @{link Value} to be returned
    * @return The {@link Value} object at the given index
    * @throws NoSuchElementException if no @{link Value} object is found at the given index
@@ -175,7 +177,7 @@ public class Parameters implements Iterable<Value> {
   }
 
   /**
-   * Test if the {@link Value} object at the given index is of a given type.
+   * Tests if the {@link Value} object at the given index is of a given type.
    * @param index The index to validate
    * @param type The name of the type to check for
    * @return {@code true} if the @{link Value} at the given index matches the type given. Otherwise,

@@ -64,8 +64,8 @@ public class Hook {
   }
 
   /**
-   * 
-   * @param hookBehavior The behavior to create a hook from
+   * Creates a Hook from code behavior.
+   *
    * @return If hookBehavior is a valid hook, return a new Hook object. Otherwise, null.
    */
   public static Hook from(CtBehavior hookBehavior) {

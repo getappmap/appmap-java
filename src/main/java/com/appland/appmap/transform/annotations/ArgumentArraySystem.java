@@ -9,9 +9,6 @@ import java.util.stream.IntStream;
 
 import javassist.CtBehavior;
 
-/**
- * Marshals arguments between a behavior and a hook.
- */
 public class ArgumentArraySystem extends BaseSystem {
   private static final Boolean DEFAULT_VALUE = false;
 
