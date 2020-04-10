@@ -42,6 +42,9 @@ public class Event {
   @JSONField(name = "return_value")
   public Value returnValue;
 
+  @JSONField(name = "exception_value")
+  public Value exceptionValue;
+
   @JSONField(name = "http_server_request")
   public HttpServerRequest httpRequest;
 
@@ -208,6 +211,20 @@ public class Event {
   public Event setReturnValue(Object val) {
     if (val != null) {
       this.returnValue = new Value(val);
+    }
+
+    return this;
+  }
+
+  /**
+   * Set the value of "exception_value" for this Event.
+   * @param exception Exception to be recorded as "exception_value"
+   * @return {@code this}
+   * @see <a href="https://github.com/applandinc/appmap#common-attributes-1">GitHub: AppMap - Common attributes</a>
+   */
+  public Event setExceptionValue(Throwable exception) {
+    if (exception != null) {
+      this.exceptionValue = new Value(exception);
     }
 
     return this;

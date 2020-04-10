@@ -95,7 +95,7 @@ public class HttpServerRequest {
                               Throwable exception,
                               HttpServletRequest req,
                               HttpServletResponse res) {
-    event.setReturnValue(exception);
+    event.setExceptionValue(exception);
     recorder.add(event);
   }
 }
