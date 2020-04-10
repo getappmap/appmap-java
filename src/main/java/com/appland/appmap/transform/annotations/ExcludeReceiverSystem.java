@@ -30,15 +30,15 @@ public class ExcludeReceiverSystem extends BaseSystem {
   }
 
   @Override
-  public void mutateStaticParameters(CtBehavior hookBehavior, Parameters hookParams) {
+  public void mutateRuntimeParameters(HookBinding binding, Parameters runtimeParameters) {
     if (!this.excludeReceiver) {
       Value receiver = new Value();
-      if (Modifier.isStatic(hookBehavior.getModifiers())) {
+      if (Modifier.isStatic(binding.getTargetBehavior().getModifiers())) {
         receiver.setName("null");
       } else {
         receiver.setName("this");
       }
-      hookParams.add(receiver);
+      runtimeParameters.add(receiver);
     }
   }
 
