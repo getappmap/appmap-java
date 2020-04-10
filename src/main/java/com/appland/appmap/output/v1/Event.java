@@ -19,7 +19,7 @@ public class Event {
   public String event;
   public String path;
   public Value receiver;
-  public Parameters parameters = new Parameters();
+  public Parameters parameters;
 
   @JSONField(name = "defined_class")
   public String definedClass;
@@ -235,6 +235,10 @@ public class Event {
    * @see <a href="https://github.com/applandinc/appmap#function-call-attributes">GitHub: AppMap - Function call attributes</a>
    */
   public Event addParameter(Object val, String name) {
+    if (this.parameters == null) {
+      this.parameters = new Parameters();
+    }
+
     this.parameters.add(new Value(val, name));
     return this;
   }
@@ -246,6 +250,10 @@ public class Event {
    * @see <a href="https://github.com/applandinc/appmap#function-call-attributes">GitHub: AppMap - Function call attributes</a>
    */
   public Event addParameter(Value val) {
+    if (this.parameters == null) {
+      this.parameters = new Parameters();
+    }
+
     this.parameters.add(new Value(val));
     return this;
   }
