@@ -25,5 +25,4 @@ public class MethodCall {
 
     recorder.add(event);
   }
-
 }

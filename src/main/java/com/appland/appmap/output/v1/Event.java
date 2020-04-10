@@ -42,8 +42,7 @@ public class Event {
   @JSONField(name = "return_value")
   public Value returnValue;
 
-  @JSONField(name = "exception_value")
-  public Value exceptionValue;
+  public ArrayList<ExceptionValue> exceptions;
 
   @JSONField(name = "http_server_request")
   public HttpServerRequest httpRequest;
@@ -51,7 +50,6 @@ public class Event {
   @JSONField(name = "http_server_response")
   public HttpServerResponse httpResponse;
 
-  @JSONField(name = "message")
   public ArrayList<Value> message;
 
   @JSONField(name = "sql_query")
@@ -217,14 +215,18 @@ public class Event {
   }
 
   /**
-   * Set the value of "exception_value" for this Event.
-   * @param exception Exception to be recorded as "exception_value"
+   * Set the value of "exceptions" for this Event.
    * @return {@code this}
    * @see <a href="https://github.com/applandinc/appmap#common-attributes-1">GitHub: AppMap - Common attributes</a>
    */
-  public Event setExceptionValue(Throwable exception) {
+  public Event setException(Exception exception) {
     if (exception != null) {
-      this.exceptionValue = new Value(exception);
+      this.exceptions = new ArrayList<>();
+      Throwable t = exception;
+      while ( t != null ) {
+        exceptions.add(new ExceptionValue(t));
+        t = t.getCause();
+      }
     }
 
     return this;
@@ -386,6 +388,12 @@ public class Event {
 
     if (this.returnValue != null) {
       this.returnValue.freeze();
+    }
+
+    if (this.exceptions != null) {
+      for (ExceptionValue e : this.exceptions) {
+        e.freeze();
+      }
     }
 
     return this;

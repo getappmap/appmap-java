@@ -57,7 +57,7 @@ public class CallbackOnSystem extends BaseSystem {
       }
     } else if (this.methodEvent == MethodEvent.METHOD_EXCEPTION) {
       runtimeParameters.add(new Value()
-          .setClassType("java.lang.Throwable")
+          .setClassType("java.lang.Exception")
           .setName("$e"));
     }
   }

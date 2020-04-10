@@ -188,7 +188,7 @@ public class Hook {
           + "com.appland.appmap.process.ThreadLock.current().exit();"
           + "throw $e;"
           + "}",
-          ClassPool.getDefault().get("java.lang.Throwable"));
+          ClassPool.getDefault().get("java.lang.Exception"));
     } catch (CannotCompileException e) {
       System.err.println("AppMap: failed to compile");
       System.err.println("        method "

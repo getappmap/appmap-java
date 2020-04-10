@@ -4,13 +4,15 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 
 /**
- * Value represents a serializable snapshot of a runtime Object.
+ * A serializable snapshot of a runtime Object.
+ *
  * @see Event
  * @see Parameters
  * @see <a href="https://github.com/applandinc/appmap#parameter-object-format">Github: AppMap - Parameter object format</a>
  */
 public class Value {
   public String kind;
+
   public String name;
 
   @JSONField(serializeUsing = ToStringSerializer.class)
@@ -42,7 +44,6 @@ public class Value {
 
   /**
    * Copy constructor. Copies class type, kind and name.
-   * @param master The Value to copy
    */
   public Value(Value master) {
     this.classType = master.classType;
@@ -51,18 +52,15 @@ public class Value {
   }
 
   /**
-   * Construct a Value from an existing object. Copies class type, object ID, and value.
-   * @param val The object to store
+   * Construct from an existing object. Copies class type, object ID, and value.
    */
   public Value(Object val) {
     this.set(val);
   }
 
   /**
-   * Construct a Value from an existing object and set its name. Copies class type, object ID, and
+   * Constructs a Value from an existing object and set its name. Copies class type, object ID, and
    * value.
-   * @param val The object to store
-   * @param name The name of this value
    */
   public Value(Object val, String name) {
     this.name = name;
@@ -81,8 +79,7 @@ public class Value {
   }
 
   /**
-   * Set the "name" field.
-   * @param name The name of this Value
+   * Sets the "name" field.
    * @return {@code this}
    */
   public Value setName(String name) {
@@ -91,8 +88,7 @@ public class Value {
   }
 
   /**
-   * Set the "kind" field.
-   * @param kind The kind of this Value
+   * Sets the "kind" field.
    * @return {@code this}
    */
   public Value setKind(String kind) {
@@ -101,8 +97,7 @@ public class Value {
   }
 
   /**
-   * Get the object stored within this Value.
-   * @return The Object stored within this Value
+   * Gets the object stored within this Value.
    */
   @SuppressWarnings("unchecked")
   public <T> T get() {

@@ -17,9 +17,8 @@ public class MethodException {
   @ArgumentArray
   @CallbackOn(MethodEvent.METHOD_EXCEPTION)
   @HookCondition(ConfigCondition.class)
-  public static void handle(Event event, Object self, Throwable exception, Object[] args) {
-    event.setExceptionValue(exception);
+  public static void handle(Event event, Object self, Exception exception, Object[] args) {
+    event.setException(exception);
     recorder.add(event);
   }
-
 }

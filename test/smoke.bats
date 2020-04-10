@@ -94,6 +94,6 @@ assert_output() {
   stop_recording
 
   echo "${output}" \
-    | jq '.events[] | select(.event=="exception")' \
+    | jq '.events[] | .exceptions' \
     | assert_output
 }

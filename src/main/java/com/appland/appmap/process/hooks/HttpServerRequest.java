@@ -62,11 +62,11 @@ public class HttpServerRequest {
   @HookClass("javax.servlet.Filter")
   public static void doFilter(Event event,
                               Filter self,
-                              Throwable exception,
+                              Exception exception,
                               ServletRequest req,
                               ServletResponse res,
                               FilterChain chain) {
-    event.setReturnValue(exception);
+    event.setException(exception);
     recorder.add(event);
   }
 
@@ -92,10 +92,10 @@ public class HttpServerRequest {
   @HookClass("javax.servlet.http.HttpServlet")
   public static void service( Event event,
                               HttpServlet self,
-                              Throwable exception,
+                              Exception exception,
                               HttpServletRequest req,
                               HttpServletResponse res) {
-    event.setExceptionValue(exception);
+    event.setException(exception);
     recorder.add(event);
   }
 }

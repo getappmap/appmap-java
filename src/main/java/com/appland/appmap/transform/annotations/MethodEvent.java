@@ -3,7 +3,7 @@ package com.appland.appmap.transform.annotations;
 public enum MethodEvent {
   METHOD_INVOCATION("call", 0),
   METHOD_RETURN("return", 1),
-  METHOD_EXCEPTION("exception", 2);
+  METHOD_EXCEPTION("return", 2);
 
   private String eventString;
   private Integer index;
