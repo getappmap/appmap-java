@@ -81,7 +81,11 @@ default: _./_
 # Operation
 
 ## Recording test cases
-When running test cases with the agent attached to the JVM, methods marked with JUnit's `@Test` annotation will be recorded. A new AppMap file will be created for each unique test case.
+When running test cases with the agent attached to the JVM, methods marked with JUnit's `@Test` annotation will be recorded. 
+A new AppMap file will be created for each unique test case.
+
+To disable AppMap for a particular JUnit test (for example, a performance test), list the class or methods under an
+`exclude` in appmap.yml.
 
 ## HTTP recording controls
 AppMap will hook an existing servlet, serving HTTP requests to toggle recording on and off. These routes are used by the [AppLand browser extention](https://github.com/applandinc/appland-browser-extension).

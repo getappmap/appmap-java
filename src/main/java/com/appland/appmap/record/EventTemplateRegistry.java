@@ -9,7 +9,9 @@ import java.util.Vector;
 
 /**
  * Stores events as templates built from behaviors intended to be hooked. Hooks can then access and
- * clone these templates before storing runtime information to be recorded.
+ * clone these templates before storing runtime information to be recorded. This caches event data at Class load time
+ * rather than grabbing it through reflection every time a hook is invoked. It has benefits for DRY as well as
+ * for performance.
  */
 public class EventTemplateRegistry {
   private static EventTemplateRegistry instance = new EventTemplateRegistry();
