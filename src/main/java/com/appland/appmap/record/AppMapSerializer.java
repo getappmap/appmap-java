@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Vector;
 
+/**
+ * Writes AppMap data to JSON.
+ */
 public class AppMapSerializer {
   public static class FileSections {
     public static final String Version = "version";
@@ -62,15 +64,20 @@ public class AppMapSerializer {
 
     this.currentSection = new SectionInfo(section, type);
 
-    if (this.currentSection.type == "object") {
+    if (this.currentSection.type.equals("object")) {
       this.json.writeKey(section);
       this.json.startObject();
-    } else if (this.currentSection.type == "array") {
+    } else if (this.currentSection.type.equals("array")) {
       this.json.writeKey(section);
       this.json.startArray();
     }
   }
 
+  /**
+   * Writes the {@link Metadata} section.
+   * @param metadata {@link Metadata} to be serialized and written.
+   * @throws IOException If a writer error occurs
+   */
   public void write(Metadata metadata) throws IOException {
     this.setCurrentSection(FileSections.Version, "");
     this.json.writeKey("version");
@@ -147,12 +154,23 @@ public class AppMapSerializer {
     this.json.endObject();
   }
 
+  /**
+   * Writes the ClassMap section.
+   * @param codeObjects {@link CodeObjectTree} to be serialized and written.
+   * @throws IOException If a writer error occurs
+   */
   public void write(CodeObjectTree codeObjects) throws IOException {
     this.setCurrentSection(FileSections.ClassMap, "");
     this.json.writeKey("classMap");
     this.json.writeValue(codeObjects.toArray());
   }
 
+  /**
+   * Writes a list of {@link Event}s to the "events" field. This method can be called more than once
+   * to stream {@link Event}s to a writer.
+   * @param events A list of {@link Event}s to be serialized and written.
+   * @throws IOException If a writer error occurs
+   */
   public void write(List<Event> events) throws IOException {
     this.setCurrentSection(FileSections.Events, "array");
 
@@ -163,11 +181,21 @@ public class AppMapSerializer {
     this.json.flush();
   }
 
+  /**
+   * Writes a single {@link Event} to the "events" field. This method can be called more than once
+   * to stream {@link Event}s to a writer.
+   * @param event An {@link Event} to be serialized and written.
+   * @throws IOException If a writer error occurs
+   */
   public void write(Event event) throws IOException {
     this.setCurrentSection(FileSections.Events, "array");
     this.json.writeObject(event);
   }
 
+  /**
+   * Closes outstanding JSON objects and closes the writer.
+   * @throws IOException If a writer error occurs
+   */
   public void finalize() throws IOException {
     this.setCurrentSection("EOF", "");
     this.json.endObject();

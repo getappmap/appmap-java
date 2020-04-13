@@ -13,6 +13,7 @@ plugins {
   id 'java'
   id 'war'
   id 'org.gretty' version '2.2.0'
+  id 'jacoco'
 }
 
 repositories {
@@ -23,13 +24,15 @@ repositories {
 dependencies {
   implementation 'org.yaml:snakeyaml:1.25'
   implementation 'com.alibaba:fastjson:1.2.61'
-  implementation 'org.javassist:javassist:3.25.0-GA'
+  implementation 'org.javassist:javassist:3.27.0-GA'
   implementation 'org.reflections:reflections:0.9.11'
   implementation 'javax.servlet:javax.servlet-api:4.0.1'
 
   annotationProcessor 'info.picocli:picocli-codegen:4.0.4'
 
   testImplementation 'junit:junit:4.12'
+  testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+  testImplementation "org.mockito:mockito-core:2.+"
 }
 
 jar {
@@ -43,10 +46,16 @@ apply plugin: 'com.github.johnrengelman.shadow'
 test {
   useJUnit()
   dependsOn shadowJar
-  jvmArgs "-javaagent:${shadowJar.archivePath}"
+  dependsOn cleanTest
+  // jvmArgs "-javaagent:${shadowJar.archivePath}"
+  // systemProperty "appmap.debug", "true"
+  // systemProperty "appmap.config.file", "$rootDir/appmap.yml"
+  // systemProperty "appmap.output.directory", "$rootDir/build/appmap"
 }
 
 shadowJar {
+  baseName = 'appmap'
+  classifier = null
   minimize()
   dependencies {
     // exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
@@ -63,3 +72,11 @@ task relocateShadowJar(type: ShadowRelocation) {
 }
 
 tasks.shadowJar.dependsOn tasks.relocateShadowJar
+
+jacocoTestReport {
+  reports {
+    xml.enabled false
+    csv.enabled false
+    html.enabled true
+  }
+}

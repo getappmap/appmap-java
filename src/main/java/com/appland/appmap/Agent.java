@@ -1,7 +1,6 @@
 package com.appland.appmap;
 
 import com.appland.appmap.config.AppMapConfig;
-import com.appland.appmap.process.BehaviorEntrypoints;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.transform.ClassFileTransformer;
@@ -35,14 +34,14 @@ public class Agent {
       appmapPath = DEFAULT_CONFIG_FILE;
     }
 
+    System.err.printf("AppMap: agent loaded using config %s\n", appmapPath);
+
+    inst.addTransformer(new ClassFileTransformer());
+
     if (AppMapConfig.load(new File(appmapPath)) == null) {
       System.err.printf("AppMap: failed to load config %s\n", appmapPath);
       return;
     }
-
-    System.err.printf("AppMap: agent loaded using config %s\n", appmapPath);
-
-    inst.addTransformer(new ClassFileTransformer());
 
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         public void run() {

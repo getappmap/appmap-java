@@ -1,17 +1,22 @@
 package com.appland.appmap.config;
 
+import org.yaml.snakeyaml.Yaml;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-
-import org.yaml.snakeyaml.Yaml;
 
 public class AppMapConfig {
   public String name;
   public AppMapPackage[] packages = new AppMapPackage[0];
   private static AppMapConfig singleton = new AppMapConfig();
 
+  /**
+   * Populate the configuration from a file.
+   * @param configFile The file to be loaded
+   * @return The AppMapConfig singleton
+   */
   public static AppMapConfig load(File configFile) {
     InputStream inputStream = null;
 
@@ -27,10 +32,22 @@ public class AppMapConfig {
     return singleton;
   }
 
+  /**
+   * Get the AppMapConfig singleton.
+   * @return The singleton instance
+   */
   public static AppMapConfig get() {
     return singleton;
   }
 
+  /**
+   * Check if a class/method is included in the configuration.
+   * @param className The class name to be checked
+   * @param methodName The method name to be checked
+   * @param isStatic {@code true} if the method is static
+   * @return {@code true} if the class/method is included in the configuration. {@code false} if it
+   *         is not included or otherwise explicitly excluded.
+   */
   public Boolean includes(String className, String methodName, boolean isStatic) {
     for (AppMapPackage pkg : this.packages) {
       if (pkg.includes(className, methodName, isStatic)) {

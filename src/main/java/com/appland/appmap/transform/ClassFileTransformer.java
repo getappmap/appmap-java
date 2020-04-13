@@ -1,139 +1,141 @@
 package com.appland.appmap.transform;
 
-import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.process.EventProcessorType;
-import com.appland.appmap.record.EventFactory;
+import com.appland.appmap.output.v1.NoSourceAvailableException;
+import com.appland.appmap.transform.annotations.Hook;
+import com.appland.appmap.transform.annotations.HookSite;
+import com.appland.appmap.transform.annotations.HookValidationException;
+import javassist.*;
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.lang.instrument.IllegalClassFormatException;
-import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.LoaderClassPath;
-import javassist.NotFoundException;
+import java.util.stream.Stream;
 
 /**
- * ClassFileTransformer transforms classes to send callback notifications to com.appland.appmap.process.
- * Only classes and methods which match the <code>appmap.yml</code> are transformed in this way.
+ * The ClassFileTransformer is responsible for loading and caching hooks during {@link Agent}
+ * statup. The {@link ClassFileTransformer#transform} method is used by the Instrumentation API to
+ * modify class bytecode at load time. When a class is loaded, this class will attempt to apply
+ * hooks to each behavior declared by that class.
  */
 public class ClassFileTransformer implements java.lang.instrument.ClassFileTransformer {
-  private static final EventFactory eventFactory = EventFactory.get();
-  private static final Boolean debug = System.getProperty("appmap.debug") != null;
+  private static final Boolean debug = (System.getProperty("appmap.debug") != null);
+  private static final List<Hook> unkeyedHooks = new ArrayList<Hook>();
+  private static final HashMap<String, List<Hook>> keyedHooks = new HashMap<String, List<Hook>>();
 
-  // TODO: Enable appmap.yml to build all these Hookable objects.
-  private static final Hookable hooks = new Hookable(
-      new HookableConfigPath().processedBy(EventProcessorType.PassThrough),
-
-      new HookableInterfaceName(ClassReference.create("javax", "servlet", "Filter"),
-        new HookableMethodSignature("doFilter")
-          .addParam("javax.servlet.ServletRequest")
-          .addParam("javax.servlet.ServletResponse")
-          .addParam("javax.servlet.FilterChain")
-          .processedBy(EventProcessorType.ServletFilter)
-      ),
-
-      new HookableInterfaceName(ClassReference.create("javax", "servlet", "Filter"),
-        new HookableMethodSignature("doFilter")
-          .addParam("javax.servlet.ServletRequest")
-          .addParam("javax.servlet.ServletResponse")
-          .addParam("javax.servlet.FilterChain")
-          .processedBy(EventProcessorType.HttpRequest)
-      ),
-
-      new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
-        new HookableMethodSignature("doFilter")
-          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
-          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
-          .processedBy(EventProcessorType.HttpRequest)
-      ),
-
-      new HookableClassName(ClassReference.create("javax", "servlet", "http", "HttpServlet"),
-        new HookableMethodSignature("service")
-          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletRequest"))
-          .addParam(ClassReference.create("javax", "servlet", "http", "HttpServletResponse"))
-          .processedBy(EventProcessorType.HttpServlet)
-      ),
-
-      new HookableInterfaceName(ClassReference.create("java", "sql", "Connection"),
-        new HookableMethodSignature("prepareCall").processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("prepareStatement")
-            .addParam("java.lang.String")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("prepareStatement")
-            .addParam("java.lang.String")
-            .addParam("int")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("prepareStatement")
-            .addParam("java.lang.String")
-            .addParam("int[]")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("prepareStatement")
-            .addParam("java.lang.String")
-            .addParam("int")
-            .addParam("int")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("prepareStatement")
-            .addParam("java.lang.String")
-            .addParam("int")
-            .addParam("int")
-            .addParam("int")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("prepareStatement")
-            .addParam("java.lang.String")
-            .addParam("java.lang.String[]")
-            .processedBy(EventProcessorType.SqlJdbc)
-      ),
-
-      new HookableInterfaceName(ClassReference.create("java", "sql", "Statement"),
-        new HookableMethodSignature("addBatch")
-            .addParam("java.lang.String")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("execute")
-            .addParam("java.lang.String")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("execute")
-            .addParam("java.lang.String")
-            .addParam("int")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("execute")
-            .addParam("int[]")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("execute")
-            .addParam("java.lang.String")
-            .addParam("java.lang.String[]")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("executeQuery")
-            .addParam("java.lang.String")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("executeUpdate")
-            .addParam("java.lang.String")
-            .addParam("int")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("executeUpdate")
-            .addParam("java.lang.String")
-            .addParam("int[]")
-            .processedBy(EventProcessorType.SqlJdbc),
-        new HookableMethodSignature("executeUpdate")
-            .addParam("java.lang.String")
-            .addParam("java.lang.String[]")
-            .processedBy(EventProcessorType.SqlJdbc)
-      ),
-
-      new HookableAnnotated(ClassReference.create("org", "junit", "Test"))
-        .processedBy(EventProcessorType.ToggleRecord),
-
-      new HookableClassName(ClassReference.create("org", "apache", "lucene", "util", "LuceneTestCase"),
-        new HookableAllMethods().processedBy(EventProcessorType.ToggleRecord)
-      )
-  );
-
+  /**
+   * Default constructor. Caches hooks for future class transforms.
+   */
   public ClassFileTransformer() {
     super();
+
+    Reflections reflections = new Reflections(new ConfigurationBuilder()
+        .setUrls(ClasspathHelper.forPackage("com.appland.appmap.process"))
+        .setScanners(new SubTypesScanner(false))
+        .filterInputsBy(new FilterBuilder().includePackage("com.appland.appmap.process")));
+    ClassPool classPool = ClassPool.getDefault();
+    for (Class<? extends Object> classType : reflections.getSubTypesOf(Object.class)) {
+      try {
+        CtClass ctClass = classPool.get(classType.getName());
+        processClass(ctClass);
+      } catch (NotFoundException e) {
+        System.err.printf("AppMap: failed to find %s in class pool", classType.getName());
+        System.err.println(e.getMessage());
+      }
+    } 
+  }
+
+  private void addHook(Hook hook) {
+    if (hook == null) {
+      return;
+    }
+
+    String key = hook.getKey();
+    System.err.printf("%s: %s\n", key, hook);
+    if (key == null) {
+      unkeyedHooks.add(hook);
+    } else {
+      List<Hook> matchingKeyedHooks = keyedHooks.get(key);
+      if (matchingKeyedHooks == null) {
+        matchingKeyedHooks = new ArrayList<Hook>();
+        keyedHooks.put(key, matchingKeyedHooks);
+      }
+      matchingKeyedHooks.add(hook);
+    }
+  }
+
+  private List<Hook> getHooks(String methodId) {
+    List<Hook> matchingKeyedHooks = keyedHooks.get(methodId);
+    if (matchingKeyedHooks == null || matchingKeyedHooks.isEmpty()) {
+      return unkeyedHooks;
+    }
+
+    return Stream.of(matchingKeyedHooks, unkeyedHooks)
+        .flatMap(x -> x.stream())
+        .collect(Collectors.toList());
+  }
+
+  private void processClass(CtClass ctClass) {
+    for (CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
+      Hook hook = Hook.from(behavior);
+      if (hook == null) {
+        continue;
+      }
+
+      ctClass.defrost();
+
+      try {
+        hook.validate();
+      } catch (HookValidationException e) {
+        System.err.println("AppMap: failed to validate hook");
+        System.err.println(e.getMessage());
+        continue;
+      }
+
+      this.addHook(hook);
+
+      if (debug) {
+        System.out.printf("AppMap: registered hook %s\n", hook.toString());
+      }
+    }
+  }
+
+  private void applyHooks(CtBehavior behavior) {
+    try {
+      final List<HookSite> hookSites = this.getHooks(behavior.getName())
+          .stream()
+          .map(hook -> hook.prepare(behavior))
+          .filter(Objects::nonNull)
+          .collect(Collectors.toList());
+
+      if (hookSites.size() < 1) {
+        return;
+      }
+
+      Hook.apply(behavior, hookSites);
+
+      if (debug) {
+        for (HookSite hookSite : hookSites) {
+          final Hook hook = hookSite.getHook();
+          System.err.printf("AppMap: hooked %s.%s (%s) with %s\n",
+                behavior.getDeclaringClass().getName(),
+                behavior.getName(),
+                hook.getMethodEvent().getEventString(),
+                hook);
+        }
+      }
+    } catch (NoSourceAvailableException e) {
+      return;
+    }
   }
 
   @Override
@@ -167,15 +169,12 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         return bytes;
       }
 
-      for (BehaviorProcessorPair pair : hooks.getBehaviors(ctClass)) {
-        final CtBehavior behavior = pair.getBehavior();
-        Integer behaviorOrdinal = eventFactory.register(behavior);
-        Event eventTemplate = eventFactory.getTemplate(behaviorOrdinal);
+      for (CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
+        if (behavior instanceof CtConstructor) {
+          continue;
+        }
 
-        transformBehavior(behavior,
-                          pair.getProcessorType(),
-                          behaviorOrdinal,
-                          eventTemplate);
+        this.applyHooks(behavior);
       }
 
       return ctClass.toBytecode();
@@ -188,87 +187,5 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
 
     return bytes;
-  }
-
-
-  private static String buildPreHook(CtBehavior behavior,
-                                     Integer behaviorOrdinal,
-                                     Event eventTemplate,
-                                     EventProcessorType eventProcessor) {
-    String paramArray = "new Object[0]";
-    if (eventTemplate.parameters.size() > 0) {
-      paramArray = eventTemplate.parameters
-          .stream()
-          .map(p -> String.format("com.appland.appmap.process.BehaviorEntrypoints.boxValue(%s)", p.name))
-          .collect(Collectors.joining(", ", "new Object[]{ ", " }"));
-    }
-
-    Boolean isStatic = (behavior.getModifiers() & Modifier.STATIC) != 0;
-    Boolean returnsVoid = true;
-    Boolean unknownReturnType = false;
-    if (behavior instanceof CtMethod) {
-      try {
-        CtMethod method = (CtMethod) behavior;
-        returnsVoid = method.getReturnType() == CtClass.voidType;
-      } catch (NotFoundException e) {
-        unknownReturnType = true;
-      }
-    }
-
-    String returnStatement = "";
-    if (unknownReturnType == false) {
-      // note that we're returning an empty object cast to the return type
-      // this is dangerous
-      returnStatement = returnsVoid ? "return;" : "return ($r) new Object();";
-    }
-
-    return String.format("if (%s(new Integer(%d), %s.%s, %s, %s) == false) { %s }",
-        "com.appland.appmap.process.BehaviorEntrypoints.onEnter",
-        behaviorOrdinal,
-        "com.appland.appmap.process.EventProcessorType",
-        eventProcessor,
-        isStatic ? "null" : "this",
-        paramArray,
-        returnStatement);
-  }
-
-  private static String buildPostHook(CtBehavior behavior,
-                                      Integer behaviorOrdinal,
-                                      Event eventTemplate,
-                                      EventProcessorType processorType,
-                                      String returnValue) {
-    return String.format("%s(new Integer(%d), %s.%s, %s(%s));",
-        "com.appland.appmap.process.BehaviorEntrypoints.onExit",
-        behaviorOrdinal,
-        "com.appland.appmap.process.EventProcessorType",
-        processorType,
-        "com.appland.appmap.process.BehaviorEntrypoints.boxValue",
-        returnValue);
-  }
-
-  public void transformBehavior(CtBehavior behavior,
-                                EventProcessorType processorType,
-                                Integer behaviorOrdinal,
-                                Event eventTemplate) 
-                                throws CannotCompileException, NotFoundException {
-    behavior.insertBefore(
-        buildPreHook(behavior, behaviorOrdinal, eventTemplate, processorType)
-    );
-    behavior.insertAfter(
-        buildPostHook(behavior, behaviorOrdinal, eventTemplate, processorType, "$_")
-    );
-    behavior.addCatch(
-        String.format("%s throw e;",
-            buildPostHook(behavior, behaviorOrdinal, eventTemplate, processorType, "null")),
-        ClassPool.getDefault().get("java.lang.Throwable"),
-        "e"
-    );
-
-    if (debug) {
-      System.err.printf("Hooking %s.%s with %s\n",
-          behavior.getDeclaringClass().getName(),
-          behavior.getName(),
-          processorType);
-    }
   }
 }

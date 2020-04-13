@@ -1,14 +1,14 @@
 package com.appland.appmap.record;
 
-import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
-
-import com.alibaba.fastjson.JSONWriter;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+/**
+ * Receives recording data and writes it to disk.
+ */
 public class RecordingSessionFileStream extends RecordingSessionGeneric {
   private static final Integer MAX_EVENTS = 32;
   private static final String DEFAULT_FILENAME = "appmap.json";
@@ -26,6 +26,11 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
     }
   }
 
+  /**
+   * Constructor. You typically shouldn't be creating this outside of the {@link Recorder}.
+   * @param fileName Output file name
+   * @param metadata Recording metadata
+   */
   public RecordingSessionFileStream(String fileName, Metadata metadata) {
     this.metadata = metadata;
     if (fileName != null) {
