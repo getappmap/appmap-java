@@ -27,6 +27,7 @@ dependencies {
   implementation 'org.javassist:javassist:3.27.0-GA'
   implementation 'org.reflections:reflections:0.9.11'
   implementation 'javax.servlet:javax.servlet-api:4.0.1'
+  implementation 'org.apache.commons:commons-lang3:3.10'
 
   annotationProcessor 'info.picocli:picocli-codegen:4.0.4'
 
@@ -47,7 +48,7 @@ test {
   useJUnit()
   dependsOn shadowJar
   dependsOn cleanTest
-  // jvmArgs "-javaagent:${shadowJar.archivePath}"
+  // jvmArgs "-javaagent:build/libs/appmap.jar"
   // systemProperty "appmap.debug", "true"
   // systemProperty "appmap.config.file", "$rootDir/appmap.yml"
   // systemProperty "appmap.output.directory", "$rootDir/build/appmap"
