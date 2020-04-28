@@ -21,6 +21,8 @@ repositories {
   mavenCentral()
 }
 
+version = '0.0.1'
+
 dependencies {
   implementation 'org.yaml:snakeyaml:1.25'
   implementation 'com.alibaba:fastjson:1.2.61'
@@ -48,7 +50,7 @@ test {
   useJUnit()
   dependsOn shadowJar
   dependsOn cleanTest
-  // jvmArgs "-javaagent:build/libs/appmap.jar"
+  // jvmArgs "-javaagent:${shadowJar.archivePath}"
   // systemProperty "appmap.debug", "true"
   // systemProperty "appmap.config.file", "$rootDir/appmap.yml"
   // systemProperty "appmap.output.directory", "$rootDir/build/appmap"
