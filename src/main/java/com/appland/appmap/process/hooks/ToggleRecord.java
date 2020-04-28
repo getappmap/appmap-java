@@ -1,5 +1,7 @@
 package com.appland.appmap.process.hooks;
 
+import static com.appland.appmap.util.StringUtil.identifierToSentence;
+
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.ExitEarly;
 import com.appland.appmap.record.ActiveSessionException;
@@ -7,14 +9,15 @@ import com.appland.appmap.record.IRecordingSession;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.transform.annotations.*;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
 
 /**
  * Hooks to toggle event recording. This could be either via HTTP or by entering a unit test method.
@@ -124,6 +127,8 @@ public class ToggleRecord {
         }
       }
 
+      metadata.feature = identifierToSentence(event.methodId);
+      metadata.featureGroup = identifierToSentence(event.definedClass);
       metadata.recordedClassName = event.definedClass;
       metadata.recordedMethodName = event.methodId;
       if (junit) {

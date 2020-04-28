@@ -11,6 +11,8 @@ public interface IRecordingSession {
     public String frameworkVersion;
     public String recordedClassName;
     public String recordedMethodName;
+    public String feature;
+    public String featureGroup;
   }
 
   public void add(Event event) throws ActiveSessionException;
