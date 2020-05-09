@@ -21,6 +21,6 @@ while [ -z "$(curl -sI "${WS_URL}" | grep 'HTTP/1.1 200')" ]; do
 done
 printf ' ok\n\n'
 
-bats /tests/*.bats
+${@:-bats --tap /test/*.bats}
 
 kill ${JVM_PID}

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # run smoke tests
 set -e
@@ -9,9 +9,10 @@ IMAGE_TAG=latest
 docker build \
   -t "${IMAGE_NAME}:${IMAGE_TAG}" \
   -f test/Dockerfile \
-  $(pwd)
+  .
 
 printf '\n=== begin tests ===\n'
-docker run \
+docker run -i $(tty -s && echo '-t') \
   --rm \
-  "${IMAGE_NAME}:${IMAGE_TAG}"
+  "${IMAGE_NAME}:${IMAGE_TAG}" \
+  "${@:-/sbin/entrypoint}"
