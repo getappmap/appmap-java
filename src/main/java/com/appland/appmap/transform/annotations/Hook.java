@@ -183,8 +183,9 @@ public class Hook {
             ClassPool.getDefault().get("com.appland.appmap.process.ExitEarly"));
       }
 
+      String exc_invocation = invocations[MethodEvent.METHOD_EXCEPTION.getIndex()];
       targetBehavior.addCatch("{"
-          + invocations[MethodEvent.METHOD_EXCEPTION.getIndex()]
+          + (exc_invocation != null ? exc_invocation : "")
           + "com.appland.appmap.process.ThreadLock.current().exit();"
           + "throw $e;"
           + "}",
