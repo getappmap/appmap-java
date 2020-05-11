@@ -1,4 +1,10 @@
 #!/usr/bin/env bats
+#
+# Runs a smoke test against a Spring sample application available here:
+# https://github.com/spring-projects/spring-petclinic
+#
+# If running locally, keep in mind that this application will cache SQL results,
+# likely causing subsequent test runs to fail.
 
 load 'test_helper/bats-support/load'
 load 'test_helper/bats-assert/load'
@@ -27,12 +33,12 @@ assert_json_contains() {
   # discussion here: https://github.com/stedolan/jq/issues/24)
   local query="${1?} | select(. == null | not)"
 
-  [[ -v DEBUG_JSON ]] && jq <<< "${output}" >&3
+  [[ ! -z "${DEBUG_JSON}" ]] && jq <<< "${output}" >&3
   local result=$(jq -r "${query}" <<< "${output}")
 
-  [[ -v DEBUG_JSON ]] && echo "result: ${result}" >&3
-  if [[ -v 2 ]]; then
-    assert [ "${result}" == "$2" ]
+  [[ ! -z "${DEBUG_JSON}" ]] && echo "result: ${result}" >&3
+  if [[ -n "${2}" ]]; then
+    assert [ "${result}" == "${2}" ]
   else
     refute [ -z "${result}" ]
   fi
