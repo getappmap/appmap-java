@@ -5,6 +5,7 @@ import com.appland.appmap.record.EventTemplateRegistry;
 import javassist.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -149,23 +150,21 @@ public class Hook {
       final String uniqueLocks = hookSites
           .stream()
           .filter(hs -> !hs.getUniqueKey().isEmpty())
-          .map(hs -> (""
+          .map(hs -> hs.getUniqueKey())
+          .distinct()
+          .map(uniqueKey -> (""
             + "com.appland.appmap.process.ThreadLock.current().lockUnique(\""
-            + hs.getUniqueKey()
+            + uniqueKey
             + "\");"))
           .collect(Collectors.joining("\n"));
 
     try {
-      targetBehavior.insertBefore("{"
-          + "com.appland.appmap.process.ThreadLock.current().enter();"
-          + uniqueLocks
-          + invocations[MethodEvent.METHOD_INVOCATION.getIndex()]
-          + "}");
+      targetBehavior.insertBefore(
+          beforeSrcBlock(uniqueLocks,
+            invocations[MethodEvent.METHOD_INVOCATION.getIndex()]));
 
-      targetBehavior.insertAfter("{"
-          + invocations[MethodEvent.METHOD_RETURN.getIndex()]
-          + "com.appland.appmap.process.ThreadLock.current().exit();"
-          + "}");
+      targetBehavior.insertAfter(
+          afterSrcBlock(invocations[MethodEvent.METHOD_RETURN.getIndex()]));
 
       if (returnsVoid) {
         targetBehavior.addCatch("{"
@@ -183,12 +182,10 @@ public class Hook {
             ClassPool.getDefault().get("com.appland.appmap.process.ExitEarly"));
       }
 
-      targetBehavior.addCatch("{"
-          + invocations[MethodEvent.METHOD_EXCEPTION.getIndex()]
-          + "com.appland.appmap.process.ThreadLock.current().exit();"
-          + "throw $e;"
-          + "}",
+      targetBehavior.addCatch(
+          catchSrcBlock(invocations[MethodEvent.METHOD_EXCEPTION.getIndex()]),
           ClassPool.getDefault().get("java.lang.Exception"));
+      
     } catch (CannotCompileException e) {
       System.err.println("AppMap: failed to compile");
       System.err.println("        method "
@@ -201,6 +198,40 @@ public class Hook {
       System.err.println("AppMap: failed to find class\n");
       System.err.println(e.getMessage());
     }
+  }
+
+  /* Concatenates potentially null strings with no delimeter. The return value
+     is guaranteed to be non-null.
+  */
+  private static String safeConcatStrings(String... strs) {
+    return Arrays.stream(strs)
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining());
+  }
+
+  private static String beforeSrcBlock(String... invocations) {
+    final String allInvocations = safeConcatStrings(invocations);
+    return "{"
+        + "com.appland.appmap.process.ThreadLock.current().enter();"
+        + allInvocations
+        + "}";
+  }
+
+  private static String afterSrcBlock(String... invocations) {
+    final String allInvocations = safeConcatStrings(invocations);
+    return "{"
+        + allInvocations
+        + "com.appland.appmap.process.ThreadLock.current().exit();"
+        + "}";
+  }
+
+  private static String catchSrcBlock(String... invocations) {
+    final String allInvocations = safeConcatStrings(invocations);
+    return "{"
+        + allInvocations
+        + "com.appland.appmap.process.ThreadLock.current().exit();"
+        + "throw $e;"
+        + "}";
   }
 
   public String getKey() {

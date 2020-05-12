@@ -1,17 +1,23 @@
-FROM openjdk:11-jdk-slim AS build
+FROM openjdk:11-jdk-slim AS petclinic
 
 # Build the Spring "Pet Clinic" sample application
-WORKDIR /
+RUN apt-get update \
+    && apt-get install -y git
 
 RUN mkdir -p /build \
-    && apt-get update \
-    && apt-get install -y git \
     && git clone https://github.com/spring-projects/spring-petclinic.git \
     && cd spring-petclinic \
     && ./mvnw package -Dmaven.test.skip=true \
     && mv target/*.jar /build/petclinic.jar
 
+FROM openjdk:11-jdk-slim AS build
+
+RUN apt-get update \
+    && apt-get install -y git
+
 # Build the source from this repository
+RUN mkdir -p /build
+
 WORKDIR /appmap
 
 ADD gradle              ./gradle
@@ -21,20 +27,24 @@ ADD build.gradle        ./
 ADD src                 ./src
 ADD buildSrc            ./buildSrc
 
-RUN ./gradlew --no-daemon build \
-    && mv build/libs/appmap.jar /build
+RUN ./gradlew --no-daemon build  \
+    && mv build/libs/appmap*.jar /build/appmap.jar
 
 FROM openjdk:13-alpine
 LABEL maintainer="Dustin Byrne <dustin@app.land>"
 
-RUN apk add -U bash curl git jq \
-    && git clone https://github.com/sstephenson/bats.git \
-    && cd bats \
+RUN apk add --no-cache -U bash curl git jq ncurses less
+
+RUN git clone https://github.com/bats-core/bats-core.git \
+    && git clone https://github.com/bats-core/bats-support.git /test/test_helper/bats-support \
+    && git clone https://github.com/bats-core/bats-assert.git /test/test_helper/bats-assert \
+    && cd bats-core \
     && ./install.sh /usr/local
 
+COPY --from=petclinic /build /
 COPY --from=build /build /
 COPY test/appmap.yml     /
 COPY test/entrypoint     /sbin/
-COPY test/*.bats         /tests/
+COPY test/*.bats         /test/
 
-ENTRYPOINT '/sbin/entrypoint'
+ENTRYPOINT ["/sbin/entrypoint"]
