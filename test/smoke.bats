@@ -114,6 +114,7 @@ assert_json_contains() {
   stop_recording
 
   assert_json_contains '.events[] | .sql_query'
+  assert_json_contains '.events[] | .sql_query.database_type'
 }
 
 @test "records exceptions" {

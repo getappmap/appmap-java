@@ -19,6 +19,11 @@ public class SqlQuery {
   @JSONField(name = "server_version")
   public String serverVersion;
 
+  public SqlQuery(String databaseType, String sql) {
+    this.databaseType = databaseType;
+    this.sql = sql;
+  }
+  
   /**
    * Sets the "sql" field.
    * @param sql A SQL query string
