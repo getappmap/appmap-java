@@ -46,5 +46,6 @@ COPY --from=build /build /
 COPY test/appmap.yml     /
 COPY test/entrypoint     /sbin/
 COPY test/*.bats         /test/
+COPY test/Props.java     /test/
 
 ENTRYPOINT ["/sbin/entrypoint"]

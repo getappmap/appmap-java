@@ -110,6 +110,10 @@ public class AppMapSerializer {
       {
         this.json.writeKey("name");
         this.json.writeValue("java");
+        this.json.writeKey("version");
+        this.json.writeValue(System.getProperty("java.vm.version"));
+        this.json.writeKey("engine");
+        this.json.writeValue(System.getProperty("java.vm.name"));
       }
       this.json.endObject();
 

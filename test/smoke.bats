@@ -6,6 +6,8 @@
 # If running locally, keep in mind that this application will cache SQL results,
 # likely causing subsequent test runs to fail.
 
+: ${WS_URL?}
+
 load 'test_helper/bats-support/load'
 load 'test_helper/bats-assert/load'
 
@@ -33,7 +35,7 @@ assert_json_contains() {
   # discussion here: https://github.com/stedolan/jq/issues/24)
   local query="${1?} | select(. == null | not)"
 
-  [[ ! -z "${DEBUG_JSON}" ]] && jq <<< "${output}" >&3
+  [[ ! -z "${DEBUG_JSON}" ]] && echo "${output}" >&3
   local result=$(jq -r "${query}" <<< "${output}")
 
   [[ ! -z "${DEBUG_JSON}" ]] && echo "result: ${result}" >&3
@@ -112,6 +114,7 @@ assert_json_contains() {
   stop_recording
 
   assert_json_contains '.events[] | .sql_query'
+  assert_json_contains '.events[] | .sql_query.database_type'
 }
 
 @test "records exceptions" {
@@ -120,4 +123,16 @@ assert_json_contains() {
   stop_recording
 
   assert_json_contains '.events[] | .exceptions'
+}
+
+@test "recordings have Java metadata" {
+  start_recording
+  _curl -XGET "${WS_URL}"
+  stop_recording
+
+  eval $(java test/Props.java java.vm.version java.vm.name)
+  
+  assert_json_contains '.metadata.language.name' 'java'
+  assert_json_contains '.metadata.language.version' "$JAVA_VM_VERSION"
+  assert_json_contains '.metadata.language.engine' "$JAVA_VM_NAME"
 }

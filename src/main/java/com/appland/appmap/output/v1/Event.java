@@ -364,8 +364,8 @@ public class Event {
    * @return {@code this}
    * @see <a href="https://github.com/applandinc/appmap#sql-query-attributes">GitHub: AppMap - SQL query attributes</a>
    */
-  public Event setSqlQuery(String sql) {
-    this.sqlQuery = new SqlQuery().setSql(sql);
+  public Event setSqlQuery(String databaseType, String sql) {
+    this.sqlQuery = new SqlQuery(databaseType, sql);
     return this;
   }
 
