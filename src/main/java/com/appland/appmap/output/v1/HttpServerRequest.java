@@ -17,6 +17,9 @@ public class HttpServerRequest {
   @JSONField(name = "path_info")
   public String path;
 
+  @JSONField(name = "normalized_path_info")
+  public String normalizedPath;
+
   /**
    * Set the protocol of this request.
    * @param protocol The request protocol
@@ -47,6 +50,14 @@ public class HttpServerRequest {
    */
   public HttpServerRequest setPath(String path) {
     this.path = path;
+    return this;
+  }
+
+  /**
+   * Set the normalized path for this request.
+   */
+  public HttpServerRequest setNormalizedPath(String path) {
+    this.normalizedPath = path;
     return this;
   }
 }

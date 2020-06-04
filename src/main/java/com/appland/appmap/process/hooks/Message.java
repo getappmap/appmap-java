@@ -39,5 +39,7 @@ public class Message {
     for (Map.Entry<String, String> param : pathParams.entrySet()) {
       lastEvent.addMessageParam(param.getKey(), param.getValue());
     }
+    final String normalizedPath = pattern.replace('{', ':').replace("}", "");
+    lastEvent.httpRequest.setNormalizedPath(normalizedPath);
   }
 }
