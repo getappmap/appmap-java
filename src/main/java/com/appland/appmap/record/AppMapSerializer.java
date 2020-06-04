@@ -101,7 +101,7 @@ public class AppMapSerializer {
       }
 
       if (metadata.featureGroup != null && !metadata.featureGroup.isEmpty()) {
-        this.json.writeKey("featureGroup");
+        this.json.writeKey("feature_group");
         this.json.writeValue(metadata.featureGroup);
       }
 

@@ -1,5 +1,6 @@
 package com.appland.appmap.process.hooks;
 
+import static com.appland.appmap.util.StringUtil.decapitalize;
 import static com.appland.appmap.util.StringUtil.identifierToSentence;
 
 import com.appland.appmap.output.v1.Event;
@@ -129,6 +130,10 @@ public class ToggleRecord {
 
       metadata.feature = identifierToSentence(event.methodId);
       metadata.featureGroup = identifierToSentence(event.definedClass);
+      metadata.scenarioName = String.format(
+        "%s %s",
+        metadata.featureGroup,
+        decapitalize(metadata.feature));
       metadata.recordedClassName = event.definedClass;
       metadata.recordedMethodName = event.methodId;
       if (junit) {
