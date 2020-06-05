@@ -10,48 +10,14 @@
 
 load 'test_helper/bats-support/load'
 load 'test_helper/bats-assert/load'
-
-_curl() {
-  curl -H 'Accept: application/json' $@
-}
-
-start_recording() {
-  _curl -sXPOST "${WS_URL}/_appmap/record"
-}
-
-stop_recording() {
-  output="$(_curl -sXDELETE ${WS_URL}/_appmap/record | tee /dev/stderr)"
-}
-
-teardown() {
-  stop_recording
-}
-
-assert_json_contains() {
-  : "${output?}"
-
-  # Expect a jq query as $1. Pipe it into `select`, so null values
-  # will show up as a empty strings, rather than "null". (See
-  # discussion here: https://github.com/stedolan/jq/issues/24)
-  local query="${1?} | select(. == null | not)"
-
-  [[ ! -z "${DEBUG_JSON}" ]] && echo "${output}" >&3
-  local result=$(jq -r "${query}" <<< "${output}")
-
-  [[ ! -z "${DEBUG_JSON}" ]] && echo "result: ${result}" >&3
-  if [[ -n "${2}" ]]; then
-    assert [ "${result}" == "${2}" ]
-  else
-    refute [ -z "${result}" ]
-  fi
-}
+load 'helper'
 
 @test "the recording status reports disabled when not recording" {
   run _curl -sXGET "${WS_URL}/_appmap/record"
 
   assert_success
 
-  assert_json_contains .enabled false
+  assert_json_eq '.enabled' 'false'
 }
 
 @test "successfully start a new recording" {
@@ -80,10 +46,7 @@ assert_json_contains() {
   run _curl -sXGET "${WS_URL}/_appmap/record"
 
   assert_success
-
-  echo "${output}" \
-    | jq .enabled \
-    | grep true
+  assert_json_eq '.enabled' 'true'
 }
 
 @test "successfully stop the current recording" {
@@ -93,9 +56,9 @@ assert_json_contains() {
 
   assert_success
 
-  assert_json_contains .classMap
-  assert_json_contains .events
-  assert_json_contains .version
+  assert_json '.classMap'
+  assert_json '.events'
+  assert_json '.version'
 }
 
 @test "recordings capture http request" {
@@ -103,7 +66,7 @@ assert_json_contains() {
   _curl -XGET "${WS_URL}"
   stop_recording
 
-  assert_json_contains '.events[] | .http_server_request'
+  assert_json '.events[] | .http_server_request'
 }
 
 # NB: Because of the way query results are cached in petclinic, this
@@ -113,8 +76,8 @@ assert_json_contains() {
   _curl -XGET "${WS_URL}/vets.html"
   stop_recording
 
-  assert_json_contains '.events[] | .sql_query'
-  assert_json_contains '.events[] | .sql_query.database_type'
+  assert_json '.events[] | .sql_query'
+  assert_json '.events[] | .sql_query.database_type'
 }
 
 @test "records exceptions" {
@@ -122,7 +85,7 @@ assert_json_contains() {
   _curl -XGET "${WS_URL}/oups"
   stop_recording
 
-  assert_json_contains '.events[] | .exceptions'
+  assert_json '.events[] | .exceptions'
 }
 
 @test "recordings have Java metadata" {
@@ -132,7 +95,28 @@ assert_json_contains() {
 
   eval $(java test/Props.java java.vm.version java.vm.name)
   
-  assert_json_contains '.metadata.language.name' 'java'
-  assert_json_contains '.metadata.language.version' "$JAVA_VM_VERSION"
-  assert_json_contains '.metadata.language.engine' "$JAVA_VM_NAME"
+  assert_json_eq '.metadata.language.name' 'java'
+  assert_json_eq '.metadata.language.version' "${JAVA_VM_VERSION}"
+  assert_json_eq '.metadata.language.engine' "${JAVA_VM_NAME}"
+}
+
+@test "message parameters contain path params from a Spring app" {
+  start_recording
+  _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
+  stop_recording
+
+  assert_json_eq '.events[] | .http_server_request.normalized_path_info' '/owners/:ownerId/pets/:petId/edit'
+  assert_json_contains '.events[] | .message' 'ownerId'
+  assert_json_contains '.events[] | .message' 'petId'
+}
+
+@test "expected number of events captured" {
+  start_recording
+  
+  # this route seems least likely to be affected by future changes
+  _curl -XGET "${WS_URL}/oups"
+  
+  stop_recording
+
+  assert_json_eq '.events | length' 6
 }
