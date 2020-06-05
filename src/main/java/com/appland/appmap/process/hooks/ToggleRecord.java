@@ -1,5 +1,6 @@
 package com.appland.appmap.process.hooks;
 
+import static com.appland.appmap.util.StringUtil.decapitalize;
 import static com.appland.appmap.util.StringUtil.identifierToSentence;
 
 import com.appland.appmap.output.v1.Event;
@@ -108,10 +109,7 @@ public class ToggleRecord {
     throw new ExitEarly();
   }
 
-  @ArgumentArray
-  @ExcludeReceiver
-  @HookAnnotated("org.junit.Test")
-  public static void startTest(Event event, Object[] args) {
+  private static void startTest(Event event) {
     try {
       final String fileName = String.join("_", event.definedClass, event.methodId)
           .replaceAll("[^a-zA-Z0-9-_]", "_");
@@ -129,6 +127,10 @@ public class ToggleRecord {
 
       metadata.feature = identifierToSentence(event.methodId);
       metadata.featureGroup = identifierToSentence(event.definedClass);
+      metadata.scenarioName = String.format(
+        "%s %s",
+        metadata.featureGroup,
+        decapitalize(metadata.feature));
       metadata.recordedClassName = event.definedClass;
       metadata.recordedMethodName = event.methodId;
       if (junit) {
@@ -142,15 +144,41 @@ public class ToggleRecord {
     }
   }
 
-  @ArgumentArray
-  @CallbackOn(MethodEvent.METHOD_RETURN)
-  @ExcludeReceiver
-  @HookAnnotated("org.junit.Test")
-  public static void stopTest(Event event, Object returnValue, Object[] args) {
+  private static void stopTest() {
     try {
       recorder.stop();
     } catch (ActiveSessionException e) {
       System.err.printf("AppMap: %s\n", e.getMessage());
     }
+  }
+
+  @ArgumentArray
+  @ExcludeReceiver
+  @HookAnnotated("org.junit.Test")
+  public static void junit(Event event, Object[] args) {
+    startTest(event);
+  }
+
+  @ArgumentArray
+  @CallbackOn(MethodEvent.METHOD_RETURN)
+  @ExcludeReceiver
+  @HookAnnotated("org.junit.Test")
+  public static void junit(Event event, Object returnValue, Object[] args) {
+    stopTest();
+  }
+
+  @ArgumentArray
+  @ExcludeReceiver
+  @HookAnnotated("org.junit.jupiter.api.Test")
+  public static void junitJupiter(Event event, Object[] args) {
+    startTest(event);
+  }
+
+  @ArgumentArray
+  @CallbackOn(MethodEvent.METHOD_RETURN)
+  @ExcludeReceiver
+  @HookAnnotated("org.junit.jupiter.api.Test")
+  public static void junitJupiter(Event event, Object returnValue, Object[] args) {
+    stopTest();
   }
 }

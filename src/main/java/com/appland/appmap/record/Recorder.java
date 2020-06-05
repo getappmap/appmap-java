@@ -1,5 +1,8 @@
 package com.appland.appmap.record;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.ThreadLock;
@@ -16,6 +19,7 @@ public class Recorder {
   private IRecordingSession activeSession = null;
   private String outputDirectory = DEFAULT_OUTPUT_DIRECTORY;
   private CodeObjectTree globalCodeObjects = new CodeObjectTree();
+  private Map<Long, Event> queuedEvents = new HashMap<Long, Event>();
 
   private static Recorder instance = new Recorder();
 
@@ -79,6 +83,67 @@ public class Recorder {
     this.setActiveSession(new RecordingSessionMemory(metadata));
   }
 
+  private void writeEvent(Event event) throws ActiveSessionException {
+    event.freeze();
+    this.activeSession.add(event);
+
+    CodeObject rootObject = this.globalCodeObjects.getMethodBranch(event.definedClass,
+        event.methodId,
+        event.isStatic,
+        event.lineNumber);
+
+    if (rootObject != null) {
+      this.add(rootObject);
+    }
+  }
+
+  /**
+   * Adds the queued 'lastEvent' to the active session and clears the lastEvent.
+   */
+  private void flushThread(Long threadId) {
+    final Event pendingEvent = this.queuedEvents.get(threadId);
+    if (pendingEvent == null) {
+      return;
+    }
+
+    try {
+      this.writeEvent(pendingEvent);
+    } catch (ActiveSessionException e) {
+      System.err.printf("AppMap: failed to record event\n%s\n", e.getMessage());
+      this.queuedEvents.remove(threadId);
+      this.activeSession.stop();
+    }
+
+    this.queuedEvents.remove(threadId);
+  }
+
+  /**
+   * Flush all queued events, writing them to the active session and clearing
+   * the queue.
+   */
+  private synchronized void flush() {
+    try {
+      for (Event event : this.queuedEvents.values()) {
+        this.writeEvent(event);
+      }
+    } catch (ActiveSessionException e) {
+      System.err.printf("AppMap: failed to record event\n%s\n", e.getMessage());
+      this.queuedEvents.clear();
+      this.activeSession.stop();
+    }
+    
+    this.queuedEvents.clear();
+  }
+
+  private synchronized void queueEvent(Event event) {
+    final Event pendingEvent = this.queuedEvents.get(event.threadId);
+    if (pendingEvent != null) {
+      this.flushThread(pendingEvent.threadId);
+    }
+
+    this.queuedEvents.put(event.threadId, event);
+  }
+
   /**
    * Stops the active recording session.
    * @return Output from the current session. This will be empty unless recording to memory.
@@ -89,6 +154,9 @@ public class Recorder {
     if (!this.hasActiveSession()) {
       throw new ActiveSessionException(ERROR_NO_SESSION);
     }
+
+    // make sure there's no queued event waiting to be written
+    this.flush();
 
     String output = "";
 
@@ -118,22 +186,7 @@ public class Recorder {
       return;
     }
 
-    try {
-      event.freeze();
-      this.activeSession.add(event);
-
-      CodeObject rootObject = this.globalCodeObjects.getMethodBranch(event.definedClass,
-          event.methodId,
-          event.isStatic,
-          event.lineNumber);
-
-      if (rootObject != null) {
-        this.add(rootObject);
-      }
-    } catch (ActiveSessionException e) {
-      System.err.printf("AppMap: failed to record event\n%s\n", e.getMessage());
-      this.activeSession.stop();
-    }
+    this.queueEvent(event);
   }
 
   private synchronized void add(CodeObject codeObject) {
@@ -156,5 +209,13 @@ public class Recorder {
    */
   public synchronized void register(CodeObject codeObject) {
     this.globalCodeObjects.add(codeObject);
+  }
+
+  /**
+   * Retrieve the last event recorded.
+   */
+  public synchronized Event getLastEvent() {
+    final Long threadId = Thread.currentThread().getId();
+    return this.queuedEvents.get(threadId);
   }
 }

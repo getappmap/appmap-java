@@ -47,5 +47,6 @@ COPY test/appmap.yml     /
 COPY test/entrypoint     /sbin/
 COPY test/*.bats         /test/
 COPY test/Props.java     /test/
+COPY test/helper.bash    /test/
 
 ENTRYPOINT ["/sbin/entrypoint"]

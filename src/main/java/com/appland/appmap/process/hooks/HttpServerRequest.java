@@ -7,6 +7,8 @@ import com.appland.appmap.transform.annotations.HookClass;
 import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.transform.annotations.Unique;
 
+import java.util.Map;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletRequest;
@@ -29,6 +31,12 @@ public class HttpServerRequest {
 
     event.setHttpServerRequest(req.getMethod(), req.getRequestURI(), req.getProtocol());
     event.setParameters(null);
+
+    for (Map.Entry<String, String[]> param : req.getParameterMap().entrySet()) {
+      final String[] values = param.getValue();
+      event.addMessageParam(param.getKey(), values.length > 0 ? values[0] : "");
+    }
+
     recorder.add(event);
   }
 
