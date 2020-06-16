@@ -6,6 +6,7 @@ import java.util.Map;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.ThreadLock;
+import com.appland.appmap.util.Logger;
 
 /**
  * Recorder is a singleton responsible for managing recording sessions and routing events to any
@@ -41,7 +42,7 @@ public class Recorder {
     try {
       this.activeSession.start();
     } catch (ActiveSessionException e) {
-      System.err.printf("AppMap: failed to start recording\n%s\n", e.getMessage());
+      Logger.printf("AppMap: failed to start recording\n%s\n", e.getMessage());
       this.stop();
     }
   }
@@ -109,7 +110,7 @@ public class Recorder {
     try {
       this.writeEvent(pendingEvent);
     } catch (ActiveSessionException e) {
-      System.err.printf("AppMap: failed to record event\n%s\n", e.getMessage());
+      Logger.printf("AppMap: failed to record event\n%s\n", e.getMessage());
       this.queuedEvents.remove(threadId);
       this.activeSession.stop();
     }
@@ -127,7 +128,7 @@ public class Recorder {
         this.writeEvent(event);
       }
     } catch (ActiveSessionException e) {
-      System.err.printf("AppMap: failed to record event\n%s\n", e.getMessage());
+      Logger.printf("AppMap: failed to record event\n%s\n", e.getMessage());
       this.queuedEvents.clear();
       this.activeSession.stop();
     }
@@ -166,7 +167,7 @@ public class Recorder {
       processorStack.lock();
       output = this.activeSession.stop();
     } catch (ActiveSessionException e) {
-      System.err.printf("AppMap: failed to stop recording\n%s\n", e.getMessage());
+      Logger.printf("AppMap: failed to stop recording\n%s\n", e.getMessage());
     } finally {
       processorStack.unlock();
       processorStack.exit();
@@ -197,7 +198,7 @@ public class Recorder {
     try {
       this.activeSession.add(codeObject);
     } catch (ActiveSessionException e) {
-      System.err.printf("AppMap: failed to record code object\n%s\n", e.getMessage());
+      Logger.printf("AppMap: failed to record code object\n%s\n", e.getMessage());
       this.activeSession.stop();
     }
   }

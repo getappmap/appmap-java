@@ -2,6 +2,8 @@ package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.output.v1.Value;
+import com.appland.appmap.util.Logger;
+
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -51,8 +53,8 @@ public class CallbackOnSystem extends BaseSystem {
 
           runtimeParameters.add(returnValue);
         } catch (NotFoundException e) {
-          System.err.println("AppMap: warning - unknown return type");
-          System.err.println(e.getMessage());
+          Logger.println("AppMap: warning - unknown return type");
+          Logger.println(e.getMessage());
         }
       }
     } else if (this.methodEvent == MethodEvent.METHOD_EXCEPTION) {

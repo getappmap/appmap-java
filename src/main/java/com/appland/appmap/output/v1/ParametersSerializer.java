@@ -3,6 +3,8 @@ package com.appland.appmap.output.v1;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.*;
 
+import com.appland.appmap.util.Logger;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -45,8 +47,8 @@ public class ParametersSerializer implements ObjectSerializer {
       Field valuesField = Parameters.class.getDeclaredField("values");
       out.write(JSON.toJSONString(valuesField.get(params)));
     } catch (Exception e) {
-      System.err.println("AppMap: failed to serialize parameters");
-      System.err.println(e.getMessage());
+      Logger.println("AppMap: failed to serialize parameters");
+      Logger.println(e.getMessage());
       out.writeNull();
     }
   }

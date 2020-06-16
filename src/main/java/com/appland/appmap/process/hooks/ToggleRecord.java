@@ -12,6 +12,7 @@ import com.appland.appmap.reflect.HttpServletRequest;
 import com.appland.appmap.reflect.HttpServletResponse;
 import com.appland.appmap.reflect.FilterChain;
 import com.appland.appmap.transform.annotations.*;
+import com.appland.appmap.util.Logger;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -35,7 +36,7 @@ public class ToggleRecord {
     } catch (ActiveSessionException e) {
       res.setStatus(HttpServletResponse.SC_NOT_FOUND);
     } catch (IOException e) {
-      System.err.printf("failed to write response: %s\n", e.getMessage());
+      Logger.printf("failed to write response: %s\n", e.getMessage());
     }
   }
 
@@ -51,7 +52,7 @@ public class ToggleRecord {
       writer.write(responseJson);
       writer.flush();
     } catch (IOException e) {
-      System.err.printf("failed to write response: %s\n", e.getMessage());
+      Logger.printf("failed to write response: %s\n", e.getMessage());
     }
   }
 
@@ -147,7 +148,7 @@ public class ToggleRecord {
 
       recorder.start(fileName, metadata);
     } catch (ActiveSessionException e) {
-      System.err.printf("AppMap: %s\n", e.getMessage());
+      Logger.printf("AppMap: %s\n", e.getMessage());
     }
   }
 
@@ -155,7 +156,7 @@ public class ToggleRecord {
     try {
       recorder.stop();
     } catch (ActiveSessionException e) {
-      System.err.printf("AppMap: %s\n", e.getMessage());
+      Logger.printf("AppMap: %s\n", e.getMessage());
     }
   }
 

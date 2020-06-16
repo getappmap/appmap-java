@@ -4,6 +4,7 @@ import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.transform.ClassFileTransformer;
+import com.appland.appmap.util.Logger;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -34,12 +35,12 @@ public class Agent {
       appmapPath = DEFAULT_CONFIG_FILE;
     }
 
-    System.err.printf("AppMap: agent loaded using config %s\n", appmapPath);
+    Logger.printf("AppMap: agent loaded using config %s\n", appmapPath);
 
     inst.addTransformer(new ClassFileTransformer());
 
     if (AppMapConfig.load(new File(appmapPath)) == null) {
-      System.err.printf("AppMap: failed to load config %s\n", appmapPath);
+      Logger.printf("AppMap: failed to load config %s\n", appmapPath);
       return;
     }
 

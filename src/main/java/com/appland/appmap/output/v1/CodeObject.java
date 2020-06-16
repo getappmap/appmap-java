@@ -1,6 +1,9 @@
 package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
+
+import com.appland.appmap.util.Logger;
+
 import javassist.CtBehavior;
 import javassist.CtClass;
 
@@ -153,7 +156,7 @@ public class CodeObject {
     CodeObject rootObject = CodeObject.createTree(packageName);
     CodeObject pkgLeafObject = rootObject.get(packageName);
     if (pkgLeafObject == null) {
-      System.err.println("failed to get leaf pkg object for package " + packageName);
+      Logger.println("failed to get leaf pkg object for package " + packageName);
       return null;
     }
 
@@ -176,7 +179,7 @@ public class CodeObject {
     CodeObject classObject = rootObject.get(classType.getName());
 
     if (classObject == null) {
-      System.err.println("failed to get class object for package " + classType.getPackageName());
+      Logger.println("failed to get class object for package " + classType.getPackageName());
       return null;
     }
 

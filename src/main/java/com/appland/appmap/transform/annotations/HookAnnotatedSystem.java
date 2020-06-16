@@ -1,5 +1,7 @@
 package com.appland.appmap.transform.annotations;
 
+import com.appland.appmap.util.Logger;
+
 import javassist.CtBehavior;
 
 public class HookAnnotatedSystem extends SourceMethodSystem {
@@ -28,7 +30,7 @@ public class HookAnnotatedSystem extends SourceMethodSystem {
   @Override
   public Boolean match(CtBehavior behavior) {
     if (behavior.hasAnnotation(this.annotationClass)) {
-      System.err.println("!!");
+      Logger.println("!!");
     }
     return behavior.hasAnnotation(this.annotationClass);
   }
