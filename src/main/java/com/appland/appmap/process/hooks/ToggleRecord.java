@@ -8,17 +8,13 @@ import com.appland.appmap.process.ExitEarly;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.IRecordingSession;
 import com.appland.appmap.record.Recorder;
+import com.appland.appmap.reflect.HttpServletRequest;
+import com.appland.appmap.reflect.HttpServletResponse;
+import com.appland.appmap.reflect.FilterChain;
 import com.appland.appmap.transform.annotations.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Hooks to toggle event recording. This could be either via HTTP or by entering a unit test method.
@@ -70,13 +66,20 @@ public class ToggleRecord {
   }
 
   @ExcludeReceiver
+  @ArgumentArray
   @HookClass("javax.servlet.http.HttpServlet")
-  public static void service(Event event, HttpServletRequest req, HttpServletResponse res)
+  public static void service(Event event, Object[] args) // HttpServletRequest req, HttpServletResponse res)
       throws ExitEarly {
+    if (args.length != 2) {
+      return;
+    }
+
+    final HttpServletRequest req = new HttpServletRequest(args[0]);
     if (!req.getRequestURI().endsWith(RecordRoute)) {
       return;
     }
 
+    final HttpServletResponse res = new HttpServletResponse(args[1]);
     if (req.getMethod().equals("GET")) {
       doGet(req, res);
     } else if (req.getMethod().equals("POST")) {
@@ -90,21 +93,25 @@ public class ToggleRecord {
 
   @ContinueHooking
   @ExcludeReceiver
+  @ArgumentArray
   @HookClass("javax.servlet.Filter")
-  public static void doFilter(Event event,
-                              ServletRequest req,
-                              ServletResponse res,
-                              FilterChain chain)
-                              throws IOException, ServletException, ExitEarly {
+  public static void doFilter(Event event, Object[] args) // Object _req, Object _res, Object _chain)
+      throws IOException, ExitEarly {
+    if (args.length != 3) {
+      return;
+    }
+
+    final HttpServletRequest req = new HttpServletRequest(args[0]);
     if (!(req instanceof HttpServletRequest)) {
       return;
     }
 
-    if (!((HttpServletRequest) req).getRequestURI().endsWith(RecordRoute)) {
+    if (!req.getRequestURI().endsWith(RecordRoute)) {
       return;
     }
 
-    chain.doFilter(req, res);
+    final FilterChain chain = new FilterChain(args[2]);
+    chain.doFilter(args[0], args[1]);
 
     throw new ExitEarly();
   }
