@@ -66,11 +66,7 @@ public class ToggleRecord {
     }
   }
 
-  @ExcludeReceiver
-  @ArgumentArray
-  @HookClass("javax.servlet.http.HttpServlet")
-  public static void service(Event event, Object[] args) // HttpServletRequest req, HttpServletResponse res)
-      throws ExitEarly {
+  private static void service(Object[] args) throws ExitEarly {
     if (args.length != 2) {
       return;
     }
@@ -92,21 +88,12 @@ public class ToggleRecord {
     throw new ExitEarly();
   }
 
-  @ContinueHooking
-  @ExcludeReceiver
-  @ArgumentArray
-  @HookClass("javax.servlet.Filter")
-  public static void doFilter(Event event, Object[] args) // Object _req, Object _res, Object _chain)
-      throws IOException, ExitEarly {
+  private static void skipFilterChain(Object[] args) throws ExitEarly {
     if (args.length != 3) {
       return;
     }
 
     final HttpServletRequest req = new HttpServletRequest(args[0]);
-    if (!(req instanceof HttpServletRequest)) {
-      return;
-    }
-
     if (!req.getRequestURI().endsWith(RecordRoute)) {
       return;
     }
@@ -115,6 +102,36 @@ public class ToggleRecord {
     chain.doFilter(args[0], args[1]);
 
     throw new ExitEarly();
+  }
+
+  @ExcludeReceiver
+  @ArgumentArray
+  @HookClass("javax.servlet.http.HttpServlet")
+  public static void service(Event event, Object[] args) throws ExitEarly {
+    service(args);
+  }
+
+  @ExcludeReceiver
+  @ArgumentArray
+  @HookClass(value = "jakarta.servlet.http.HttpServlet", method = "service")
+  public static void serviceJakarta(Event event, Object[] args) throws ExitEarly {
+    service(args);
+  }
+
+  @ContinueHooking
+  @ExcludeReceiver
+  @ArgumentArray
+  @HookClass("javax.servlet.Filter")
+  public static void doFilter(Event event, Object[] args) throws ExitEarly {
+    skipFilterChain(args);
+  }
+
+  @ContinueHooking
+  @ExcludeReceiver
+  @ArgumentArray
+  @HookClass(value = "jakarta.servlet.Filter", method = "doFilter")
+  public static void doFilterJakarta(Event event, Object[] args) throws ExitEarly {
+    skipFilterChain(args);
   }
 
   private static void startTest(Event event) {

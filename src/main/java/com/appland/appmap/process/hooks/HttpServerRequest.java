@@ -46,10 +46,18 @@ public class HttpServerRequest {
   @ExcludeReceiver
   @HookClass("javax.servlet.Filter")
   public static void doFilter(Event event, Object[] args) {
-                              // Filter self,
-                              // ServletRequest req,
-                              // ServletResponse res,
-                              // FilterChain chain) {
+    if (args.length != 3) {
+      return;
+    }
+
+    HttpServletRequest req = new HttpServletRequest(args[0]);
+    recordHttpServerRequest(event, req);
+  }
+
+  @ArgumentArray
+  @ExcludeReceiver
+  @HookClass(value = "jakarta.servlet.Filter", method = "doFilter")
+  public static void doFilterJakarta(Event event, Object[] args) {
     if (args.length != 3) {
       return;
     }
@@ -63,11 +71,19 @@ public class HttpServerRequest {
   @CallbackOn(MethodEvent.METHOD_RETURN)
   @HookClass("javax.servlet.Filter")
   public static void doFilter(Event event, Object returnValue, Object[] args) {
-                              // Filter self,
-                              // Object returnValue,
-                              // ServletRequest req,
-                              // ServletResponse res,
-                              // FilterChain chain) {
+    if (args.length != 3) {
+      return;
+    }
+
+    HttpServletResponse res = new HttpServletResponse(args[1]);
+    recordHttpServerResponse(event, res);
+  }
+
+  @ArgumentArray
+  @ExcludeReceiver
+  @CallbackOn(MethodEvent.METHOD_RETURN)
+  @HookClass(value = "jakarta.servlet.Filter", method = "doFilter")
+  public static void doFilterJakarta(Event event, Object returnValue, Object[] args) {
     if (args.length != 3) {
       return;
     }
@@ -81,11 +97,19 @@ public class HttpServerRequest {
   @CallbackOn(MethodEvent.METHOD_EXCEPTION)
   @HookClass("javax.servlet.Filter")
   public static void doFilter(Event event, Exception exception, Object[] args) {
-                              // Filter self,
-                              // Exception exception,
-                              // ServletRequest req,
-                              // ServletResponse res,
-                              // FilterChain chain) {
+    if (args.length != 3) {
+      return;
+    }
+
+    event.setException(exception);
+    recorder.add(event);
+  }
+
+  @ArgumentArray
+  @ExcludeReceiver
+  @CallbackOn(MethodEvent.METHOD_EXCEPTION)
+  @HookClass(value = "jakarta.servlet.Filter", method = "doFilter")
+  public static void doFilterJakarta(Event event, Exception exception, Object[] args) {
     if (args.length != 3) {
       return;
     }
@@ -98,9 +122,18 @@ public class HttpServerRequest {
   @ExcludeReceiver
   @HookClass("javax.servlet.http.HttpServlet")
   public static void service( Event event, Object[] args) {
-                              // HttpServlet self,
-                              // HttpServletRequest req,
-                              // HttpServletResponse res) {
+    if (args.length != 2) {
+      return;
+    }
+
+    HttpServletRequest req = new HttpServletRequest(args[0]);
+    recordHttpServerRequest(event, req);
+  }
+
+  @ArgumentArray
+  @ExcludeReceiver
+  @HookClass(value = "jakarta.servlet.http.HttpServlet", method = "service")
+  public static void serviceJakarta( Event event, Object[] args) {
     if (args.length != 2) {
       return;
     }
@@ -113,11 +146,20 @@ public class HttpServerRequest {
   @ExcludeReceiver
   @CallbackOn(MethodEvent.METHOD_RETURN)
   @HookClass("javax.servlet.http.HttpServlet")
-  public static void service( Event event, Object returnValue, Object[] args) {
-                              // HttpServlet self,
-                              // Object returnValue,
-                              // HttpServletRequest req,
-                              // HttpServletResponse res) {
+  public static void service(Event event, Object returnValue, Object[] args) {
+    if (args.length != 2) {
+      return;
+    }
+
+    HttpServletResponse res = new HttpServletResponse(args[1]);
+    recordHttpServerResponse(event, res);
+  }
+
+  @ArgumentArray
+  @ExcludeReceiver
+  @CallbackOn(MethodEvent.METHOD_RETURN)
+  @HookClass(value = "jakarta.servlet.http.HttpServlet", method = "service")
+  public static void serviceJakarta(Event event, Object returnValue, Object[] args) {
     if (args.length != 2) {
       return;
     }
@@ -131,10 +173,19 @@ public class HttpServerRequest {
   @CallbackOn(MethodEvent.METHOD_EXCEPTION)
   @HookClass("javax.servlet.http.HttpServlet")
   public static void service( Event event, Exception exception, Object[] args) {
-                              // HttpServlet self,
-                              // Exception exception,
-                              // HttpServletRequest req,
-                              // HttpServletResponse res) {
+    if (args.length != 2) {
+      return;
+    }
+
+    event.setException(exception);
+    recorder.add(event);
+  }
+
+  @ArgumentArray
+  @ExcludeReceiver
+  @CallbackOn(MethodEvent.METHOD_EXCEPTION)
+  @HookClass(value = "jakarta.servlet.http.HttpServlet", method = "service")
+  public static void serviceJakarta( Event event, Exception exception, Object[] args) {
     if (args.length != 2) {
       return;
     }
