@@ -2,7 +2,6 @@ AppLand AppMap Recorder for Java
 --------------------------------
 
 - [Building](#building)
-- [Testing](#testing)
 - [Running](#running)
   - [Other examples](#other-examples)
     - [Maven](#maven)
@@ -16,6 +15,7 @@ AppLand AppMap Recorder for Java
     - [`POST /_appmap/record`](#post-appmaprecord)
     - [`DELETE /_appmap/record`](#delete-appmaprecord)
 - [Developing](#developing)
+  - [Testing](#testing)
 - [Build status](#build-status)
 
 # Building
@@ -23,18 +23,8 @@ Artifacts will be written to `build/libs`. Use `appmap.jar` as your agent.
 ```
 $ ./gradlew build
 ```
-
-# Testing
-Unit tests are run via the `test` task.
-
-Docker is required to run integration tests. Run the following command:
-
-```
-$ ./bin/test
-```
-
 # Running
-The AppMap recorder is run as a Java agent. Currently, it must be started along with the JVM. This is typically done by passing the `-javaagent` argument to your JVM. 
+The AppMap recorder is run as a Java agent. Currently, it must be started along with the JVM. This is typically done by passing the `-javaagent` argument to your JVM.
 For example:
 
 ```bash
@@ -81,7 +71,7 @@ default: _./_
 # Operation
 
 ## Recording test cases
-When running test cases with the agent attached to the JVM, methods marked with JUnit's `@Test` annotation will be recorded. 
+When running test cases with the agent attached to the JVM, methods marked with JUnit's `@Test` annotation will be recorded.
 A new AppMap file will be created for each unique test case.
 
 To disable AppMap for a particular JUnit test (for example, a performance test), list the class or methods under an
@@ -99,7 +89,7 @@ Retreive the current recording status
 **Body**  
 _`application/json`_  
 ```json
-{ 
+{
   "enabled": boolean
 }
 ```
@@ -136,7 +126,7 @@ _`application/json`_
 
 # Developing
 
-The [Spring PetClinic](https://github.com/spring-projects/spring-petclinic) provides a convenient way to develop on `appmap-java`. 
+The [Spring PetClinic](https://github.com/spring-projects/spring-petclinic) provides a convenient way to develop on `appmap-java`.
 
 Obtain the `spring-petclinic` JAR file, and launch it with the AppMap Java agent:
 
@@ -158,6 +148,16 @@ $ java -Dappmap.debug \
   -Xdebug \
   -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=y \
   -jar $PETCLINIC_DIR/target/spring-petclinic-2.2.0.BUILD-SNAPSHOT.jar
+```
+
+## Testing
+
+Unit tests are run via the `test` task.
+
+Docker is required to run integration tests. Run the following command:
+
+```
+$ ./bin/test
 ```
 
 # Build status
