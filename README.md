@@ -60,13 +60,9 @@ test {
 
 # System Properties
 
-`appmap.config.file`  
-specify the path of an `appmap.yml` config file  
-default: _appmap.yml_
-
-`appmap.output.directory`  
-specify the output directory of `appmap.json` files  
-default: _./_
+* `appmap.config.file` Path to the `appmap.yml` config file. Default: _appmap.yml_
+* `appmap.output.directory` Output directory for `appmap.json` files. Default: current working directory
+* `appmap.debug` Enable debug logging. Default: disabled
 
 # Operation
 
