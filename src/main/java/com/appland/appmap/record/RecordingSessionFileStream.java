@@ -1,6 +1,7 @@
 package com.appland.appmap.record;
 
 import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.util.Logger;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -94,7 +95,7 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
       );
     }
 
-    System.err.printf("AppMap: wrote %s\n", this.fileName);
+    Logger.printf("AppMap: wrote %s\n", this.fileName);
 
     return "";
   }

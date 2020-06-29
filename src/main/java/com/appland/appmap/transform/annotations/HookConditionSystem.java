@@ -1,6 +1,8 @@
 package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.process.conditions.Condition;
+import com.appland.appmap.util.Logger;
+
 import javassist.CtBehavior;
 
 import java.lang.reflect.Method;
@@ -54,8 +56,8 @@ public class HookConditionSystem extends SourceMethodSystem {
     try {
       return (Boolean) this.conditionMethod.invoke(null, behavior);
     } catch (Exception e) {
-      System.err.printf("AppMap: match failed due to %s exception\n", e.getClass().getName());
-      System.err.println(e.getMessage());
+      Logger.printf("AppMap: match failed due to %s exception\n", e.getClass().getName());
+      Logger.println(e.getMessage());
       return false;
     }
   }

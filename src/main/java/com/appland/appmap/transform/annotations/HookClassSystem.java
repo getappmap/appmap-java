@@ -1,5 +1,7 @@
 package com.appland.appmap.transform.annotations;
 
+import com.appland.appmap.util.Logger;
+
 import javassist.CtBehavior;
 
 public class HookClassSystem extends SourceMethodSystem {
@@ -46,7 +48,7 @@ public class HookClassSystem extends SourceMethodSystem {
 
       return system;
     } catch (Exception e) {
-      System.err.println(e);
+      Logger.println(e);
       return null;
     }
   }

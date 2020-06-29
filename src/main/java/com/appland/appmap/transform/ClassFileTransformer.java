@@ -4,6 +4,7 @@ import com.appland.appmap.output.v1.NoSourceAvailableException;
 import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
+import com.appland.appmap.util.Logger;
 import javassist.*;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
@@ -28,7 +29,6 @@ import java.util.stream.Stream;
  * hooks to each behavior declared by that class.
  */
 public class ClassFileTransformer implements java.lang.instrument.ClassFileTransformer {
-  private static final Boolean debug = (System.getProperty("appmap.debug") != null);
   private static final List<Hook> unkeyedHooks = new ArrayList<Hook>();
   private static final HashMap<String, List<Hook>> keyedHooks = new HashMap<String, List<Hook>>();
 
@@ -48,8 +48,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         CtClass ctClass = classPool.get(classType.getName());
         processClass(ctClass);
       } catch (NotFoundException e) {
-        System.err.printf("AppMap: failed to find %s in class pool", classType.getName());
-        System.err.println(e.getMessage());
+        Logger.printf("AppMap: failed to find %s in class pool", classType.getName());
+        Logger.println(e.getMessage());
       }
     } 
   }
@@ -60,7 +60,9 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
 
     String key = hook.getKey();
-    System.err.printf("%s: %s\n", key, hook);
+
+    Logger.printf("%s: %s\n", key, hook);
+
     if (key == null) {
       unkeyedHooks.add(hook);
     } else {
@@ -96,16 +98,14 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       try {
         hook.validate();
       } catch (HookValidationException e) {
-        System.err.println("AppMap: failed to validate hook");
-        System.err.println(e.getMessage());
+        Logger.println("AppMap: failed to validate hook");
+        Logger.println(e.getMessage());
         continue;
       }
 
       this.addHook(hook);
 
-      if (debug) {
-        System.out.printf("AppMap: registered hook %s\n", hook.toString());
-      }
+      Logger.printf("AppMap: registered hook %s\n", hook.toString());
     }
   }
 
@@ -123,15 +123,13 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       Hook.apply(behavior, hookSites);
 
-      if (debug) {
-        for (HookSite hookSite : hookSites) {
-          final Hook hook = hookSite.getHook();
-          System.err.printf("AppMap: hooked %s.%s (%s) with %s\n",
-                behavior.getDeclaringClass().getName(),
-                behavior.getName(),
-                hook.getMethodEvent().getEventString(),
-                hook);
-        }
+      for (HookSite hookSite : hookSites) {
+        final Hook hook = hookSite.getHook();
+        Logger.printf("AppMap: hooked %s.%s (%s) with %s\n",
+              behavior.getDeclaringClass().getName(),
+              behavior.getName(),
+              hook.getMethodEvent().getEventString(),
+              hook);
       }
     } catch (NoSourceAvailableException e) {
       return;
@@ -144,7 +142,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           Class redefiningClass,
                           ProtectionDomain domain,
                           byte[] bytes) throws IllegalClassFormatException {
-    ClassPool classPool = ClassPool.getDefault();
+    ClassPool classPool = new ClassPool(true);
     classPool.appendClassPath(new LoaderClassPath(loader));
 
     try {
@@ -181,8 +179,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     } catch (Exception e) {
       // Don't allow this exception to propagate out of this method, because it will be swallowed
       // by sun.instrument.TransformerManager.
-      System.err.println("An error occurred transforming class " + className);
-      System.err.println(e.getClass() + ": " + e.getMessage());
+      Logger.println("An error occurred transforming class " + className);
+      Logger.println(e.getClass() + ": " + e.getMessage());
       e.printStackTrace(System.err);
     }
 

@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.transform.annotations.*;
+import com.appland.appmap.util.Logger;
 
 /**
  * Hooks to capture {@code sql_query} data from classes included in configuration.
@@ -31,7 +32,7 @@ public class SqlQuery {
       dbname = c.getMetaData().getDatabaseProductName();
     }
     catch (SQLException e) {
-      System.err.println("WARNING, failed to get database name");
+      Logger.println("WARNING, failed to get database name");
       e.printStackTrace(System.err);
     }
     return dbname;
@@ -43,7 +44,7 @@ public class SqlQuery {
       dbname = getDbName(s.getConnection());
     }
     catch (SQLException e) {
-      System.err.println("WARNING, failed to get statement's connection");
+      Logger.println("WARNING, failed to get statement's connection");
       e.printStackTrace(System.err);
     }
     return dbname;

@@ -1,5 +1,7 @@
 package com.appland.appmap.output.v1;
 
+import com.appland.appmap.util.Logger;
+
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.NotFoundException;
@@ -54,7 +56,7 @@ public class Parameters implements Iterable<Value> {
     try {
       parameterTypes = behavior.getParameterTypes();
     } catch (NotFoundException e) {
-      System.err.println(
+      Logger.println(
           String.format("failed to get parameter types for %s.%s: %s",
               behavior.getDeclaringClass().getName(),
               behavior.getName(),

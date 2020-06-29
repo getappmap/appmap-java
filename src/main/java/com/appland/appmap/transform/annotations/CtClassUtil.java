@@ -1,5 +1,7 @@
 package com.appland.appmap.transform.annotations;
 
+import com.appland.appmap.util.Logger;
+
 import javassist.CtClass;
 import javassist.NotFoundException;
 
@@ -39,8 +41,8 @@ class CtClassUtil {
         superClass = superClass.getSuperclass();
       }
     } catch (NotFoundException e) {
-      System.err.println("AppMap: could not resolve class hierarchy");
-      System.err.println(e.getMessage());
+      Logger.println("AppMap: could not resolve class hierarchy");
+      Logger.println(e.getMessage());
     }
 
     return false;

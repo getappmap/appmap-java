@@ -3,6 +3,7 @@ package com.appland.appmap.web;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.IRecordingSession;
 import com.appland.appmap.record.Recorder;
+import com.appland.appmap.util.Logger;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -28,7 +29,7 @@ public class RecordServlet extends HttpServlet {
     } catch (ActiveSessionException e) {
       res.setStatus(HttpServletResponse.SC_NOT_FOUND);
     } catch (IOException e) {
-      System.err.printf("failed to write response: %s\n", e.getMessage());
+      Logger.printf("failed to write response: %s\n", e.getMessage());
     }
   }
 
@@ -45,7 +46,7 @@ public class RecordServlet extends HttpServlet {
       writer.write(responseJson);
       writer.flush();
     } catch (IOException e) {
-      System.err.printf("failed to write response: %s\n", e.getMessage());
+      Logger.printf("failed to write response: %s\n", e.getMessage());
     }
   }
 

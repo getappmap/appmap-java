@@ -1,5 +1,7 @@
 package com.appland.appmap.config;
 
+import com.appland.appmap.util.Logger;
+
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -23,7 +25,7 @@ public class AppMapConfig {
     try {
       inputStream = new FileInputStream(configFile);
     } catch (FileNotFoundException e) {
-      System.err.println(String.format("error: file not found -> %s", configFile.getPath()));
+      Logger.println(String.format("error: file not found -> %s", configFile.getPath()));
       return null;
     }
 

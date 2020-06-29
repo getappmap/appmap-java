@@ -21,7 +21,7 @@ repositories {
   mavenCentral()
 }
 
-version = '0.1.0'
+version = '0.2.0'
 
 dependencies {
   implementation 'org.yaml:snakeyaml:1.25'
@@ -61,7 +61,7 @@ shadowJar {
   classifier = null
   minimize()
   dependencies {
-    // exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
+    exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
   }
 }
 

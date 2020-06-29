@@ -2,6 +2,7 @@ package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.record.EventTemplateRegistry;
+import com.appland.appmap.util.Logger;
 import javassist.*;
 
 import java.util.ArrayList;
@@ -75,7 +76,7 @@ public class Hook {
     Hook hook = new Hook(sourceSystem, optionalSystems, hookBehavior);
     for (ISystem optionalSystem : optionalSystems) {
       if (!optionalSystem.validate(hook)) {
-        System.err.println("AppMap: hook "
+        Logger.println("AppMap: hook "
             + hook
             + " failed validation from "
             + optionalSystem.getClass().getSimpleName());
@@ -187,16 +188,16 @@ public class Hook {
           ClassPool.getDefault().get("java.lang.Exception"));
       
     } catch (CannotCompileException e) {
-      System.err.println("AppMap: failed to compile");
-      System.err.println("        method "
+      Logger.println("AppMap: failed to compile");
+      Logger.println("        method "
           + targetBehavior.getDeclaringClass().getName()
           + "."
           + targetBehavior.getName());
 
-      System.err.println(e.getMessage());
+      Logger.println(e.getMessage());
     } catch (NotFoundException e) {
-      System.err.println("AppMap: failed to find class\n");
-      System.err.println(e.getMessage());
+      Logger.println("AppMap: failed to find class\n");
+      Logger.println(e.getMessage());
     }
   }
 
@@ -283,8 +284,8 @@ public class Hook {
       try {
         returnType = ((CtMethod) behavior).getReturnType();
       } catch (NotFoundException e) {
-        System.err.println("AppMap: warning - unknown return type");
-        System.err.println(e.getMessage());
+        Logger.println("AppMap: warning - unknown return type");
+        Logger.println(e.getMessage());
       }
     }
     return returnType;
