@@ -3,6 +3,7 @@ package com.appland.appmap.config;
 import com.appland.appmap.util.Logger;
 
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +31,14 @@ public class AppMapConfig {
     }
 
     Yaml yaml = new Yaml();
-    AppMapConfig.singleton = yaml.loadAs(inputStream, AppMapConfig.class);
+
+    try {
+      singleton = yaml.loadAs(inputStream, AppMapConfig.class);
+    } catch (YAMLException e) {
+      System.err.println("AppMap: encountered syntax error in appmap.yml " + e.getMessage());
+      System.exit(1);
+    }
+    
     return singleton;
   }
 
