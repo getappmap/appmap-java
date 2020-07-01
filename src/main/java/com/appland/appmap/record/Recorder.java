@@ -13,22 +13,17 @@ import com.appland.appmap.util.Logger;
  * active session. It also maintains a code object tree containing every known package/class/method.
  */
 public class Recorder {
-  private static final String DEFAULT_OUTPUT_DIRECTORY = "./";
   private static final String ERROR_SESSION_PRESENT = "an active recording session already exists";
   private static final String ERROR_NO_SESSION = "there is no active recording session";
 
   private IRecordingSession activeSession = null;
-  private String outputDirectory = DEFAULT_OUTPUT_DIRECTORY;
   private CodeObjectTree globalCodeObjects = new CodeObjectTree();
   private Map<Long, Event> queuedEvents = new HashMap<Long, Event>();
 
   private static Recorder instance = new Recorder();
 
   private Recorder() {
-    String outputDirectory = System.getProperty("appmap.output.directory");
-    if (outputDirectory != null) {
-      this.outputDirectory = outputDirectory;
-    }
+
   }
 
   private synchronized void setActiveSession(IRecordingSession activeSession)
@@ -99,26 +94,6 @@ public class Recorder {
   }
 
   /**
-   * Adds the queued 'lastEvent' to the active session and clears the lastEvent.
-   */
-  private void flushThread(Long threadId) {
-    final Event pendingEvent = this.queuedEvents.get(threadId);
-    if (pendingEvent == null) {
-      return;
-    }
-
-    try {
-      this.writeEvent(pendingEvent);
-    } catch (ActiveSessionException e) {
-      Logger.printf("AppMap: failed to record event\n%s\n", e.getMessage());
-      this.queuedEvents.remove(threadId);
-      this.activeSession.stop();
-    }
-
-    this.queuedEvents.remove(threadId);
-  }
-
-  /**
    * Flush all queued events, writing them to the active session and clearing
    * the queue.
    */
@@ -129,7 +104,6 @@ public class Recorder {
       }
     } catch (ActiveSessionException e) {
       Logger.printf("AppMap: failed to record event\n%s\n", e.getMessage());
-      this.queuedEvents.clear();
       this.activeSession.stop();
     }
     
@@ -139,7 +113,13 @@ public class Recorder {
   private synchronized void queueEvent(Event event) {
     final Event pendingEvent = this.queuedEvents.get(event.threadId);
     if (pendingEvent != null) {
-      this.flushThread(pendingEvent.threadId);
+      try {
+        this.writeEvent(pendingEvent);
+      } catch (ActiveSessionException e) {
+        Logger.printf("AppMap: failed to record event\n%s\n", e.getMessage());
+        this.activeSession.stop();
+        return;
+      }
     }
 
     this.queuedEvents.put(event.threadId, event);
