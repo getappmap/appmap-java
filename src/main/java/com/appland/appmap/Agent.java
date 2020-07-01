@@ -35,6 +35,14 @@ public class Agent {
       appmapPath = DEFAULT_CONFIG_FILE;
     }
 
+    final String outputDirectory = System.getProperty("appmap.output.directory");
+    if (outputDirectory != null) {
+      final File dir = new File(outputDirectory);
+      if (!dir.exists()) {
+        dir.mkdir();
+      }
+    }
+
     Logger.printf("AppMap: agent loaded using config %s\n", appmapPath);
 
     inst.addTransformer(new ClassFileTransformer());
