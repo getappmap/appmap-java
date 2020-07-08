@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2020-07-08
+### Fixed
+- Removed a potential deadlock that could occur if the user's code required a lock in `toString`.
+- Output directories will be recursively created
+
+### Added
+- `appmap.event.valueSize` can be used to specify the length of a value string before truncation
+  occurs.
+- `Recorder.record` will record and output the execution of a `Runnable`.
+
+### Changed
+- In `appmap.yml` a package item can now have an empty `path`, allowing the user to specify
+  a list of exclusions only. This can be useful for excluding groups of tests not meant to
+  be captured.
+- The default output directory for appmap files is now `./appmap`. This directory will be
+  created automatically if it does not exist.
+
 ## [0.2.1] - 2020-07-01
 ### Fixed
 - `appmap.output.directory` will be created if it does not exist. Previously this resulted in a
