@@ -15,6 +15,10 @@ public class AppMapPackage {
   public Boolean includes(String className, String methodName, boolean isStatic) {
     String canonicalName = className + (isStatic ? "." : "#") + methodName;
 
+    if (this.path == null) {
+      return false;
+    }
+
     if (!canonicalName.startsWith(this.path)) {
       return false;
     }
