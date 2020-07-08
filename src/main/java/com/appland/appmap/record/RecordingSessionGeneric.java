@@ -9,11 +9,11 @@ public class RecordingSessionGeneric implements IRecordingSession {
   protected Vector<Event> events = new Vector<Event>();
   protected CodeObjectTree codeObjects = new CodeObjectTree();
 
-  public void add(Event event) {
+  public synchronized void add(Event event) {
     this.events.add(event);
   }
 
-  public void add(CodeObject codeObject) {
+  public synchronized void add(CodeObject codeObject) {
     this.codeObjects.add(codeObject);
   }
 
