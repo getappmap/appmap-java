@@ -30,7 +30,9 @@ public class Agent {
   public static void premain(String agentArgs, Instrumentation inst) {
     final File dir = new File(Properties.OutputDirectory);
     if (!dir.exists()) {
-      dir.mkdir();
+      if (!dir.mkdirs()) {
+        Logger.println("failed to create directories: " + Properties.OutputDirectory);
+      }
     }
 
     Logger.printf("AppMap: agent loaded using config %s\n", Properties.ConfigFile);
