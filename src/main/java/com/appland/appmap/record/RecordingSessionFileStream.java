@@ -76,6 +76,10 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
 
   @Override
   public synchronized String stop() {
+    if (this.serializer == null) {
+      return "";
+    }
+
     this.flushEvents();
 
     try {

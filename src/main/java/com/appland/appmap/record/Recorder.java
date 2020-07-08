@@ -1,5 +1,9 @@
 package com.appland.appmap.record;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -7,6 +11,7 @@ import java.util.Map;
 
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.record.IRecordingSession.Metadata;
 import com.appland.appmap.util.Logger;
 
 /**
@@ -38,8 +43,11 @@ public class Recorder {
     try {
       this.activeSession.start();
     } catch (ActiveSessionException e) {
-      Logger.printf("AppMap: failed to start recording\n%s\n", e.getMessage());
+      Logger.printf("failed to start recording", e.getMessage());
+      Logger.println(e);
+
       this.stop();
+      throw e;
     }
   }
 
@@ -74,7 +82,7 @@ public class Recorder {
    * @param metadata Recording metadata to be written
    * @throws ActiveSessionException If a session is already in progress
    */
-  public synchronized void start(String fileName, IRecordingSession.Metadata metadata)
+  public synchronized void start(String fileName, Metadata metadata)
       throws ActiveSessionException {
     this.setActiveSession(new RecordingSessionFileStream(fileName, metadata));
   }
@@ -84,7 +92,7 @@ public class Recorder {
    * @param metadata Recording metadata to be written
    * @throws ActiveSessionException If a recording session is already in progress
    */
-  public synchronized void start(IRecordingSession.Metadata metadata)
+  public synchronized void start(Metadata metadata)
       throws ActiveSessionException {
     this.setActiveSession(new RecordingSessionMemory(metadata));
   }
@@ -209,5 +217,27 @@ public class Recorder {
   public synchronized Event getLastEvent() {
     final Long threadId = Thread.currentThread().getId();
     return this.queuedEvents.get(threadId);
+  }
+
+  /**
+   * Record the execution of a Runnable and return the scenario data as a String
+   */
+  public String record(Runnable fn) throws ActiveSessionException {
+    this.start(new Metadata());
+    fn.run();
+    return this.stop();
+  }
+
+  /**
+   * Record the execution of a Runnable and write the scenario to a file
+   */
+  public void record(String name, Runnable fn) throws ActiveSessionException, IOException {
+    final String fileName = name.replaceAll("[^a-zA-Z0-9-_]", "_");
+    final Metadata metadata = new Metadata();
+    metadata.scenarioName = name;
+
+    this.start(fileName, metadata);
+    fn.run();
+    this.stop();
   }
 }
