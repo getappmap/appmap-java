@@ -11,9 +11,9 @@ AppLand AppMap Recorder for Java
 - [Operation](#operation)
   - [Recording test cases](#recording-test-cases)
   - [HTTP recording controls](#http-recording-controls)
-    - [`GET /_appmap/record`](#get-appmaprecord)
-    - [`POST /_appmap/record`](#post-appmaprecord)
-    - [`DELETE /_appmap/record`](#delete-appmaprecord)
+    - [`GET /_appmap/record`](#get-_appmaprecord)
+    - [`POST /_appmap/record`](#post-_appmaprecord)
+    - [`DELETE /_appmap/record`](#delete-_appmaprecord)
 - [Developing](#developing)
   - [Testing](#testing)
 - [Build status](#build-status)
@@ -61,8 +61,9 @@ test {
 # System Properties
 
 * `appmap.config.file` Path to the `appmap.yml` config file. Default: _appmap.yml_
-* `appmap.output.directory` Output directory for `appmap.json` files. Default: current working directory
+* `appmap.output.directory` Output directory for `appmap.json` files. Default: `./appmap`
 * `appmap.debug` Enable debug logging. Default: disabled
+* `appmap.event.valueSize` Specifies the length of a value string before truncation occurs. If set to `0`, truncation is disabled. Default: `1024`
 
 # Operation
 
