@@ -12,7 +12,6 @@ import com.appland.tasks.ShadowRelocation
 plugins {
   id 'java'
   id 'war'
-  id 'org.gretty' version '2.2.0'
   id 'jacoco'
 }
 
@@ -46,16 +45,6 @@ jar {
 
 apply plugin: 'com.github.johnrengelman.shadow'
 
-test {
-  useJUnit()
-  dependsOn shadowJar
-  dependsOn cleanTest
-  // jvmArgs "-javaagent:${shadowJar.archivePath}"
-  // systemProperty "appmap.debug", "true"
-  // systemProperty "appmap.config.file", "$rootDir/appmap.yml"
-  // systemProperty "appmap.output.directory", "$rootDir/build/appmap"
-}
-
 shadowJar {
   baseName = 'appmap'
   classifier = null
@@ -63,6 +52,37 @@ shadowJar {
   dependencies {
     exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
   }
+}
+
+sourceSets {
+  integrationTest {
+    java {
+      srcDirs = [ 'src/test/java/com/appland/appmap/integration' ]
+    }
+    compileClasspath += main.output + test.output + sourceSets.test.compileClasspath
+    runtimeClasspath += main.output + test.output + sourceSets.test.runtimeClasspath
+  }
+}
+
+task integrationTest(type: Test) {
+  description = 'Runs integration tests.'
+  group = 'verification'
+
+  testClassesDirs = sourceSets.integrationTest.output.classesDirs
+  classpath = sourceSets.integrationTest.runtimeClasspath
+
+  dependsOn shadowJar
+  maxParallelForks = 1
+  jvmArgs "-javaagent:${shadowJar.destinationDir}/appmap-${version}.jar"
+  systemProperty "appmap.debug", "true"
+  systemProperty "appmap.config.file", "$rootDir/appmap.yml"
+}
+
+test {
+  useJUnit()
+  dependsOn shadowJar
+  dependsOn cleanTest
+  exclude 'com/appland/appmap/integration/**'
 }
 
 task relocateShadowJar(type: ShadowRelocation) {
