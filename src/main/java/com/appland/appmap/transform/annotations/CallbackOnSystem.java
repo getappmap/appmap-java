@@ -53,7 +53,7 @@ public class CallbackOnSystem extends BaseSystem {
 
           runtimeParameters.add(returnValue);
         } catch (NotFoundException e) {
-          Logger.println("AppMap: warning - unknown return type");
+          Logger.println("warning - unknown return type");
           Logger.println(e.getMessage());
         }
       }

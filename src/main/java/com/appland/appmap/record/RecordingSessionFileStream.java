@@ -92,7 +92,7 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
       );
     }
 
-    Logger.printf("AppMap: wrote %s\n", this.fileName);
+    Logger.printf("wrote %s\n", this.fileName);
 
     return "";
   }

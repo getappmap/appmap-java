@@ -35,12 +35,12 @@ public class Agent {
       }
     }
 
-    Logger.printf("AppMap: agent loaded using config %s\n", Properties.ConfigFile);
+    Logger.printf("agent loaded using config %s\n", Properties.ConfigFile);
 
     inst.addTransformer(new ClassFileTransformer());
 
     if (AppMapConfig.load(new File(Properties.ConfigFile)) == null) {
-      Logger.printf("AppMap: failed to load config %s\n", Properties.ConfigFile);
+      Logger.printf("failed to load config %s\n", Properties.ConfigFile);
       return;
     }
 

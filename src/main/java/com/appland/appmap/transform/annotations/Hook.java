@@ -76,7 +76,7 @@ public class Hook {
     Hook hook = new Hook(sourceSystem, optionalSystems, hookBehavior);
     for (ISystem optionalSystem : optionalSystems) {
       if (!optionalSystem.validate(hook)) {
-        Logger.println("AppMap: hook "
+        Logger.println("hook "
             + hook
             + " failed validation from "
             + optionalSystem.getClass().getSimpleName());
@@ -188,15 +188,15 @@ public class Hook {
           ClassPool.getDefault().get("java.lang.Exception"));
       
     } catch (CannotCompileException e) {
-      Logger.println("AppMap: failed to compile");
-      Logger.println("        method "
+      Logger.println("failed to compile");
+      Logger.println("       method "
           + targetBehavior.getDeclaringClass().getName()
           + "."
           + targetBehavior.getName());
 
       Logger.println(e.getMessage());
     } catch (NotFoundException e) {
-      Logger.println("AppMap: failed to find class\n");
+      Logger.println("failed to find class\n");
       Logger.println(e.getMessage());
     }
   }
@@ -284,7 +284,7 @@ public class Hook {
       try {
         returnType = ((CtMethod) behavior).getReturnType();
       } catch (NotFoundException e) {
-        Logger.println("AppMap: warning - unknown return type");
+        Logger.println("warning - unknown return type");
         Logger.println(e.getMessage());
       }
     }

@@ -41,7 +41,7 @@ class CtClassUtil {
         superClass = superClass.getSuperclass();
       }
     } catch (NotFoundException e) {
-      Logger.println("AppMap: could not resolve class hierarchy");
+      Logger.println("could not resolve class hierarchy");
       Logger.println(e.getMessage());
     }
 

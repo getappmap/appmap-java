@@ -165,7 +165,7 @@ public class ToggleRecord {
 
       recorder.start(fileName, metadata);
     } catch (ActiveSessionException e) {
-      Logger.printf("AppMap: %s\n", e.getMessage());
+      Logger.printf("%s\n", e.getMessage());
     }
   }
 
@@ -173,7 +173,7 @@ public class ToggleRecord {
     try {
       recorder.stop();
     } catch (ActiveSessionException e) {
-      Logger.printf("AppMap: %s\n", e.getMessage());
+      Logger.printf("%s\n", e.getMessage());
     }
   }
 
