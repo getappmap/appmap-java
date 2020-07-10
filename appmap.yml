@@ -1,4 +1,4 @@
 name: AppMap - Java
 packages:
-- path: com.appland
-  exclude:
+- path: com.appland.appmap.test.util
+- exclude: [ com.appland.appmap.integration.RecorderTest ]

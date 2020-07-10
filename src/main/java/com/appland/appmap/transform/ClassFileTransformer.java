@@ -48,7 +48,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         CtClass ctClass = classPool.get(classType.getName());
         processClass(ctClass);
       } catch (NotFoundException e) {
-        Logger.printf("AppMap: failed to find %s in class pool", classType.getName());
+        Logger.printf("failed to find %s in class pool", classType.getName());
         Logger.println(e.getMessage());
       }
     } 
@@ -98,14 +98,14 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       try {
         hook.validate();
       } catch (HookValidationException e) {
-        Logger.println("AppMap: failed to validate hook");
+        Logger.println("failed to validate hook");
         Logger.println(e.getMessage());
         continue;
       }
 
       this.addHook(hook);
 
-      Logger.printf("AppMap: registered hook %s\n", hook.toString());
+      Logger.printf("registered hook %s\n", hook.toString());
     }
   }
 
@@ -125,7 +125,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       for (HookSite hookSite : hookSites) {
         final Hook hook = hookSite.getHook();
-        Logger.printf("AppMap: hooked %s.%s (%s) with %s\n",
+        Logger.printf("hooked %s.%s (%s) with %s\n",
               behavior.getDeclaringClass().getName(),
               behavior.getName(),
               hook.getMethodEvent().getEventString(),

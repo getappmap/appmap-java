@@ -2,6 +2,10 @@ package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
+import com.appland.appmap.config.Properties;
+import com.appland.appmap.util.Logger;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * A serializable snapshot of a runtime Object.
@@ -114,7 +118,13 @@ public class Value {
     if (this.value != null) {
       try {
         this.value = this.value.toString();
+
+        if (Properties.MaxValueSize > 0 && this.value != null) {
+          this.value = StringUtils.abbreviate((String) this.value, "...", Properties.MaxValueSize);
+        }
       } catch (Throwable e) {
+        Logger.println("failed to resolve value of " + this.classType);
+        Logger.println(e.getMessage());
         // it's possible our value object has been partially cleaned up and
         // calls toString on a null object or the operation is otherwise
         // unsupported

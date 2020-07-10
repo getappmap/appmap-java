@@ -47,7 +47,7 @@ public class ParametersSerializer implements ObjectSerializer {
       Field valuesField = Parameters.class.getDeclaredField("values");
       out.write(JSON.toJSONString(valuesField.get(params)));
     } catch (Exception e) {
-      Logger.println("AppMap: failed to serialize parameters");
+      Logger.println("failed to serialize parameters");
       Logger.println(e.getMessage());
       out.writeNull();
     }

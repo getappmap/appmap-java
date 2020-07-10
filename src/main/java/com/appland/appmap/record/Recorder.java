@@ -1,11 +1,17 @@
 package com.appland.appmap.record;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.process.ThreadLock;
+import com.appland.appmap.record.IRecordingSession.Metadata;
 import com.appland.appmap.util.Logger;
 
 /**
@@ -37,8 +43,11 @@ public class Recorder {
     try {
       this.activeSession.start();
     } catch (ActiveSessionException e) {
-      Logger.printf("AppMap: failed to start recording\n%s\n", e.getMessage());
+      Logger.printf("failed to start recording", e.getMessage());
+      Logger.println(e);
+
       this.stop();
+      throw e;
     }
   }
 
@@ -58,13 +67,22 @@ public class Recorder {
     return this.activeSession != null;
   }
 
+  public synchronized IRecordingSession getActiveSession()
+      throws ActiveSessionException {
+    if (this.activeSession == null) {
+      throw new ActiveSessionException(ERROR_NO_SESSION);
+    }
+
+    return this.activeSession;
+  }
+
   /**
    * Start a recording session, writing the output to a file.
    * @param fileName Destination file
    * @param metadata Recording metadata to be written
    * @throws ActiveSessionException If a session is already in progress
    */
-  public synchronized void start(String fileName, IRecordingSession.Metadata metadata)
+  public synchronized void start(String fileName, Metadata metadata)
       throws ActiveSessionException {
     this.setActiveSession(new RecordingSessionFileStream(fileName, metadata));
   }
@@ -74,22 +92,30 @@ public class Recorder {
    * @param metadata Recording metadata to be written
    * @throws ActiveSessionException If a recording session is already in progress
    */
-  public synchronized void start(IRecordingSession.Metadata metadata)
+  public synchronized void start(Metadata metadata)
       throws ActiveSessionException {
     this.setActiveSession(new RecordingSessionMemory(metadata));
   }
 
-  private void writeEvent(Event event) throws ActiveSessionException {
+  /**
+   * Freeze the event and write it to the active session. Do NOT call this
+   * method from within a block locked by `this`. Freezing an event will step
+   * into target application code, potentially accessing a locked resource and
+   * entering a deadlocked state.
+   */
+  private void writeEvent(Event event, IRecordingSession recordingSession)
+      throws ActiveSessionException {
     event.freeze();
-    this.activeSession.add(event);
 
     CodeObject rootObject = this.globalCodeObjects.getMethodBranch(event.definedClass,
-        event.methodId,
-        event.isStatic,
-        event.lineNumber);
+          event.methodId,
+          event.isStatic,
+          event.lineNumber);
+
+    recordingSession.add(event);
 
     if (rootObject != null) {
-      this.add(rootObject);
+      recordingSession.add(rootObject);
     }
   }
 
@@ -97,32 +123,45 @@ public class Recorder {
    * Flush all queued events, writing them to the active session and clearing
    * the queue.
    */
-  private synchronized void flush() {
-    try {
-      for (Event event : this.queuedEvents.values()) {
-        this.writeEvent(event);
-      }
-    } catch (ActiveSessionException e) {
-      Logger.printf("AppMap: failed to record event\n%s\n", e.getMessage());
-      this.activeSession.stop();
+  private void flush(IRecordingSession recordingSession) throws ActiveSessionException {
+    Collection<Event> events;
+
+    synchronized (this) {
+      events = new LinkedList<Event>(this.queuedEvents.values());
+      this.queuedEvents.clear();
     }
-    
-    this.queuedEvents.clear();
+
+    for (Event event : events) {
+      this.writeEvent(event, recordingSession);
+    }
   }
 
-  private synchronized void queueEvent(Event event) {
-    final Event pendingEvent = this.queuedEvents.get(event.threadId);
-    if (pendingEvent != null) {
-      try {
-        this.writeEvent(pendingEvent);
-      } catch (ActiveSessionException e) {
-        Logger.printf("AppMap: failed to record event\n%s\n", e.getMessage());
-        this.activeSession.stop();
+  private void queueEvent(Event event) throws ActiveSessionException {
+    Event pendingEvent;
+    IRecordingSession recordingSession;
+
+    synchronized (this) {
+      if (this.activeSession == null) {
         return;
       }
+
+      recordingSession = this.activeSession;
+      pendingEvent = this.queuedEvents.get(event.threadId);
+      this.queuedEvents.put(event.threadId, event);
     }
 
-    this.queuedEvents.put(event.threadId, event);
+    if (pendingEvent != null) {
+      this.writeEvent(pendingEvent, recordingSession);
+    }
+  }
+
+  private synchronized void forceStop() {
+    if (this.activeSession == null) {
+      return;
+    }
+
+    this.activeSession.stop();
+    this.activeSession = null;
   }
 
   /**
@@ -131,55 +170,35 @@ public class Recorder {
    * @throws ActiveSessionException If no recording session is in progress or the session cannot be
    *                                stopped.
    */
-  public synchronized String stop() throws ActiveSessionException {
-    if (!this.hasActiveSession()) {
-      throw new ActiveSessionException(ERROR_NO_SESSION);
+  public String stop() throws ActiveSessionException {
+    IRecordingSession recordingSession;
+
+    synchronized (this) {
+      recordingSession = this.getActiveSession();
+      this.activeSession = null;
     }
 
-    // make sure there's no queued event waiting to be written
-    this.flush();
-
-    String output = "";
-
-    ThreadLock processorStack = ThreadLock.current();
     try {
-      processorStack.enter();
-      processorStack.lock();
-      output = this.activeSession.stop();
+      this.flush(recordingSession);
+      return recordingSession.stop();
     } catch (ActiveSessionException e) {
-      Logger.printf("AppMap: failed to stop recording\n%s\n", e.getMessage());
-    } finally {
-      processorStack.unlock();
-      processorStack.exit();
+      Logger.printf("failed to stop recording\n%s\n", e.getMessage());
+      this.forceStop();
+      return "";
     }
-
-    this.activeSession = null;
-
-    return output;
   }
 
   /**
    * Record an {@link Event} to the active session.
    * @param event The event to be recorded.
    */
-  public synchronized void add(Event event) {
-    if (!this.hasActiveSession()) {
-      return;
-    }
-
-    this.queueEvent(event);
-  }
-
-  private synchronized void add(CodeObject codeObject) {
-    if (!this.hasActiveSession()) {
-      return;
-    }
-
+  public void add(Event event) {
     try {
-      this.activeSession.add(codeObject);
+      this.queueEvent(event);
     } catch (ActiveSessionException e) {
-      Logger.printf("AppMap: failed to record code object\n%s\n", e.getMessage());
-      this.activeSession.stop();
+      Logger.println("failed to record event");
+      Logger.println(e);
+      this.forceStop();
     }
   }
 
@@ -198,5 +217,27 @@ public class Recorder {
   public synchronized Event getLastEvent() {
     final Long threadId = Thread.currentThread().getId();
     return this.queuedEvents.get(threadId);
+  }
+
+  /**
+   * Record the execution of a Runnable and return the scenario data as a String
+   */
+  public String record(Runnable fn) throws ActiveSessionException {
+    this.start(new Metadata());
+    fn.run();
+    return this.stop();
+  }
+
+  /**
+   * Record the execution of a Runnable and write the scenario to a file
+   */
+  public void record(String name, Runnable fn) throws ActiveSessionException, IOException {
+    final String fileName = name.replaceAll("[^a-zA-Z0-9-_]", "_");
+    final Metadata metadata = new Metadata();
+    metadata.scenarioName = name;
+
+    this.start(fileName, metadata);
+    fn.run();
+    this.stop();
   }
 }

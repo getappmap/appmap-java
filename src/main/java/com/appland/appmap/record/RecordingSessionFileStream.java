@@ -1,5 +1,6 @@
 package com.appland.appmap.record;
 
+import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.util.Logger;
 
@@ -13,19 +14,11 @@ import java.nio.file.Paths;
 public class RecordingSessionFileStream extends RecordingSessionGeneric {
   private static final Integer MAX_EVENTS = 32;
   private static final String DEFAULT_FILENAME = "appmap.json";
-  private static String OUTPUT_DIRECTORY = "./";
 
   private FileWriter fileWriter;
   private final Metadata metadata;
   private String fileName = DEFAULT_FILENAME;
   private AppMapSerializer serializer;
-
-  static {
-    String outputDirectory = System.getProperty("appmap.output.directory");
-    if (outputDirectory != null) {
-      OUTPUT_DIRECTORY = outputDirectory;
-    }
-  }
 
   /**
    * Constructor. You typically shouldn't be creating this outside of the {@link Recorder}.
@@ -63,7 +56,7 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
   @Override
   public void start() {
     try {
-      String filePath = Paths.get(OUTPUT_DIRECTORY, this.fileName).toString();
+      String filePath = Paths.get(Properties.OutputDirectory, this.fileName).toString();
       this.fileWriter = new FileWriter(filePath);
       this.serializer = new AppMapSerializer(this.fileWriter);
     } catch (IOException e) {
@@ -83,6 +76,10 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
 
   @Override
   public synchronized String stop() {
+    if (this.serializer == null) {
+      return "";
+    }
+
     this.flushEvents();
 
     try {
@@ -95,7 +92,7 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
       );
     }
 
-    Logger.printf("AppMap: wrote %s\n", this.fileName);
+    Logger.printf("wrote %s\n", this.fileName);
 
     return "";
   }

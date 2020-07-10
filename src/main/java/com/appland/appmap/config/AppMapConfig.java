@@ -67,4 +67,21 @@ public class AppMapConfig {
 
     return false;
   }
+
+  /**
+   * Check if a class/method is explicitly excluded in the configuration.
+   * @param className The class name to be checked
+   * @param methodName The method name to be checked
+   * @param isStatic {@code true} if the method is static
+   * @return {@code true} if the class/method is explicitly excluded in the configuration. Otherwise, {@code false}.
+   */
+  public Boolean excludes(String className, String methodName, boolean isStatic) {
+    for (AppMapPackage pkg : this.packages) {
+      if (pkg.excludes(className, methodName, isStatic)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 }
