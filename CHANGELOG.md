@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - In `appmap.yml` a package item can now have an empty `path`, allowing the user to specify
   a list of exclusions only. This can be useful for excluding groups of tests not meant to
   be captured.
-- The default output directory for appmap files is now `./appmap`. This directory will be
+- The default output directory for appmap files is now `./tmp/appmap`. This directory will be
   created automatically if it does not exist.
 
 ## [0.2.1] - 2020-07-01
