@@ -61,7 +61,7 @@ test {
 # System Properties
 
 * `appmap.config.file` Path to the `appmap.yml` config file. Default: _appmap.yml_
-* `appmap.output.directory` Output directory for `appmap.json` files. Default: `./appmap`
+* `appmap.output.directory` Output directory for `appmap.json` files. Default: `./tmp/appmap`
 * `appmap.debug` Enable debug logging. Default: disabled
 * `appmap.event.valueSize` Specifies the length of a value string before truncation occurs. If set to `0`, truncation is disabled. Default: `1024`
 
