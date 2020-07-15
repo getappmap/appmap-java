@@ -43,17 +43,5 @@ public class Agent {
       Logger.printf("failed to load config %s\n", Properties.ConfigFile);
       return;
     }
-
-    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-        public void run() {
-          Recorder recorder = Recorder.getInstance();
-          try {
-            recorder.stop();
-          } catch (ActiveSessionException e) {
-            // do nothing
-            return;
-          }
-        }
-    }, "AppMap Shutdown Thread"));
   }
 }
