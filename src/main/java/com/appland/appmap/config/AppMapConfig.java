@@ -59,6 +59,10 @@ public class AppMapConfig {
    *         is not included or otherwise explicitly excluded.
    */
   public Boolean includes(String className, String methodName, boolean isStatic) {
+    if (this.packages == null) {
+      return false;
+    }
+
     for (AppMapPackage pkg : this.packages) {
       if (pkg.includes(className, methodName, isStatic)) {
         return true;
@@ -76,6 +80,10 @@ public class AppMapConfig {
    * @return {@code true} if the class/method is explicitly excluded in the configuration. Otherwise, {@code false}.
    */
   public Boolean excludes(String className, String methodName, boolean isStatic) {
+    if (this.packages == null) {
+      return false;
+    }
+
     for (AppMapPackage pkg : this.packages) {
       if (pkg.excludes(className, methodName, isStatic)) {
         return true;
