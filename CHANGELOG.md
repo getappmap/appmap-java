@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2020-07-15
+### Fixed
+- Dependencies of `appmap-java` which use `slf4j` will now use a nop implementation in order
+  to stop them from logging if the client application provides it's own implementation. If left
+  up to the client application, `appmap-java` can interfere with test frameworks by corrupting
+  stdout.
+- `appmap-java` will no longer call `Thread` methods that may be extended by the client application
+  resulting in a stack overflow.
+- `appmap-java` no longer assumes that `Thread` identifiers are unique. Previously, this could
+  result in concurrent modificiations to resources not meant to be shared across threads.
+
 ## [0.3.0] - 2020-07-08
 ### Fixed
 - Removed a potential deadlock that could occur if the user's code required a lock in `toString`.
