@@ -39,11 +39,11 @@ public class ThreadLock {
       this.globalLock = globalLock;
     }
   }
-  private static final HashMap<Long, ThreadLock> instances =
-      new HashMap<Long, ThreadLock>();
+
+  private static final HashMap<Thread, ThreadLock> instances =
+      new HashMap<Thread, ThreadLock>();
 
   private final Stack<ThreadLockStatus> statusStack = new Stack<ThreadLockStatus>();
-  private Boolean isLocked = false;
 
   private ThreadLock() { }
 
@@ -52,12 +52,15 @@ public class ThreadLock {
    * @return A ThreadLock instance unique to the current thread
    */
   public static ThreadLock current() {
-    Long threadId = Thread.currentThread().getId();
-    ThreadLock instance = ThreadLock.instances.get(threadId);
+    Thread currentThread = Thread.currentThread();
+    ThreadLock instance = null;
+
+    instance = ThreadLock.instances.get(currentThread);
     if (instance == null) {
       instance = new ThreadLock();
-      ThreadLock.instances.put(threadId, instance);
+      ThreadLock.instances.put(currentThread, instance);
     }
+
     return instance;
   }
 
@@ -132,7 +135,7 @@ public class ThreadLock {
       return false;
     }
 
-    for(ThreadLockStatus status : this.statusStack) {
+    for (ThreadLockStatus status : this.statusStack) {
       if (status.contains(key)) {
         return false;
       }
