@@ -55,6 +55,7 @@ class ShadowRelocation extends DefaultTask {
       
       if (excluded) return
 
+      logger.info("relocating ${it} -> ${prefix}.${it}")
       target.relocate(it, "${prefix}.${it}")
     }
   }

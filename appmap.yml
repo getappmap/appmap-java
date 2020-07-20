@@ -1,4 +1,7 @@
 name: AppMap - Java
 packages:
 - path: com.appland.appmap.test.util
+  exclude:
+  - com.appland.appmap.test.util.UnhandledExceptionCollection
+
 - exclude: [ com.appland.appmap.integration.RecorderTest ]
