@@ -216,4 +216,14 @@ public class ToggleRecord {
   public static void junitJupiter(Event event, Object returnValue, Object[] args) {
     stopTest();
   }
+
+  @ArgumentArray
+  @CallbackOn(MethodEvent.METHOD_EXCEPTION)
+  @ExcludeReceiver
+  @HookAnnotated("org.junit.jupiter.api.Test")
+  public static void junitJupiter(Event event, Exception exception, Object[] args) {
+    event.setException(exception);
+    recorder.add(event);
+    stopTest();
+  }
 }
