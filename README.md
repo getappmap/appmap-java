@@ -159,4 +159,4 @@ $ ./bin/test
 
 # Build status
 
-[![Build Status](https://travis-ci.com/applandinc/appmap-java.svg?branch=master)](https://travis-ci.org/applandinc/appmap-java)
+[![Build Status](https://travis-ci.com/applandinc/appmap-java.svg?branch=master)](https://travis-ci.com/applandinc/appmap-java)
