@@ -26,4 +26,3 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    condition: $TRAVIS_JDK_VERSION = openjdk8
