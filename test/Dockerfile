@@ -28,7 +28,7 @@ ADD src                 ./src
 ADD buildSrc            ./buildSrc
 
 RUN ./gradlew --no-daemon build  \
-    && mv build/libs/appmap*.jar /build/appmap.jar
+    && mv build/libs/appmap-*-java*.jar /build/appmap.jar
 
 FROM openjdk:13-alpine
 LABEL maintainer="Dustin Byrne <dustin@app.land>"
