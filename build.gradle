@@ -44,14 +44,36 @@ jar {
 
 apply plugin: 'com.github.johnrengelman.shadow'
 
+def versionSuffix
+def v = JavaVersion.current()
+switch(v = JavaVersion.current()) {
+  case '1.8':
+    versionSuffix = 'java8'
+    break
+  case '11':
+    versionSuffix = 'java11'
+    break
+  default:
+    throw new GradleException("unknown Java version ${v}, can't copy jar")
+}
+
 shadowJar {
   baseName = 'appmap'
-  classifier = null
+  classifier = versionSuffix
   minimize()
   dependencies {
     exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
   }
 }
+
+// For backward compatibility, produce a file named
+// appmap-<version>.jar, too.
+task copyJar(type: Copy) {
+  from shadowJar
+  into shadowJar.destinationDir
+  rename { f -> f - "-${versionSuffix}" }
+}
+shadowJar.finalizedBy copyJar
 
 sourceSets {
   integrationTest {
@@ -72,7 +94,7 @@ task integrationTest(type: Test) {
 
   dependsOn shadowJar
   maxParallelForks = 1
-  jvmArgs "-javaagent:${shadowJar.destinationDir}/appmap-${version}.jar"
+  jvmArgs "-javaagent:${shadowJar.archiveFile.get()}"
   systemProperty "appmap.debug", "true"
   systemProperty "appmap.config.file", "$rootDir/appmap.yml"
 }
