@@ -24,7 +24,9 @@ deploy:
   file:
   - build/libs/appmap-*-java*.jar
   skip_cleanup: true
-  draft: true
+  prerelease: true
+  on:
+    branch: release-java11_20200731
 #  on:
 #    tags: true
 #    condition: $TRAVIS_JDK_VERSION = openjdk8
