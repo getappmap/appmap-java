@@ -226,4 +226,29 @@ public class ToggleRecord {
     recorder.add(event);
     stopTest();
   }
+
+  @ArgumentArray
+  @ExcludeReceiver
+  @HookAnnotated("org.testng.annotations.Test")
+  public static void testng(Event event, Object[] args) {
+    startTest(event);
+  }
+
+  @ArgumentArray
+  @CallbackOn(MethodEvent.METHOD_RETURN)
+  @ExcludeReceiver
+  @HookAnnotated("org.testng.annotations.Test")
+  public static void testnt(Event event, Object returnValue, Object[] args) {
+    stopTest();
+  }
+
+  @ArgumentArray
+  @CallbackOn(MethodEvent.METHOD_EXCEPTION)
+  @ExcludeReceiver
+  @HookAnnotated("org.testng.annotations.Test")
+  public static void testng(Event event, Exception exception, Object[] args) {
+    event.setException(exception);
+    recorder.add(event);
+    stopTest();
+  }
 }
