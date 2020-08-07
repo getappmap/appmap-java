@@ -1,5 +1,7 @@
 AppLand AppMap Recorder for Java
 --------------------------------
+[![Build Status](https://travis-ci.com/applandinc/appmap-java.svg?branch=master)](https://travis-ci.com/applandinc/appmap-java)
+
 
 - [Building](#building)
 - [Running](#running)
@@ -156,7 +158,3 @@ Docker is required to run integration tests. Run the following command:
 ```
 $ ./bin/test
 ```
-
-# Build status
-
-[![Build Status](https://travis-ci.com/applandinc/appmap-java.svg?branch=master)](https://travis-ci.com/applandinc/appmap-java)
