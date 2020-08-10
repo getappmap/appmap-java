@@ -3,6 +3,7 @@ package com.appland.appmap.transform.annotations;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.conditions.ConfigCondition;
+import static com.appland.appmap.util.StringUtil.canonicalName;
 import com.appland.appmap.test.util.ClassBuilder;
 import javassist.CtBehavior;
 import javassist.CtClass;
@@ -63,9 +64,9 @@ public class HookConditionSystemTest {
         .ctClass();
 
     AppMapConfig config = Mockito.spy(AppMapConfig.get());
-    Mockito.doReturn(true).when(config).includes(TargetClassNameGood, "methodNoArgs", false);
-    Mockito.doReturn(true).when(config).includes(TargetClassNameGood, "methodSingleArg", false);
-    Mockito.doReturn(true).when(config).includes(TargetClassNameGood, "methodManyArgs", false);
+    Mockito.doReturn(true).when(config).includes(canonicalName(TargetClassNameGood, false, "methodNoArgs"));
+    Mockito.doReturn(true).when(config).includes(canonicalName(TargetClassNameGood, false, "methodSingleArg"));
+    Mockito.doReturn(true).when(config).includes(canonicalName(TargetClassNameGood, false, "methodManyArgs"));
   }
 
   @Test

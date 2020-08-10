@@ -21,6 +21,10 @@ public class Properties {
   public static final Integer MaxValueSize = resolveProperty(
       "appmap.event.valueSize", Integer::valueOf, DefaultMaxValueSize);
 
+  public static final String[] DefaultRecords = new String[0];
+  public static final String[] Records = resolveProperty(
+          "appmap.record", DefaultRecords);
+
   private static String resolveProperty(String propName, String defaultValue) {
     String value = defaultValue;
     try {
@@ -29,7 +33,7 @@ public class Properties {
         value = propValue;
       }
     } catch (Exception e) {
-      Logger.printf("failed to resolve %f, falling back to default\n", propName);
+      Logger.printf("failed to resolve %s, falling back to default\n", propName);
       Logger.println(e);
     }
     return value;
@@ -45,11 +49,28 @@ public class Properties {
         value = resolvingFunc.apply(propValue);
       }
     } catch (Exception e) {
-      Logger.printf("failed to resolve %f, falling back to default\n", propName);
+      Logger.printf("failed to resolve %s, falling back to default\n", propName);
       Logger.println(e);
 
       value = defaultValue;
     }
     return value;
+  }
+
+  private static String[] resolveProperty(String propName, String[] defaultValue) {
+    String[] value = defaultValue;
+    try {
+      final String propValue = System.getProperty(propName);
+      value = propValue.split(",");
+      assert (value.length < 2);
+    } catch (Exception e) {
+      Logger.printf("failed to resolve %s, falling back to default\n", propName);
+      Logger.println(e);
+    }
+    return value;
+  }
+
+  public static String[] getRecords() {
+    return Records;
   }
 }

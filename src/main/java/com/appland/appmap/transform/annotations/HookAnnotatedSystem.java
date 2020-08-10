@@ -3,6 +3,7 @@ package com.appland.appmap.transform.annotations;
 import java.lang.reflect.Modifier;
 
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.util.StringUtil;
 
 import javassist.CtBehavior;
 
@@ -31,10 +32,7 @@ public class HookAnnotatedSystem extends SourceMethodSystem {
 
   @Override
   public Boolean match(CtBehavior behavior) {
-    final Boolean isExplicitlyExcluded = AppMapConfig.get().excludes(
-        behavior.getDeclaringClass().getName(),
-        behavior.getMethodInfo().getName(),
-        Modifier.isStatic(behavior.getModifiers()));
+    final Boolean isExplicitlyExcluded = AppMapConfig.get().excludes(StringUtil.canonicalName(behavior));
 
     return behavior.hasAnnotation(this.annotationClass) && !isExplicitlyExcluded;
   }
