@@ -1,5 +1,7 @@
 package com.appland.appmap.config;
 
+import static com.appland.appmap.util.StringUtil.canonicalName;
+
 public class AppMapPackage {
   public String path;
   public String[] exclude = new String[] {};
@@ -49,7 +51,6 @@ public class AppMapPackage {
    * @return {@code true} if the class/method is explicitly excluded in the configuration. Otherwise, {@code false}.
    */
   public Boolean excludes(String className, String methodName, boolean isStatic) {
-    final String canonicalName = className + (isStatic ? "." : "#") + methodName;
-    return this.excludes(canonicalName);
+    return this.excludes(canonicalName(className, methodName, isStatic));
   }
 }

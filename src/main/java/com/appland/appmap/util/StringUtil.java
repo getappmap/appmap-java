@@ -52,4 +52,11 @@ public class StringUtil {
 
     return capitalize(StringUtils.join(formattedWords, ' '));
   }
+
+  /**
+   *  Returns canonical name of method from class name, method name and static parameter.
+   */
+  public static String canonicalName(String className, String methodName, boolean isStatic){
+    return className + (isStatic ? "." : "#") + methodName;
+  }
 }
