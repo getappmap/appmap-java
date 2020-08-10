@@ -46,10 +46,10 @@ public class HookRecordsSystem extends SourceMethodSystem {
         behavior.getMethodInfo().getName(),
         Modifier.isStatic(behavior.getModifiers()));
 
-    return isMatches(behavior) && !isExplicitlyExcluded;
+    return isMatch(behavior) && !isExplicitlyExcluded;
   }
 
-  private Boolean isMatches(CtBehavior behavior){
+  private Boolean isMatch(CtBehavior behavior){
     for (String record : this.records){
       if (canonicalName(behavior.getDeclaringClass().getName(),
               behavior.getMethodInfo().getName(),
