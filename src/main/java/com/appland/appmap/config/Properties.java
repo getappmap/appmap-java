@@ -31,7 +31,7 @@ public class Properties {
         value = propValue;
       }
     } catch (Exception e) {
-      Logger.printf("failed to resolve %f, falling back to default\n", propName);
+      Logger.printf("failed to resolve %s, falling back to default\n", propName);
       Logger.println(e);
     }
     return value;
@@ -47,7 +47,7 @@ public class Properties {
         value = resolvingFunc.apply(propValue);
       }
     } catch (Exception e) {
-      Logger.printf("failed to resolve %f, falling back to default\n", propName);
+      Logger.printf("failed to resolve %s, falling back to default\n", propName);
       Logger.println(e);
 
       value = defaultValue;
@@ -62,7 +62,7 @@ public class Properties {
       value = propValue.split(",");
       assert (value.length < 2);
     } catch (Exception e) {
-      Logger.printf("failed to resolve %f, falling back to default\n", propName);
+      Logger.printf("failed to resolve %s, falling back to default\n", propName);
       Logger.println(e);
     }
     return value;
