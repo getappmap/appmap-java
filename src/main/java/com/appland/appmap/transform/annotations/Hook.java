@@ -21,7 +21,6 @@ public class Hook {
       add(HookAnnotatedSystem::from);
       add(HookClassSystem::from);
       add(HookConditionSystem::from);
-      add(HookRecordsSystem::from);
   }};
 
   private final static List<Function<CtBehavior, ISystem>> optionalSystemFactories =

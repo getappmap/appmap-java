@@ -67,4 +67,8 @@ public class Properties {
     }
     return value;
   }
+
+  public static String[] getRecords() {
+    return Records;
+  }
 }
