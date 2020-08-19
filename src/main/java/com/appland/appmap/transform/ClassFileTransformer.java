@@ -125,13 +125,15 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       for (HookSite hookSite : hookSites) {
         final Hook hook = hookSite.getHook();
-        Logger.printf("hooked %s.%s (%s) with %s\n",
+        Logger.printf("hooked %s.%s%s on (%s) with %s\n",
               behavior.getDeclaringClass().getName(),
               behavior.getName(),
+              behavior.getMethodInfo().getDescriptor(),
               hook.getMethodEvent().getEventString(),
               hook);
       }
     } catch (NoSourceAvailableException e) {
+      Logger.println(e);
       return;
     }
   }
