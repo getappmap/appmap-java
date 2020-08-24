@@ -13,8 +13,8 @@ cache:
   - "$HOME/.gradle/caches/"
   - "$HOME/.gradle/wrapper/"
 script:
-- ./gradlew check -s
-- ./gradlew integrationTest
+- ./gradlew -is check
+- ./gradlew -is integrationTest
 - ./bin/test
 deploy:
   provider: releases

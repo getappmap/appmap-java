@@ -1,9 +1,8 @@
 #!/bin/bash
-set -e
+set -x
 
-LOG_FILE=/tmp/output.log
-
-java -javaagent:/appmap.jar -jar /petclinic.jar &> ${LOG_FILE} &
+LOG=/run/petclinic.log
+java -ea -Dappmap.debug -javaagent:/appmap.jar -jar /petclinic.jar &> $LOG &
 JVM_PID=$!
 
 export WS_URL="http://localhost:8080"
@@ -12,7 +11,7 @@ printf 'getting set up'
 while [ -z "$(curl -sI "${WS_URL}" | grep 'HTTP/1.1 200')" ]; do
   if ! kill -0 "${JVM_PID}" 2> /dev/null; then
     printf '. failed!\n\nprocess exited unexpectedly:\n'
-    cat "${LOG_FILE}"
+    cat $LOG
     exit 1
   fi
 
@@ -22,5 +21,9 @@ done
 printf ' ok\n\n'
 
 ${@:-bats --tap /test/*.bats}
+bats_ret=$?
 
 kill ${JVM_PID}
+wait -f ${JVM_PID}
+cat $LOG
+exit $bats_ret
