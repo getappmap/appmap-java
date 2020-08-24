@@ -21,7 +21,7 @@ public class CodeObject {
   public String name = "";
   public String type = "";
   public String location = "";
-  public ArrayList<CodeObject> children = new ArrayList<CodeObject>();
+  private ArrayList<CodeObject> children = new ArrayList<CodeObject>();
 
   @JSONField(name = "static")
   public Boolean isStatic;
@@ -257,6 +257,29 @@ public class CodeObject {
     return null;
   }
 
+  private boolean equalBySubstring(String s1, String s2, int start, int end) {
+    int sublen = end - start;
+    if (s1.length() != sublen)
+      return false;
+
+    for (int idx = 0; idx < sublen; idx++) {
+      if (s1.charAt(idx) != s2.charAt(start + idx))
+        return false;
+    }
+
+    return true;
+  }
+  
+  public CodeObject findChildBySubstring(String name, int start, int end) {
+    for (CodeObject child : this.children) {
+      if (equalBySubstring(child.name, name, start, end)) {
+        return child;
+      }
+    }
+
+    return null;
+  }
+  
   /**
    * Set the "name" field.
    * @param name The name of this CodeObject
@@ -318,5 +341,13 @@ public class CodeObject {
     this.children.add(child);
 
     return this;
+  }
+
+  public ArrayList<CodeObject> getChildren() {
+    // Once, among many runs, I saw a ConcurrentAccessException on
+    // this.children. I wasn't able to reproduce it. If it comes back,
+    // though, it may be necessary to return a copy of it. 20200824, ajp
+    // return new ArrayList<CodeObject>(this.children);
+    return this.children;
   }
 }

@@ -25,9 +25,9 @@ public class CodeObjectTree {
   }
 
   private void add(CodeObject rootObject, CodeObject newObject) {
-    for (CodeObject child : rootObject.children) {
+    for (CodeObject child : rootObject.getChildren()) {
       if (child.equals(newObject)) {
-        this.add(child, newObject.children);
+        this.add(child, newObject.getChildren());
         return;
       }
     }
@@ -49,6 +49,22 @@ public class CodeObjectTree {
     this.root = new CodeObject();
   }
 
+  /*
+   * Count occurrences of delim in s. Assumes s is well-formed,
+   * i.e. doesn't have delim as the first or last character
+   */
+  private int countTokens(String s, char delim) {
+    if (s.length() == 0)
+      return 0;
+    
+    int start = 0, end = 0, count = 0;
+    while ((end = s.indexOf(delim, start)) > 0) {
+      start = end + 1;
+      count++;
+    }
+    return ++count;
+  }
+
   /**
    * Finds a single method and returns the entire branch as a tree.
    * @param definedClass The declaring class name
@@ -61,25 +77,34 @@ public class CodeObjectTree {
                                     String methodId,
                                     Boolean isStatic,
                                     Integer lineNumber) {
-    final ArrayList<CodeObject> codeObjects = new ArrayList<CodeObject>();
-    final List<String> classTokens = Arrays.asList(definedClass.split("\\."));
-
+    int tokenCount = countTokens(definedClass, '.');
+    final CodeObject[] codeObjects = new CodeObject[tokenCount + 1]; // + 1 for the method itself
+    int idx = 0;
+    
     CodeObject currentObject = this.root;
-    for (String name : classTokens) {
-      CodeObject child = currentObject.findChild(name);
+    int start = 0, end = 0;
+    String name;
+    // Avoid allocating a String[] by scanning definedClass again.
+    while ((end = definedClass.indexOf('.', start)) > 0) {
+      CodeObject child = currentObject.findChildBySubstring(definedClass, start, end);
       if (child == null) {
         return null;
       }
-
-      codeObjects.add(child);
+      start = end + 1;
+      codeObjects[idx++] = child;
       currentObject = child;
     }
-
+    assert definedClass.length() - start > 0 : "Not enough tokens";  // Should be one more token
+    CodeObject child = currentObject.findChildBySubstring(definedClass, start, definedClass.length());
+    if (child == null) {
+      return null;
+    }
+    
     CodeObject methodObject = currentObject.findChild(methodId, isStatic, lineNumber);
     if (methodObject == null) {
       return null;
     }
-    codeObjects.add(methodObject);
+    codeObjects[++idx] = methodObject;
 
     CodeObject rootObject = null;
     for (CodeObject codeObject : codeObjects) {
@@ -104,7 +129,7 @@ public class CodeObjectTree {
    *         {@code false}.
    */
   public Boolean isEmpty() {
-    return this.root == null || this.root.children.size() < 1;
+    return this.root == null || this.root.getChildren().size() < 1;
   }
 
   /**
@@ -112,10 +137,11 @@ public class CodeObjectTree {
    * @return A flattened array of {@link CodeObject}s
    */
   public CodeObject[] toArray() {
-    Integer numTopLevelObjects = root.children.size();
+    ArrayList<CodeObject> children = root.getChildren();
+    Integer numTopLevelObjects = children.size();
     CodeObject[] codeObjects = new CodeObject[numTopLevelObjects];
     for (int i = 0; i < numTopLevelObjects; ++i) {
-      codeObjects[i] = root.children.get(i);
+      codeObjects[i] = children.get(i);
     }
     return codeObjects;
   }

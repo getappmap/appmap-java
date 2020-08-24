@@ -5,6 +5,8 @@ import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
 import com.appland.appmap.util.Logger;
+import com.appland.appmap.config.Properties;
+
 import javassist.*;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
@@ -47,6 +49,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       try {
         CtClass ctClass = classPool.get(classType.getName());
         processClass(ctClass);
+        ctClass.detach();
       } catch (NotFoundException e) {
         Logger.printf("failed to find %s in class pool", classType.getName());
         Logger.println(e.getMessage());
@@ -61,7 +64,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
     String key = hook.getKey();
 
-    Logger.printf("%s: %s\n", key, hook);
+    if (Properties.DebugHooks)
+      Logger.printf("%s: %s\n", key, hook);
 
     if (key == null) {
       unkeyedHooks.add(hook);
@@ -105,7 +109,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       this.addHook(hook);
 
-      Logger.printf("registered hook %s\n", hook.toString());
+      if (Properties.DebugHooks)
+        Logger.printf("registered hook %s\n", hook.toString());
     }
   }
 
@@ -125,12 +130,14 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       for (HookSite hookSite : hookSites) {
         final Hook hook = hookSite.getHook();
-        Logger.printf("hooked %s.%s%s on (%s) with %s\n",
-              behavior.getDeclaringClass().getName(),
-              behavior.getName(),
-              behavior.getMethodInfo().getDescriptor(),
-              hook.getMethodEvent().getEventString(),
-              hook);
+        if (Properties.DebugHooks) {
+          Logger.printf("hooked %s.%s%s on (%s) with %s\n",
+                        behavior.getDeclaringClass().getName(),
+                        behavior.getName(),
+                        behavior.getMethodInfo().getDescriptor(),
+                        hook.getMethodEvent().getEventString(),
+                        hook);
+        }
       }
     } catch (NoSourceAvailableException e) {
       Logger.println(e);
@@ -162,6 +169,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         // ctClass.defrost();
         //
         // For now, just skip this class
+        Logger.printf("Skipping class %s, failed making a new one: %s\n", className, e.getMessage());
         return bytes;
       }
 
