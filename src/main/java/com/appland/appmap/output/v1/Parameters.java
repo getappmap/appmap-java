@@ -1,6 +1,7 @@
 package com.appland.appmap.output.v1;
 
 import com.appland.appmap.util.Logger;
+import com.appland.appmap.config.Properties;
 
 import javassist.CtBehavior;
 import javassist.CtClass;
@@ -73,8 +74,9 @@ public class Parameters implements Iterable<Value> {
     if (numParams > 0) {
       int numLocals = locals.tableLength();
       
-      // This is handy when debugging this code, put produces too much noise for general use.
-      if (false) {
+      // This is handy when debugging this code, but produces too much
+      // noise for general use.
+      if (Properties.DebugLocals) {
         Logger.println("local variables for " + fqn);
         for (int idx = 0; idx < numLocals; idx++) {
           Logger.printf("  %d %s %d\n", idx, locals.variableName(idx), locals.index(idx));
