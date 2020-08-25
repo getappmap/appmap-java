@@ -1,13 +1,16 @@
 package com.appland.appmap.output.v1;
 
 import com.appland.appmap.util.Logger;
+import com.appland.appmap.config.Properties;
 
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.NotFoundException;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.LocalVariableAttribute;
+import javassist.bytecode.MethodParametersAttribute;
 import javassist.bytecode.MethodInfo;
+import javassist.bytecode.AttributeInfo;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -38,58 +41,88 @@ public class Parameters implements Iterable<Value> {
    */
   public Parameters(CtBehavior behavior) {
     MethodInfo methodInfo = behavior.getMethodInfo();
+    String fqn = behavior.getDeclaringClass().getName() +
+      "." + behavior.getName() +
+      methodInfo.getDescriptor();
+
     CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
     if (codeAttribute == null) {
-      throw new NoSourceAvailableException();
+      throw new NoSourceAvailableException("No code attribute for " + fqn);
     }
-
+           
     LocalVariableAttribute locals = (LocalVariableAttribute) codeAttribute.getAttribute(
         javassist.bytecode.LocalVariableAttribute.tag);
 
+    // We should be able to handle methods without debug
+    // information. However, as of 20200822, other errors come up if
+    // do hook them, so bail out here.
     if (locals == null) {
-      throw new NoSourceAvailableException();
+      throw new NoSourceAvailableException("No local variables for " + fqn);
     }
 
-    Integer numberLocals = locals.tableLength();
-    CtClass[] parameterTypes = new CtClass[]{};
-
+    CtClass[] paramTypes = null;
     try {
-      parameterTypes = behavior.getParameterTypes();
+      paramTypes = behavior.getParameterTypes();
     } catch (NotFoundException e) {
-      Logger.println(
-          String.format("failed to get parameter types for %s.%s: %s",
-              behavior.getDeclaringClass().getName(),
-              behavior.getName(),
-              e.getMessage()));
+      throw new NoSourceAvailableException(
+        String.format("Failed to get parameter types for %s: %s",
+                      fqn, e.getMessage()));
     }
 
-    Boolean isStatic = (behavior.getModifiers() & Modifier.STATIC) != 0;
-    Value[] paramValues = new Value[parameterTypes.length];
-    for (int i = 0; i < numberLocals; ++i) {
-      // parameters are not neccesarily the first local variables
-      Integer paramIndex = locals.index(i);
-
-      if (!isStatic) {
-        // index 0 is `this` for nonstatic methods
-        // we don't need it
-        if (paramIndex == 0) {
-          continue;
+    String[] paramNames = null;
+    int numParams = paramTypes.length;
+    if (numParams > 0) {
+      int numLocals = locals.tableLength();
+      
+      // This is handy when debugging this code, but produces too much
+      // noise for general use.
+      if (Properties.DebugLocals) {
+        Logger.println("local variables for " + fqn);
+        for (int idx = 0; idx < numLocals; idx++) {
+          Logger.printf("  %d %s %d\n", idx, locals.variableName(idx), locals.index(idx));
         }
-
-        // similarly, `parameterTypes` does not contain `this`, so shift our index back by one
-        paramIndex -= 1;
       }
 
-      if (paramIndex >= parameterTypes.length) {
-        continue;
+      paramNames = new String[numParams];
+      Boolean isStatic = (behavior.getModifiers() & Modifier.STATIC) != 0;
+      int firstParamIdx = isStatic ? 0 : 1; // ignore `this`
+      int localVarIdx = 0;
+      
+      // Scan the local variables until we find the one with an index
+      // that matches the first parameter index.
+      //
+      // In some cases, though, there aren't local variables for the
+      // parameters. For example, the class file for
+      // org.springframework.samples.petclinic.owner.PetTypeFormatter,
+      // has the method
+      // print(Ljava/lang/Object;Ljava/util/Locale;)Ljava/lang/String
+      // in it, which only has a local variable for `this`. This
+      // method isn't in the source file, so I'm not sure where it's
+      // coming from.
+      for (; localVarIdx < numLocals; localVarIdx++) {
+        if (locals.index(localVarIdx) == firstParamIdx)
+          break;
       }
 
+      if (localVarIdx < numLocals) {
+        // Assume the rest of the parameters follow the first.
+        paramNames[0] = locals.variableName(localVarIdx);
+        for (int idx = 1; idx < numParams; idx++)
+          paramNames[idx] = locals.variableName(localVarIdx + idx);
+      }
+    }
+
+    Value[] paramValues = new Value[numParams];
+    for (int i = 0; i < paramTypes.length; ++i) {
+      // Use a real parameter name if we have it, a fake one if we
+      // don't.
+      String paramName = paramNames != null? paramNames[i] : "p" + i;
       Value param = new Value()
-          .setClassType(parameterTypes[paramIndex].getName())
-          .setName(locals.variableName(i))
+          .setClassType(paramTypes[i].getName())
+          .setName(paramName)
           .setKind("req");
 
-      paramValues[paramIndex] = param;
+      paramValues[i] = param;
     }
 
     for (int i = 0; i < paramValues.length; ++i) {

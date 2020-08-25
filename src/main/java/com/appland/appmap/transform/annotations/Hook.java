@@ -193,6 +193,9 @@ public class Hook {
           + targetBehavior.getDeclaringClass().getName()
           + "."
           + targetBehavior.getName());
+      Logger.println("  cause: " + e.getCause());
+      Logger.println("  reason: " + e.getReason());
+      
 
       Logger.println(e.getMessage());
     } catch (NotFoundException e) {

@@ -6,6 +6,8 @@ import java.util.function.Function;
 
 public class Properties {
   public static final Boolean Debug = (System.getProperty("appmap.debug") != null);
+  public static final Boolean DebugHooks = (System.getProperty("appmap.debug.hooks") != null);
+  public static final Boolean DebugLocals = (System.getProperty("appmap.debug.locals") != null);
 
   public static final String DefaultOutputDirectory = "./tmp/appmap";
   public static final String OutputDirectory = resolveProperty(

@@ -8,4 +8,7 @@ public class NoSourceAvailableException extends RuntimeException {
   public NoSourceAvailableException() {
     super();
   }
+  public NoSourceAvailableException(String msg) {
+    super(msg);
+  }
 }
