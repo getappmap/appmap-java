@@ -1,10 +1,8 @@
 package com.appland.appmap.process.hooks;
 
-import static com.appland.appmap.util.StringUtil.decapitalize;
-import static com.appland.appmap.util.StringUtil.identifierToSentence;
-
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.ExitEarly;
+import com.appland.appmap.process.conditions.RecordCondition;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.IRecordingSession;
 import com.appland.appmap.record.Recorder;
@@ -16,6 +14,8 @@ import com.appland.appmap.util.Logger;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import static com.appland.appmap.util.StringUtil.*;
 
 /**
  * Hooks to toggle event recording. This could be either via HTTP or by entering a unit test method.
@@ -134,22 +134,31 @@ public class ToggleRecord {
     skipFilterChain(args);
   }
 
-  private static void startTest(Event event) {
+  private static IRecordingSession.Metadata getMetadata(Event event) {
+
+    // TODO: Obtain this info in the constructor
+    boolean junit = false;
+    StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+    for (int i = 0; !junit && i < stack.length; i++) {
+      if (stack[i].getClassName().startsWith("org.junit")) {
+        junit = true;
+      }
+    }
+    IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
+    if (junit) {
+      metadata.recorderName = "toggle_record_receiver";
+      metadata.framework = "junit";
+    } else {
+      metadata.recorderName = canonicalName(event.definedClass, event.isStatic, event.methodId);
+    }
+    return metadata;
+  }
+
+  private static void startRecording(Event event) {
     try {
       final String fileName = String.join("_", event.definedClass, event.methodId)
-          .replaceAll("[^a-zA-Z0-9-_]", "_");
-
-      IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
-
-      // TODO: Obtain this info in the constructor
-      boolean junit = false;
-      StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-      for (int i = 0; !junit && i < stack.length; i++) {
-        if (stack[i].getClassName().startsWith("org.junit")) {
-          junit = true;
-        }
-      }
-
+              .replaceAll("[^a-zA-Z0-9-_]", "_");
+      IRecordingSession.Metadata metadata = getMetadata(event);
       metadata.feature = identifierToSentence(event.methodId);
       metadata.featureGroup = identifierToSentence(event.definedClass);
       metadata.scenarioName = String.format(
@@ -158,18 +167,13 @@ public class ToggleRecord {
         decapitalize(metadata.feature));
       metadata.recordedClassName = event.definedClass;
       metadata.recordedMethodName = event.methodId;
-      if (junit) {
-        metadata.recorderName = "toggle_record_receiver";
-        metadata.framework = "junit";
-      }
-
       recorder.start(fileName, metadata);
     } catch (ActiveSessionException e) {
       Logger.printf("%s\n", e.getMessage());
     }
   }
 
-  private static void stopTest() {
+  private static void stopRecording(){
     try {
       recorder.stop();
     } catch (ActiveSessionException e) {
@@ -181,7 +185,7 @@ public class ToggleRecord {
   @ExcludeReceiver
   @HookAnnotated("org.junit.Test")
   public static void junit(Event event, Object[] args) {
-    startTest(event);
+    startRecording(event);
   }
 
   @ArgumentArray
@@ -189,7 +193,7 @@ public class ToggleRecord {
   @ExcludeReceiver
   @HookAnnotated("org.junit.Test")
   public static void junit(Event event, Object returnValue, Object[] args) {
-    stopTest();
+    stopRecording();
   }
 
   @ArgumentArray
@@ -199,14 +203,14 @@ public class ToggleRecord {
   public static void junit(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
-    stopTest();
+    stopRecording();
   }
 
   @ArgumentArray
   @ExcludeReceiver
   @HookAnnotated("org.junit.jupiter.api.Test")
   public static void junitJupiter(Event event, Object[] args) {
-    startTest(event);
+    startRecording(event);
   }
 
   @ArgumentArray
@@ -214,7 +218,7 @@ public class ToggleRecord {
   @ExcludeReceiver
   @HookAnnotated("org.junit.jupiter.api.Test")
   public static void junitJupiter(Event event, Object returnValue, Object[] args) {
-    stopTest();
+    stopRecording();
   }
 
   @ArgumentArray
@@ -224,14 +228,14 @@ public class ToggleRecord {
   public static void junitJupiter(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
-    stopTest();
+    stopRecording();
   }
 
   @ArgumentArray
   @ExcludeReceiver
   @HookAnnotated("org.testng.annotations.Test")
   public static void testng(Event event, Object[] args) {
-    startTest(event);
+    startRecording(event);
   }
 
   @ArgumentArray
@@ -239,7 +243,7 @@ public class ToggleRecord {
   @ExcludeReceiver
   @HookAnnotated("org.testng.annotations.Test")
   public static void testnt(Event event, Object returnValue, Object[] args) {
-    stopTest();
+    stopRecording();
   }
 
   @ArgumentArray
@@ -249,6 +253,32 @@ public class ToggleRecord {
   public static void testng(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
-    stopTest();
+    stopRecording();
+  }
+
+  @ArgumentArray
+  @ExcludeReceiver
+  @HookCondition(RecordCondition.class)
+  public static void record(Event event, Object[] args) {
+    Logger.printf("Recording started for %s\n", canonicalName(event));
+    startRecording(event);
+  }
+
+  @ArgumentArray
+  @CallbackOn(MethodEvent.METHOD_RETURN)
+  @ExcludeReceiver
+  @HookCondition(RecordCondition.class)
+  public static void record(Event event, Object returnValue, Object[] args) {
+    stopRecording();
+  }
+
+  @ArgumentArray
+  @CallbackOn(MethodEvent.METHOD_EXCEPTION)
+  @ExcludeReceiver
+  @HookCondition(RecordCondition.class)
+  public static void record(Event event, Exception exception, Object[] args) {
+    event.setException(exception);
+    recorder.add(event);
+    stopRecording();
   }
 }

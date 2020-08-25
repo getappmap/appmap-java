@@ -52,19 +52,17 @@ public class AppMapConfig {
 
   /**
    * Check if a class/method is included in the configuration.
-   * @param className The class name to be checked
-   * @param methodName The method name to be checked
-   * @param isStatic {@code true} if the method is static
+   * @param canonicalName the canonical name of the class/method to be checked
    * @return {@code true} if the class/method is included in the configuration. {@code false} if it
    *         is not included or otherwise explicitly excluded.
    */
-  public Boolean includes(String className, String methodName, boolean isStatic) {
+  public Boolean includes(String canonicalName) {
     if (this.packages == null) {
       return false;
     }
 
     for (AppMapPackage pkg : this.packages) {
-      if (pkg.includes(className, methodName, isStatic)) {
+      if (pkg.includes(canonicalName)) {
         return true;
       }
     }
@@ -74,18 +72,16 @@ public class AppMapConfig {
 
   /**
    * Check if a class/method is explicitly excluded in the configuration.
-   * @param className The class name to be checked
-   * @param methodName The method name to be checked
-   * @param isStatic {@code true} if the method is static
+   * @param canonicalName the canonical name of the class/method to be checked
    * @return {@code true} if the class/method is explicitly excluded in the configuration. Otherwise, {@code false}.
    */
-  public Boolean excludes(String className, String methodName, boolean isStatic) {
+  public Boolean excludes(String canonicalName) {
     if (this.packages == null) {
       return false;
     }
 
     for (AppMapPackage pkg : this.packages) {
-      if (pkg.excludes(className, methodName, isStatic)) {
+      if (pkg.excludes(canonicalName)) {
         return true;
       }
     }

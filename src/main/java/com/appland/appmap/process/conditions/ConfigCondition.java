@@ -1,6 +1,7 @@
 package com.appland.appmap.process.conditions;
 
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.util.StringUtil;
 import javassist.CtBehavior;
 
 import java.lang.reflect.Modifier;
@@ -38,8 +39,6 @@ public abstract class ConfigCondition implements Condition {
       return false;
     }
 
-    return AppMapConfig.get().includes(behavior.getDeclaringClass().getName(),
-            behavior.getMethodInfo().getName(),
-            Modifier.isStatic(behavior.getModifiers()));
+    return AppMapConfig.get().includes(StringUtil.canonicalName(behavior));
   }
 }

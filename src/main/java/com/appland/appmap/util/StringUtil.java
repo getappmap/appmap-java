@@ -1,6 +1,9 @@
 package com.appland.appmap.util;
 
+import javassist.CtBehavior;
+import java.lang.reflect.Modifier;
 import org.apache.commons.lang3.StringUtils;
+import com.appland.appmap.output.v1.Event;
 
 /**
  * Utility methods to format strings.
@@ -52,4 +55,39 @@ public class StringUtil {
 
     return capitalize(StringUtils.join(formattedWords, ' '));
   }
+
+  /**
+   * Returns canonical name of method from class name, static
+   * parameter, and method name.
+   *
+   * @param className the class name to be checked
+   * @param isStatic {@code true} if the method is static
+   * @param methodName the method name to be checked
+   * @return the canonical name of the method
+   * 
+   */
+  public static String canonicalName(String className, boolean isStatic, String methodName){
+    return className + (isStatic ? "." : "#") + methodName;
+  }
+  
+  /**
+   * Returns canonical name of method referenced in the event.
+   * @param event the event to reference
+   * @return the canonical name of the method
+   */
+  public static String canonicalName(Event event) {
+    return canonicalName(event.definedClass, event.isStatic, event.methodId);
+  }
+  
+  /**
+   *  Returns canonical name of method described by behavior.
+   * @param behavior the behavior described
+   * @return the canonical name of the method
+   */
+  public static String canonicalName(CtBehavior behavior) {
+    return canonicalName(behavior.getDeclaringClass().getName(),
+                         Modifier.isStatic(behavior.getModifiers()) ,
+                         behavior.getMethodInfo().getName());
+  }
 }
+                                           
