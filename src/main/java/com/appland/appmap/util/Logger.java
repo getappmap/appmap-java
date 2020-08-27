@@ -28,12 +28,18 @@ public class Logger {
     log.printf("AppMap [DEBUG]: " + format, args);
   }
 
+  public static void whereAmI() {
+    new Exception().printStackTrace(log);
+  }
+  
   private static PrintStream ensureLog() {
+    final String debugFile = Properties.DebugFile;
     try {
-      return new PrintStream(new FileOutputStream("appmap-java.log"));
+      return debugFile != null? new PrintStream(new FileOutputStream(debugFile)) : System.err;
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
+      System.err.println("AppMap [DEBUG]: Warning, failed opening file: %s. Using System.err instead.\n", e.getMessage());
     }
+    return System.err;
   }
 }

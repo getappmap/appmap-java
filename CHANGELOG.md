@@ -6,7 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.1] - 2020-08-25
 ### Added
 - The new system property `appmap.record` can be used to specify a method to record.
-
+- The system property `appmap.debug.file`. When set, debug output will be written to the
+  specified file, instead of to `System.err`.
+  
 ### Changed
 - `appmap-java` now uses significantly less memory when recording.
 
