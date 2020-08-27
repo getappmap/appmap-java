@@ -128,9 +128,9 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       Hook.apply(behavior, hookSites);
 
-      for (HookSite hookSite : hookSites) {
-        final Hook hook = hookSite.getHook();
-        if (Properties.DebugHooks) {
+      if (Properties.DebugHooks) {
+        for (HookSite hookSite : hookSites) {
+          final Hook hook = hookSite.getHook();
           Logger.printf("hooked %s.%s%s on (%s) with %s\n",
                         behavior.getDeclaringClass().getName(),
                         behavior.getName(),

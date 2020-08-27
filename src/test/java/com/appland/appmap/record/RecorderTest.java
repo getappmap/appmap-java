@@ -31,9 +31,11 @@ public class RecorderTest {
     for (int i = 0; i < events.length; i++) {
       final Event event = events[i];
       event
-          .setDefinedClass("SomeClass")
-          .setMethodId("SomeMethod")
-          .setThreadId(threadId);
+        .setDefinedClass("SomeClass")
+        .setMethodId("SomeMethod")
+        .setStatic(false)
+        .setLineNumber(315)
+        .setThreadId(threadId);
 
       recorder.add(event);
       assertEquals(event, recorder.getLastEvent());

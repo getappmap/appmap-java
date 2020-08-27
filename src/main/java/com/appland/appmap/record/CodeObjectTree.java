@@ -18,16 +18,16 @@ public class CodeObjectTree {
 
   }
 
-  private void add(CodeObject rootObject, ArrayList<CodeObject> newObjects) {
+  private void add(CodeObject rootObject, List<CodeObject> newObjects) {
     for (CodeObject newObject : newObjects) {
       this.add(rootObject, newObject);
     }
   }
 
   private void add(CodeObject rootObject, CodeObject newObject) {
-    for (CodeObject child : rootObject.getChildren()) {
+    for (CodeObject child : rootObject.safeGetChildren()) {
       if (child.equals(newObject)) {
-        this.add(child, newObject.getChildren());
+        this.add(child, newObject.safeGetChildren());
         return;
       }
     }
@@ -129,7 +129,7 @@ public class CodeObjectTree {
    *         {@code false}.
    */
   public Boolean isEmpty() {
-    return this.root == null || this.root.getChildren().size() < 1;
+    return this.root == null || this.root.safeGetChildren().size() < 1;
   }
 
   /**
@@ -137,7 +137,7 @@ public class CodeObjectTree {
    * @return A flattened array of {@link CodeObject}s
    */
   public CodeObject[] toArray() {
-    ArrayList<CodeObject> children = root.getChildren();
+    List<CodeObject> children = root.safeGetChildren();
     Integer numTopLevelObjects = children.size();
     CodeObject[] codeObjects = new CodeObject[numTopLevelObjects];
     for (int i = 0; i < numTopLevelObjects; ++i) {

@@ -38,7 +38,7 @@ public class Logger {
       return debugFile != null? new PrintStream(new FileOutputStream(debugFile)) : System.err;
     }
     catch (IOException e) {
-      System.err.println("AppMap [DEBUG]: Warning, failed opening file: %s. Using System.err instead.\n", e.getMessage());
+      System.err.printf("AppMap [DEBUG]: Warning, failed opening file: %s. Using System.err instead.\n", e.getMessage());
     }
     return System.err;
   }
