@@ -91,20 +91,20 @@ public class CodeObjectTree {
         return null;
       }
       start = end + 1;
-      codeObjects[idx++] = child;
-      currentObject = child;
+      codeObjects[idx++] = currentObject = child;
     }
     assert definedClass.length() - start > 0 : "Not enough tokens";  // Should be one more token
     CodeObject child = currentObject.findChildBySubstring(definedClass, start, definedClass.length());
     if (child == null) {
       return null;
     }
+    codeObjects[idx++] = currentObject = child;
     
     CodeObject methodObject = currentObject.findChild(methodId, isStatic, lineNumber);
     if (methodObject == null) {
       return null;
     }
-    codeObjects[++idx] = methodObject;
+    codeObjects[idx] = methodObject;
 
     CodeObject rootObject = null;
     for (CodeObject codeObject : codeObjects) {
