@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONWriter;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.IRecordingSession.Metadata;
-import com.appland.appmap.util.Logger;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -190,7 +189,6 @@ public class AppMapSerializer {
     this.setCurrentSection(FileSections.Events, "array");
 
     for (Event event : events) {
-      Logger.println(String.valueOf(event.httpClientRequest));
       this.json.writeObject(event);
     }
 
