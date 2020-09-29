@@ -45,10 +45,16 @@ public class Event {
   public ArrayList<ExceptionValue> exceptions;
 
   @JSONField(name = "http_server_request")
-  public HttpServerRequest httpRequest;
+  public HttpServerRequest httpServerRequest;
 
   @JSONField(name = "http_server_response")
-  public HttpServerResponse httpResponse;
+  public HttpServerResponse httpServerResponse;
+
+  @JSONField(name = "http_client_request")
+  public HttpClientRequest httpClientRequest;
+
+  @JSONField(name = "http_client_response")
+  public HttpClientResponse httpClientResponse;
 
   public ArrayList<Value> message;
 
@@ -297,7 +303,7 @@ public class Event {
    * @see <a href="https://github.com/applandinc/appmap#http-server-request-attributes">GitHub: AppMap - HTTP server request attributes</a>
    */
   public Event setHttpServerRequest(String method, String path, String protocol) {
-    this.httpRequest = new HttpServerRequest()
+    this.httpServerRequest = new HttpServerRequest()
         .setMethod(method)
         .setPath(path)
         .setProtocol(protocol);
@@ -311,7 +317,7 @@ public class Event {
    * @see <a href="https://github.com/applandinc/appmap#http-server-response-attributes">GitHub: AppMap - HTTP server response attributes</a>
    */
   public Event setHttpServerResponse(Integer status) {
-    this.httpResponse = new HttpServerResponse()
+    this.httpServerResponse = new HttpServerResponse()
         .setStatus(status);
     return this;
   }
@@ -324,9 +330,39 @@ public class Event {
    * @see <a href="https://github.com/applandinc/appmap#http-server-response-attributes">GitHub: AppMap - HTTP server response attributes</a>
    */
   public Event setHttpServerResponse(Integer status, String mimeType) {
-    this.httpResponse = new HttpServerResponse()
+    this.httpServerResponse = new HttpServerResponse()
         .setStatus(status)
         .setMimeType(mimeType);
+    return this;
+  }
+
+  /**
+   * Record HTTP client request details for this event.
+   * @param method The request method
+   * @param path The request URI path
+   * @param protocol The request protocol
+   * @return {@code this}
+   * @see <a href="https://github.com/applandinc/appmap#http-client-request-attributes">GitHub: AppMap - HTTP client request attributes</a>
+   */
+  public Event setHttpClientRequest(String method, String path, String protocol) {
+    this.httpClientRequest = new HttpClientRequest()
+            .setMethod(method)
+            .setPath(path)
+            .setProtocol(protocol);
+    return this;
+  }
+
+  /**
+   * Record HTTP client response details for this event.
+   * @param status The response status returned
+   * @param mimeType The MIME type of the response ({@code Content-Type} header)
+   * @return {@code this}
+   * @see <a href="https://github.com/applandinc/appmap#http-client-response-attributes">GitHub: AppMap - HTTP client response attributes</a>
+   */
+  public Event setHttpClientResponse(Integer status, String mimeType) {
+    this.httpClientResponse = new HttpClientResponse()
+            .setStatus(status)
+            .setMimeType(mimeType);
     return this;
   }
 
