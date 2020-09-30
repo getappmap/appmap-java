@@ -15,7 +15,7 @@ public class HttpClientRequest {
 
     @HookClass(value = "java.net.HttpURLConnection")
     public static void connect(Event event, HttpURLConnection httpURLConnection) {
-        Logger.println("okay that's where I want to call with " + httpURLConnection);
+        //TODO: ReflectiveType can be used with HttpURLConnection
         event.setHttpClientRequest(httpURLConnection.getRequestMethod(), httpURLConnection.getURL().getHost(), httpURLConnection.getURL().getProtocol());
         recorder.add(event);
     }
@@ -23,7 +23,6 @@ public class HttpClientRequest {
     @CallbackOn(MethodEvent.METHOD_RETURN)
     @HookClass(value = "java.net.HttpURLConnection")
     public static void connect(Event event, HttpURLConnection httpURLConnection, Object ret) throws IOException {
-        Logger.println("okay that's where I want to return with " + httpURLConnection);
         event.setHttpClientResponse(httpURLConnection.getResponseCode(), httpURLConnection.getContentType());
         recorder.add(event);
     }
