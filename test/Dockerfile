@@ -48,5 +48,6 @@ COPY test/entrypoint     /sbin/
 COPY test/*.bats         /test/
 COPY test/Props.java     /test/
 COPY test/helper.bash    /test/
+COPY test/HttpClientTest.java /test/
 
 ENTRYPOINT ["/sbin/entrypoint"]

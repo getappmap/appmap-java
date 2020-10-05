@@ -120,3 +120,12 @@ load 'helper'
 
   assert_json_eq '.events | length' 6
 }
+
+@test "expected number of http client events captured" {
+
+  javac test/HttpClientTest.java
+  java -Xbootclasspath/a:/appmap.jar -javaagent:/appmap.jar -Dappmap.debug -Dappmap.config.file=/appmap.yml \
+   -Dappmap.output.directory=/tmp/appmap -Dappmap.record=test.HttpClientTest.main test.HttpClientTest
+  output=$(</tmp/appmap/*.appmap.json)
+  assert_json_eq '.events | length' 8
+}

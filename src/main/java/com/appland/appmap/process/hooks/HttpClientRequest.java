@@ -3,10 +3,11 @@ package com.appland.appmap.process.hooks;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.transform.annotations.*;
-import com.appland.appmap.util.Logger;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.Map;
 
 @Unique("http_client_request")
 public class HttpClientRequest {
@@ -17,6 +18,10 @@ public class HttpClientRequest {
     public static void connect(Event event, HttpURLConnection httpURLConnection) {
         //TODO: ReflectiveType can be used with HttpURLConnection
         event.setHttpClientRequest(httpURLConnection.getRequestMethod(), httpURLConnection.getURL().getHost(), httpURLConnection.getURL().getProtocol());
+        for(Map.Entry<String, List<String>> entry : httpURLConnection.getRequestProperties().entrySet()){
+            List<String> values = entry.getValue();
+            event.addMessageParam(entry.getKey(), values.size() > 0 ? values.get(0) : "");
+        }
         recorder.add(event);
     }
 
@@ -26,7 +31,5 @@ public class HttpClientRequest {
         event.setHttpClientResponse(httpURLConnection.getResponseCode(), httpURLConnection.getContentType());
         recorder.add(event);
     }
-
-
 
 }
