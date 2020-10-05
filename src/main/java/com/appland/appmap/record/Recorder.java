@@ -107,16 +107,7 @@ public class Recorder {
       throws ActiveSessionException {
     event.freeze();
 
-    CodeObject rootObject = this.globalCodeObjects.getMethodBranch(event.definedClass,
-          event.methodId,
-          event.isStatic,
-          event.lineNumber);
-
     recordingSession.add(event);
-
-    if (rootObject != null) {
-      recordingSession.add(rootObject);
-    }
   }
 
   /**
@@ -211,6 +202,10 @@ public class Recorder {
     this.globalCodeObjects.add(codeObject);
   }
 
+  public CodeObjectTree getRegisteredObjects() {
+    return this.globalCodeObjects;
+  }
+  
   /**
    * Retrieve the last event recorded.
    */

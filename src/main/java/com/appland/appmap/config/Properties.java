@@ -8,6 +8,7 @@ public class Properties {
   public static final Boolean Debug = (System.getProperty("appmap.debug") != null);
   public static final Boolean DebugHooks = (System.getProperty("appmap.debug.hooks") != null);
   public static final Boolean DebugLocals = (System.getProperty("appmap.debug.locals") != null);
+  public static final String DebugFile = resolveProperty("appmap.debug.file", (String)null);
 
   public static final String DefaultOutputDirectory = "./tmp/appmap";
   public static final String OutputDirectory = resolveProperty(
@@ -23,7 +24,7 @@ public class Properties {
 
   public static final String[] DefaultRecords = new String[0];
   public static final String[] Records = resolveProperty(
-          "appmap.record", DefaultRecords);
+       "appmap.record", DefaultRecords);
 
   private static String resolveProperty(String propName, String defaultValue) {
     String value = defaultValue;
@@ -61,11 +62,15 @@ public class Properties {
     String[] value = defaultValue;
     try {
       final String propValue = System.getProperty(propName);
-      value = propValue.split(",");
-      assert (value.length < 2);
+      if (propValue != null) {
+        value = propValue.split(",");
+        assert (value.length < 2);
+      }
     } catch (Exception e) {
-      Logger.printf("failed to resolve %s, falling back to default\n", propName);
-      Logger.println(e);
+      // Logger may not be configured yet, so use System.err here to
+      // report problems.
+      System.err.printf("failed to resolve %s, falling back to default\n", propName);
+      e.printStackTrace(System.err);
     }
     return value;
   }

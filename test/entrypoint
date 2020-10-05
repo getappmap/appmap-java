@@ -20,10 +20,14 @@ while [ -z "$(curl -sI "${WS_URL}" | grep 'HTTP/1.1 200')" ]; do
 done
 printf ' ok\n\n'
 
-${@:-bats --tap /test/*.bats}
+run_bats() {
+  bats --tap /test/*.bats >bats.log 2>&1
+}
+${@:-run_bats}
 bats_ret=$?
 
 kill ${JVM_PID}
 wait -f ${JVM_PID}
 cat $LOG
+cat bats.log
 exit $bats_ret

@@ -110,7 +110,7 @@ load 'helper'
   assert_json_contains '.events[] | .message' 'petId'
 }
 
-@test "expected number of events captured" {
+@test "expected appmap captured" {
   start_recording
   
   # this route seems least likely to be affected by future changes
@@ -118,7 +118,12 @@ load 'helper'
   
   stop_recording
 
+  # Sanity check the events and classmap
   assert_json_eq '.events | length' 6
+
+  assert_json_eq '.classMap | length' 2
+  assert_json_eq '[.classMap[0] | recurse | .name?] | join(".")' javax.servlet.http.HttpServlet.service
+  assert_json_eq '[.classMap[1] | recurse | .name?] | join(".")' org.springframework.samples.petclinic.system.CrashController.triggerException
 }
 
 @test "expected number of http client events captured" {

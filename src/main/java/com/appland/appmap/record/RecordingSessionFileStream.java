@@ -83,7 +83,7 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
     this.flushEvents();
 
     try {
-      this.serializer.write(this.codeObjects);
+      this.serializer.write(getClassMap());
       this.serializer.finalize();
       this.fileWriter.close();
     } catch (IOException e) {

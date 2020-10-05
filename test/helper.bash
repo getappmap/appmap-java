@@ -23,8 +23,11 @@ print_debug() {
   local result="${2}"
 
   if [[ ! -z "${DEBUG_JSON}" ]]; then
+    echo >&3
     echo "${output}" >&3
-    "result: ${result}" >&3
+    echo >&3
+    echo "result: ${result}" >&3
+    echo >&3
   fi
 }
 

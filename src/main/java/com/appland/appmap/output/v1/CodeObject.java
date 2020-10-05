@@ -12,20 +12,103 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Collections;
 
 /**
  * Represents a package, class or method.
  * @see <a href="https://github.com/applandinc/appmap#classmap">GitHub: AppMap - classMap</a>
  */
 public class CodeObject {
+  ////////
+  // Serializable attributes
+  //
   public String name = "";
+  /**
+   * Set the "name" field.
+   * @param name The name of this CodeObject
+   * @return {@code this}
+   * @see <a href="https://github.com/applandinc/appmap#common-attributes">GitHub: AppMap - Common attributes</a>
+   */
+  public CodeObject setName(String name) {
+    this.name = name;
+    return this;
+  }
+
   public String type = "";
-  public String location = "";
-  private ArrayList<CodeObject> children = new ArrayList<CodeObject>();
+  /**
+   * Set the "type" field.
+   * @param type The type of this CodeObject ({@code package}, {@code class} or {@code function})
+   * @return {@code this}
+   * @see <a href="https://github.com/applandinc/appmap#common-attributes">GitHub: AppMap - Common attributes</a>
+   */
+  public CodeObject setType(String type) {
+    this.type = type;
+    return this;
+  }
 
   @JSONField(name = "static")
   public Boolean isStatic;
+  /**
+   * Set the "static" field.
+   * @param isStatic {@code true} if this CodeObject is static
+   * @return {@code this}
+   * @see <a href="https://github.com/applandinc/appmap#function-attributes">AppMap - Function attributes</a>
+   */
+  public CodeObject setStatic(Boolean isStatic) {
+    this.isStatic = isStatic;
+    return this;
+  }
 
+  @JSONField(name = "location")
+  public String getLocation() {
+    String ret = this.file != null? this.file : null;
+    if (ret != null && this.lineno != null)
+      ret += ":" + this.lineno;
+
+    return ret;
+  }
+  public CodeObject setLocation(String location) {
+    int colonIdx = location.indexOf(':');
+    this.file = location.substring(0, colonIdx);
+    this.lineno = Integer.valueOf(colonIdx + 1);
+
+    return this;
+  }
+
+  private ArrayList<CodeObject> children = null;
+  public List<CodeObject> getChildren() {
+    return this.children;
+  }
+  
+  /**
+   * Return the list of children, or an empty list if there are
+   * none. {@code getChildren} behaves differently to satisfy
+   * fastjson.
+   *
+   * @return the list of children
+   */
+  public List<CodeObject>safeGetChildren() {
+    return this.children != null? this.children : Collections.<CodeObject>emptyList();
+  }
+  //
+  // End of serializable attributes
+  ////////
+
+  @JSONField(serialize = false, deserialize = false)
+  private String file;
+  private CodeObject setFile(String file) {
+    this.file = file;
+    return this;
+  }
+  
+  @JSONField(serialize = false, deserialize = false)
+  private Integer lineno;
+  private CodeObject setLineno(Integer lineno) {
+    this.lineno = lineno;
+    return this;
+  }
+  
+  
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -42,9 +125,11 @@ public class CodeObject {
 
     CodeObject codeObject = (CodeObject)obj;
     return codeObject.type == this.type
-        && codeObject.name.equals(this.name)
-        && codeObject.isStatic == this.isStatic
-        && codeObject.location.equals(this.location);
+      && codeObject.name.equals(this.name)
+      && codeObject.isStatic == this.isStatic
+      && (codeObject.file == null? this.file == null : codeObject.file.equals(this.file))
+      && codeObject.lineno == this.lineno;
+                                          
   }
 
   /**
@@ -71,7 +156,7 @@ public class CodeObject {
    */
   public CodeObject(CtClass classType) {
     this.setType("class")
-        .setLocation(CodeObject.getSourceFilePath(classType))
+        .setFile(CodeObject.getSourceFilePath(classType))
         .setName(classType.getSimpleName())
         .setStatic((classType.getModifiers() & Modifier.STATIC) != 0);
   }
@@ -82,14 +167,13 @@ public class CodeObject {
    * @param behavior The behavior representing this CodeObject
    */
   public CodeObject(CtBehavior behavior) {
-    String location = String.format("%s:%d",
-        CodeObject.getSourceFilePath(behavior.getDeclaringClass()),
-        behavior.getMethodInfo().getLineNumber(0));
+    final String file = CodeObject.getSourceFilePath(behavior.getDeclaringClass());
+    final int lineno = behavior.getMethodInfo().getLineNumber(0);
 
     this.setType("function")
-        .setName(behavior.getName())
-        .setLocation(location)
-        .setStatic((behavior.getModifiers() & Modifier.STATIC) != 0);
+      .setName(behavior.getName())
+      .setFile(file).setLineno(lineno)
+      .setStatic((behavior.getModifiers() & Modifier.STATIC) != 0);
   }
 
   /**
@@ -98,9 +182,10 @@ public class CodeObject {
    */
   public CodeObject(CodeObject src) {
     this.setType(src.type)
-        .setName(src.name)
-        .setStatic(src.isStatic)
-        .setLocation(src.location);
+      .setName(src.name)
+      .setStatic(src.isStatic)
+      .setFile(src.file)
+      .setLineno(src.lineno);
   }
 
   /**
@@ -109,9 +194,12 @@ public class CodeObject {
    * @return An estimated source file path
    */
   public static String getSourceFilePath(CtClass classType) {
-    return String.format("src/main/java/%s/%s",
-        classType.getPackageName().replace('.', '/'),
-        classType.getClassFile().getSourceFile());
+    String[] parts = {
+      "src", "main", "java",
+      classType.getPackageName().replace('.', '/'),
+      classType.getClassFile().getSourceFile()
+    };
+    return String.join("/", parts);
   }
 
   /**
@@ -201,7 +289,7 @@ public class CodeObject {
         return this;
       }
 
-      for (CodeObject child : this.children) {
+      for (CodeObject child : this.safeGetChildren()) {
         CodeObject match = child.get(tokens);
         if (match != null) {
           return match;
@@ -230,11 +318,11 @@ public class CodeObject {
    * @param lineNumber The line number of the child
    * @return The child CodeObject, if found. Otherwise, {@code null}.
    */
-  public CodeObject findChild(String name, Boolean isStatic, Integer lineNumber) {
-    for (CodeObject child : this.children) {
+  public CodeObject findChild(String name, Boolean isStatic, int lineNumber) {
+    for (CodeObject child : this.safeGetChildren()) {
       if (child.name.equals(name)
           && child.isStatic == isStatic 
-          && child.location.endsWith(":" + lineNumber.toString())) {
+          && child.lineno == lineNumber) {
         return child;
       }
     }
@@ -248,7 +336,7 @@ public class CodeObject {
    * @return The child CodeObject, if found. Otherwise, {@code null}.
    */
   public CodeObject findChild(String name) {
-    for (CodeObject child : this.children) {
+    for (CodeObject child : this.safeGetChildren()) {
       if (child.name.equals(name)) {
         return child;
       }
@@ -271,7 +359,7 @@ public class CodeObject {
   }
   
   public CodeObject findChildBySubstring(String name, int start, int end) {
-    for (CodeObject child : this.children) {
+    for (CodeObject child : this.safeGetChildren()) {
       if (equalBySubstring(child.name, name, start, end)) {
         return child;
       }
@@ -280,50 +368,6 @@ public class CodeObject {
     return null;
   }
   
-  /**
-   * Set the "name" field.
-   * @param name The name of this CodeObject
-   * @return {@code this}
-   * @see <a href="https://github.com/applandinc/appmap#common-attributes">GitHub: AppMap - Common attributes</a>
-   */
-  public CodeObject setName(String name) {
-    this.name = name;
-    return this;
-  }
-
-  /**
-   * Set the "type" field.
-   * @param type The type of this CodeObject ({@code package}, {@code class} or {@code function})
-   * @return {@code this}
-   * @see <a href="https://github.com/applandinc/appmap#common-attributes">GitHub: AppMap - Common attributes</a>
-   */
-  public CodeObject setType(String type) {
-    this.type = type;
-    return this;
-  }
-
-  /**
-   * Set the "location" field.
-   * @param location The location of this CodeObject
-   * @return {@code this}
-   * @see <a href="https://github.com/applandinc/appmap#function-attributes">AppMap - Function attributes</a>
-   */
-  public CodeObject setLocation(String location) {
-    this.location = location;
-    return this;
-  }
-
-  /**
-   * Set the "static" field.
-   * @param isStatic {@code true} if this CodeObject is static
-   * @return {@code this}
-   * @see <a href="https://github.com/applandinc/appmap#function-attributes">AppMap - Function attributes</a>
-   */
-  public CodeObject setStatic(Boolean isStatic) {
-    this.isStatic = isStatic;
-    return this;
-  }
-
   /**
    * Add an immediate child to this CodeObject.
    * @param child The child to be added
@@ -343,11 +387,9 @@ public class CodeObject {
     return this;
   }
 
-  public ArrayList<CodeObject> getChildren() {
-    // Once, among many runs, I saw a ConcurrentAccessException on
-    // this.children. I wasn't able to reproduce it. If it comes back,
-    // though, it may be necessary to return a copy of it. 20200824, ajp
-    // return new ArrayList<CodeObject>(this.children);
-    return this.children;
+  /*
+  public String toString() {
+    return String.format("<CodeObject: %s %s %s %d>", this.name, this.type, this.file, this.lineno);
   }
+  */
 }

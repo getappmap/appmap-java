@@ -31,7 +31,7 @@ public class RecordingSessionMemory extends RecordingSessionGeneric {
     try {
       serializer.write(this.metadata);
       serializer.write(this.events);
-      serializer.write(this.codeObjects);
+      serializer.write(getClassMap());
       serializer.finalize();
 
       json = stringWriter.toString();
