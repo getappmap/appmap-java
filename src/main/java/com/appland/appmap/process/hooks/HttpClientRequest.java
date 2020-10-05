@@ -18,10 +18,6 @@ public class HttpClientRequest {
     public static void connect(Event event, HttpURLConnection httpURLConnection) {
         //TODO: ReflectiveType can be used with HttpURLConnection
         event.setHttpClientRequest(httpURLConnection.getRequestMethod(), httpURLConnection.getURL().getHost(), httpURLConnection.getURL().getProtocol());
-        for(Map.Entry<String, List<String>> entry : httpURLConnection.getRequestProperties().entrySet()){
-            List<String> values = entry.getValue();
-            event.addMessageParam(entry.getKey(), values.size() > 0 ? values.get(0) : "");
-        }
         recorder.add(event);
     }
 
