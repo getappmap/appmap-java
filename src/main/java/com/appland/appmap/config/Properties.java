@@ -9,6 +9,7 @@ public class Properties {
   public static final Boolean DebugHooks = (System.getProperty("appmap.debug.hooks") != null);
   public static final Boolean DebugLocals = (System.getProperty("appmap.debug.locals") != null);
   public static final String DebugFile = resolveProperty("appmap.debug.file", (String)null);
+  public static final Boolean DebugHttp = System.getProperty("appmap.debug.http") != null;
 
   public static final String DefaultOutputDirectory = "./tmp/appmap";
   public static final String OutputDirectory = resolveProperty(
