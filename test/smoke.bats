@@ -133,6 +133,6 @@ load 'helper'
    -Dappmap.output.directory=/tmp/appmap -Dappmap.record=test.HttpClientTest.main test.HttpClientTest
   output=$(</tmp/appmap/*.appmap.json)
   assert_json_eq '.events | length' 8
-  assert_json_eq '[.events[] | select(.http_client_request) ] | length' 3
-  assert_json_eq '[.events[] | select(.http_client_response) ] | length' 3
+  assert_json_eq '[.events[] | select(.http_client_request)] | length' 3
+  assert_json_eq '[.events[] | select(.http_client_response)] | length' 3
 }
