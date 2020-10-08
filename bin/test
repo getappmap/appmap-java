@@ -3,12 +3,25 @@
 # run smoke tests
 set -e
 
+JAVA_VERSION=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | sed 's/^1\.//'| cut -d'.' -f1)
+
+if [ $JAVA_VERSION -lt "9" ]; then
+  CONFIG=test/docker/java8/Dockerfile
+else
+  CONFIG=test/docker/java11/Dockerfile
+fi
+
+docker build \
+  -t "petclinic:latest" \
+  -f test/docker/petclinic/Dockerfile \
+  .
+
 IMAGE_NAME=appmap-test
 IMAGE_TAG=latest
 
 docker build \
   -t "${IMAGE_NAME}:${IMAGE_TAG}" \
-  -f test/Dockerfile \
+  -f $CONFIG \
   .
 
 printf '\n=== begin tests ===\n'
