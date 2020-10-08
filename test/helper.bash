@@ -52,7 +52,7 @@ assert_json_eq() {
   local result=$(jq -r "${query}" <<< "${output}")
 
   print_debug "${query}" "${result}"
-  echo "${result}" >&3
+
   assert [ "${result}" == "${expected_value}" ]
 }
 
