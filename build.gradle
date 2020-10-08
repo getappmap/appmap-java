@@ -20,7 +20,7 @@ repositories {
   mavenCentral()
 }
 
-version = '0.4.1'
+version = '0.4.3'
 
 dependencies {
   implementation 'org.yaml:snakeyaml:1.25'

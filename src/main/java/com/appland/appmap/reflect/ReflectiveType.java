@@ -1,6 +1,7 @@
 package com.appland.appmap.reflect;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 
 import com.appland.appmap.util.Logger;
 
@@ -11,17 +12,31 @@ public class ReflectiveType {
     this.self = self;
   }
 
-  public Object GetObject() {
-    return this.self;
-  }
-
   protected Method getMethod(String name, Class<?>... parameterTypes) {
+    final Class cls = self.getClass();
     try {
-      return this.self.getClass().getMethod(name, parameterTypes);
+      return cls.getMethod(name, parameterTypes);
     } catch (Exception e) {
-      Logger.printf("failed to get method %s: %s\n", name, e.getMessage());
+      Logger.printf("failed to get method %s.%s: %s\n", cls.getName(), name, e.getMessage());
       return null;
     }
+  }
+
+  protected Object invoke(Method method, Object... parameters) {
+    try {
+      method.setAccessible(true);
+      return method.invoke(self, parameters);
+    }
+    catch (InvocationTargetException e) {
+      Throwable thrown = e.getTargetException();
+      final String msg = String.format("%s.%s threw an exception, %s\n", self.getClass().getName(), method.getName(), thrown != null? thrown.getMessage() : "<no msg>");
+      Logger.println(msg);
+      throw new Error(msg, thrown);
+    }
+    catch (Exception e) {
+      Logger.printf("failed invoking %s.%s, %s\n", self.getClass().getName(), method.getName(), e.getMessage());
+    }
+    return null;
   }
 
   /**
@@ -30,7 +45,7 @@ public class ReflectiveType {
    * @param parameterTypes Fully qualified class names of all parameters
    * @return Matching method if found. Otherwise, null.
    */
-  protected Method getMethod(String name, String... parameterTypes) {
+  protected Method getMethodByClassNames(String name, String... parameterTypes) {
     Method[] methods;
 
     try {

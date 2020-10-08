@@ -4,6 +4,7 @@ import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.IRecordingSession;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.util.Logger;
+import com.appland.appmap.config.Properties;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -15,9 +16,14 @@ import java.io.PrintWriter;
 @WebServlet(name = "RecordServlet", urlPatterns = {"/_appmap/record"}, loadOnStartup = 1) 
 public class RecordServlet extends HttpServlet {
   private static final Recorder recorder = Recorder.getInstance();
+  private static boolean debug = Properties.DebugHttp;
 
   @Override
   protected void doDelete(HttpServletRequest req, HttpServletResponse res) {
+    if (debug) {
+      Logger.println("RecordServlet.doDelete");
+    }
+
     try {
       String json = recorder.stop();
       res.setContentType("application/json");
@@ -35,6 +41,10 @@ public class RecordServlet extends HttpServlet {
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse res) {
+    if (debug) {
+      Logger.println("RecordServlet.doGet");
+    }
+
     res.setStatus(HttpServletResponse.SC_OK);
 
     String responseJson = String.format("{\"enabled\":%b}", recorder.hasActiveSession());
@@ -52,6 +62,10 @@ public class RecordServlet extends HttpServlet {
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse res) {
+    if (debug) {
+      Logger.println("RecordServlet.doPost");
+    }
+
     IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
     metadata.recorderName = "remote_recording";
     try {

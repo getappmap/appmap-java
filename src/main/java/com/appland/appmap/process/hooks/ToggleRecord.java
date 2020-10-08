@@ -1,5 +1,6 @@
 package com.appland.appmap.process.hooks;
 
+import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.ExitEarly;
 import com.appland.appmap.process.conditions.RecordCondition;
@@ -21,10 +22,15 @@ import static com.appland.appmap.util.StringUtil.*;
  * Hooks to toggle event recording. This could be either via HTTP or by entering a unit test method.
  */
 public class ToggleRecord {
+  private static boolean debug = Properties.DebugHttp;
   private static final Recorder recorder = Recorder.getInstance();
   public static final String RecordRoute = "/_appmap/record";
 
   private static void doDelete(HttpServletRequest req, HttpServletResponse res) {
+    if (debug) {
+      Logger.println("ToggleRecord.doDelete");
+    }
+
     try {
       String json = recorder.stop();
       res.setContentType("application/json");
@@ -41,6 +47,10 @@ public class ToggleRecord {
   }
 
   private static void doGet(HttpServletRequest req, HttpServletResponse res) {
+    if (debug) {
+      Logger.println("ToggleRecord.doGet");
+    }
+
     res.setStatus(HttpServletResponse.SC_OK);
 
     String responseJson = String.format("{\"enabled\":%b}", recorder.hasActiveSession());
@@ -57,6 +67,10 @@ public class ToggleRecord {
   }
 
   private static void doPost(HttpServletRequest req, HttpServletResponse res) {
+    if (debug) {
+      Logger.println("ToggleRecord.doPost");
+    }
+
     IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
     metadata.recorderName = "remote_recording";
     try {
@@ -76,6 +90,10 @@ public class ToggleRecord {
       return;
     }
 
+    if (debug) {
+      Logger.println("ToggleRecord.service - handling appmap request");
+    }
+
     final HttpServletResponse res = new HttpServletResponse(args[1]);
     if (req.getMethod().equals("GET")) {
       doGet(req, res);
@@ -85,11 +103,18 @@ public class ToggleRecord {
       doDelete(req, res);
     }
 
+    if (debug) {
+      Logger.println("ToggleRecord.service - successfully handled appmap request, exiting early");
+    }
+
     throw new ExitEarly();
   }
 
   private static void skipFilterChain(Object[] args) throws ExitEarly {
     if (args.length != 3) {
+      if (debug) {
+        Logger.println("ToggleRecord.skipFilterChain - invalid arg length");
+      }
       return;
     }
 
@@ -98,8 +123,16 @@ public class ToggleRecord {
       return;
     }
 
+    if (debug) {
+      Logger.println("ToggleRecord.skipFilterChain - skipping filter chain");
+    }
+
     final FilterChain chain = new FilterChain(args[2]);
     chain.doFilter(args[0], args[1]);
+
+    if (debug) {
+      Logger.println("ToggleRecord.skipFilterChain - successfully skipped, exiting early");
+    }
 
     throw new ExitEarly();
   }
