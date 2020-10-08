@@ -24,6 +24,7 @@ public class ReflectiveType {
 
   protected Object invoke(Method method, Object... parameters) {
     try {
+      method.setAccessible(true);
       return method.invoke(self, parameters);
     }
     catch (InvocationTargetException e) {
