@@ -93,8 +93,8 @@ load 'helper'
   _curl -XGET "${WS_URL}"
   stop_recording
 
-  eval $(java test/Props.java java.vm.version java.vm.name)
-  
+  javac test/Props.java
+  eval $(java test.Props java.vm.version java.vm.name)
   assert_json_eq '.metadata.language.name' 'java'
   assert_json_eq '.metadata.language.version' "${JAVA_VM_VERSION}"
   assert_json_eq '.metadata.language.engine' "${JAVA_VM_NAME}"
@@ -128,9 +128,11 @@ load 'helper'
 
 @test "expected number of http client events captured" {
 
-  javac test/HttpClientTest.java
+  javac -g test/HttpClientTest.java
   java -Xbootclasspath/a:/appmap.jar -javaagent:/appmap.jar -Dappmap.debug -Dappmap.config.file=/appmap.yml \
    -Dappmap.output.directory=/tmp/appmap -Dappmap.record=test.HttpClientTest.main test.HttpClientTest
   output=$(</tmp/appmap/*.appmap.json)
   assert_json_eq '.events | length' 8
+  assert_json_eq '[.events[] | select(.http_client_request) ] | length' 3
+  assert_json_eq '[.events[] | select(.http_client_response) ] | length' 3
 }

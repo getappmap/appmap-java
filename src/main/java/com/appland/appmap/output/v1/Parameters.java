@@ -57,8 +57,7 @@ public class Parameters implements Iterable<Value> {
     // information. However, as of 20200822, other errors come up if
     // do hook them, so bail out here.
     if (locals == null) {
-        return;
-//        throw new NoSourceAvailableException("No local variables for " + fqn);
+      throw new NoSourceAvailableException("No local variables for " + fqn);
     }
 
     CtClass[] paramTypes = null;

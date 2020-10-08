@@ -6,8 +6,7 @@ import com.appland.appmap.transform.annotations.*;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.List;
-import java.util.Map;
+import java.net.URL;
 
 @Unique("http_client_request")
 public class HttpClientRequest {
@@ -17,7 +16,8 @@ public class HttpClientRequest {
     @HookClass(value = "java.net.HttpURLConnection")
     public static void connect(Event event, HttpURLConnection httpURLConnection) {
         //TODO: ReflectiveType can be used with HttpURLConnection
-        event.setHttpClientRequest(httpURLConnection.getRequestMethod(), httpURLConnection.getURL().getHost(), httpURLConnection.getURL().getProtocol());
+        URL url = httpURLConnection.getURL();
+        event.setHttpClientRequest(httpURLConnection.getRequestMethod(), url.getHost(), url.getProtocol());
         recorder.add(event);
     }
 

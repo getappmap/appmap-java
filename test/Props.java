@@ -1,3 +1,5 @@
+package test;
+
 public class Props {
   public static void main(String[] argv) {
     for (String prop : argv) {
