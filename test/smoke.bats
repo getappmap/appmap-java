@@ -134,7 +134,7 @@ load 'helper'
   fi
   javac -g test/HttpClientTest.java
   java -Xbootclasspath/a:/appmap.jar -javaagent:/appmap.jar -Dappmap.debug -Dappmap.config.file=/appmap.yml \
-   -Dappmap.output.directory=/tmp/appmap -Dappmap.record=test.HttpClientTest.main test.HttpClientTest
+   -Dappmap.output.directory=/tmp/appmap -Dappmap.record=test.HttpClientTest.main test.HttpClientTest ${WS_URL}
   output=$(</tmp/appmap/*.appmap.json)
   assert_json_eq '[.events[] | select(.http_client_request)] | length' 3
   assert_json_eq '[.events[] | select(.http_client_response)] | length' 3

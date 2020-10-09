@@ -7,9 +7,12 @@ import java.net.URL;
 
 public class HttpClientTest {
 
-  private static final String WS_URL = "http://localhost:8080";
+
 
   public static void main(String[] argv) throws IOException {
+
+    final String WS_URL = argv[0];
+
     URL url;
     HttpURLConnection connection;
 
