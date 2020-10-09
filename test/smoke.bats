@@ -128,6 +128,10 @@ load 'helper'
 
 @test "expected number of http client events captured" {
 
+  java_version=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | sed 's/^1\.//'| cut -d'.' -f1 | cut -d'-' -f1)
+  if [ $java_version -gt "8" ]; then
+    skip "java version higher than 8."
+  fi
   javac -g test/HttpClientTest.java
   java -Xbootclasspath/a:/appmap.jar -javaagent:/appmap.jar -Dappmap.debug -Dappmap.config.file=/appmap.yml \
    -Dappmap.output.directory=/tmp/appmap -Dappmap.record=test.HttpClientTest.main test.HttpClientTest
