@@ -4,6 +4,7 @@ AppLand AppMap Recorder for Java
 
 
 - [Building](#building)
+- [Configuration](#configuration)
 - [Running](#running)
   - [Other examples](#other-examples)
     - [Maven](#maven)
@@ -25,6 +26,27 @@ Artifacts will be written to `build/libs`. Use `appmap.jar` as your agent.
 ```
 $ ./gradlew build
 ```
+# Configuration
+When you run your program, the `javaagent` reads configuration settings from `appmap.yml`. Here's a sample configuration file for a typical Java project:
+
+```yaml
+name: MyProject
+packages:
+- path: com.mycorp.myproject
+```
+
+* **name** Provides the project name (required)
+* **packages** A list of source code directories which should be instrumented.
+
+
+**packages**
+
+Each entry in the `packages` list is a YAML object which has the following keys:
+
+* **path** The path to the source code directory. The path may be relative to the current working directory, or it may be an absolute path.
+* **exclude** A list of files and directories which will be ignored. By default, all modules, classes and public functions are inspected.
+
+
 # Running
 The AppMap recorder is run as a Java agent. Currently, it must be started along with the JVM. This is typically done by passing the `-javaagent` argument to your JVM.
 For example:
