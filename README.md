@@ -33,8 +33,7 @@ When you run your program, the `agent` reads configuration settings from `appmap
 name: MyProject
 packages:
 - path: com.mycorp.myproject
-exclude:
-- path: com.path.to.exclude
+- exclude: com.mycorp.myproject.MyClass#MyMethod
 ```
 
 * **name** Provides the project name (required)
