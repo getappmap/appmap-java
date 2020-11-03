@@ -27,7 +27,7 @@ Artifacts will be written to `build/libs`. Use `appmap.jar` as your agent.
 $ ./gradlew build
 ```
 # Configuration
-When you run your program, the `agent` reads configuration settings from `appmap.yml`. Here's a sample configuration file for a typical Java project:
+When you run your program, the agent reads configuration settings from `appmap.yml`. Here's a sample configuration file for a typical Java project:
 
 ```yaml
 name: MyProject
