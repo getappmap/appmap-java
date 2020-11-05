@@ -1,16 +1,4 @@
-FROM openjdk:11-jdk-slim AS petclinic
-
-# Build the Spring "Pet Clinic" sample application
-RUN apt-get update \
-    && apt-get install -y git
-
-RUN mkdir -p /build \
-    && git clone https://github.com/spring-projects/spring-petclinic.git \
-    && cd spring-petclinic \
-    && ./mvnw package -Dmaven.test.skip=true \
-    && mv target/*.jar /build/petclinic.jar
-
-FROM openjdk:11-jdk-slim AS build
+FROM openjdk:8-jdk-slim AS build
 
 RUN apt-get update \
     && apt-get install -y git
@@ -30,7 +18,7 @@ ADD buildSrc            ./buildSrc
 RUN ./gradlew --no-daemon build  \
     && mv build/libs/appmap-*-java*.jar /build/appmap.jar
 
-FROM openjdk:13-alpine
+FROM openjdk:8-alpine
 LABEL maintainer="Dustin Byrne <dustin@app.land>"
 
 RUN apk add --no-cache -U bash curl git jq ncurses less
@@ -41,12 +29,13 @@ RUN git clone https://github.com/bats-core/bats-core.git \
     && cd bats-core \
     && ./install.sh /usr/local
 
-COPY --from=petclinic /build /
+COPY --from=petclinic:latest /build /
 COPY --from=build /build /
 COPY test/appmap.yml     /
 COPY test/entrypoint     /sbin/
 COPY test/*.bats         /test/
 COPY test/Props.java     /test/
 COPY test/helper.bash    /test/
+COPY test/HttpClientTest.java /test/
 
 ENTRYPOINT ["/sbin/entrypoint"]

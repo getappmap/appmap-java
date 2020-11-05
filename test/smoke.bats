@@ -93,8 +93,8 @@ load 'helper'
   _curl -XGET "${WS_URL}"
   stop_recording
 
-  eval $(java test/Props.java java.vm.version java.vm.name)
-  
+  javac test/Props.java
+  eval $(java test.Props java.vm.version java.vm.name)
   assert_json_eq '.metadata.language.name' 'java'
   assert_json_eq '.metadata.language.version' "${JAVA_VM_VERSION}"
   assert_json_eq '.metadata.language.engine' "${JAVA_VM_NAME}"
@@ -124,4 +124,18 @@ load 'helper'
   assert_json_eq '.classMap | length' 2
   assert_json_eq '[.classMap[0] | recurse | .name?] | join(".")' javax.servlet.http.HttpServlet.service
   assert_json_eq '[.classMap[1] | recurse | .name?] | join(".")' org.springframework.samples.petclinic.system.CrashController.triggerException
+}
+
+@test "expected number of http client events captured" {
+
+  java_version=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | sed 's/^1\.//'| cut -d'.' -f1 | cut -d'-' -f1)
+  if [ $java_version -gt "8" ]; then
+    skip "java version higher than 8."
+  fi
+  javac -g test/HttpClientTest.java
+  java -Xbootclasspath/a:/appmap.jar -javaagent:/appmap.jar -Dappmap.debug -Dappmap.config.file=/appmap.yml \
+   -Dappmap.output.directory=/tmp/appmap -Dappmap.record=test.HttpClientTest.main test.HttpClientTest ${WS_URL}
+  output=$(</tmp/appmap/*.appmap.json)
+  assert_json_eq '[.events[] | select(.http_client_request)] | length' 3
+  assert_json_eq '[.events[] | select(.http_client_response)] | length' 3
 }

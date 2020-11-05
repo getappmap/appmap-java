@@ -31,7 +31,7 @@ public class Message {
       return;
     }
 
-    if (lastEvent.httpRequest == null) {
+    if (lastEvent.httpServerRequest == null) {
       return;
     }
 
@@ -40,6 +40,6 @@ public class Message {
       lastEvent.addMessageParam(param.getKey(), param.getValue());
     }
     final String normalizedPath = pattern.replace('{', ':').replace("}", "");
-    lastEvent.httpRequest.setNormalizedPath(normalizedPath);
+    lastEvent.httpServerRequest.setNormalizedPath(normalizedPath);
   }
 }

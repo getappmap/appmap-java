@@ -1,3 +1,4 @@
 name: Spring Pet Clinic
 packages:
 - path: org.springframework.samples.petclinic
+- path: test.HttpClientTest
