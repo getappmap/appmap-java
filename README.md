@@ -25,6 +25,9 @@ Artifacts will be written to `build/libs`. Use `appmap.jar` as your agent.
 ```
 $ ./gradlew build
 ```
+## Download the latest release
+As an alternative to building the `appmap.jar`, download the latest release from [https://github.com/applandinc/appmap-java/releases](https://github.com/applandinc/appmap-java/releases).
+
 # Configuration
 When you run your program, the agent reads configuration settings from `appmap.yml`. Here's a sample configuration file for a typical Java project:
 
