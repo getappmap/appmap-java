@@ -18,14 +18,16 @@ package com.appland.appmap;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import com.appland.appmap.record.IRecordingSession;
+import com.appland.appmap.record.Recorder;
 
 import java.io.File;
 
 /**
- * Goal which touches a timestamp file.
+ * Goal which register a appmap java recording agent, right before the test execution begins.
  *
  * @goal run-map-agent
- * @phase test
+ * @phase test-compile
  */
 public class RunAppMapAgentMojo extends AbstractMojo {
     /**
@@ -38,6 +40,13 @@ public class RunAppMapAgentMojo extends AbstractMojo {
 
     public void execute()
             throws MojoExecutionException {
-        getLog().info("Look momma no hands!!");
+        getLog().info("Initializing AppLand AppMap Java Recorder");
+        try {
+            final IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
+            Recorder.getInstance().start(metadata);
+        }catch (Exception e) {
+            getLog().error("Error initializing AppLand AppMap Java Recorder");
+            e.printStackTrace();
+        }
     }
 }
