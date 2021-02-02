@@ -26,17 +26,33 @@ import java.io.File;
 /**
  * Goal which register a appmap java recording agent, right before the test execution begins.
  *
- * @goal run-map-agent
+ * @goal prepare-agent
  * @phase test-compile
  */
 public class LoadJavaAppMapAgentMojo extends AbstractMojo {
     /**
-     * Location of the file.
+     * Directory where reports will be generated.
      *
      * @parameter expression="${project.build.directory}"
-     * @required
+     *
      */
     private File outputDirectory;
+
+    /**
+     * Configuration file for the java agent @default /appmap.yml.
+     *
+     * @parameter expression="${project.build.directory}"
+     *
+     */
+    private File configFile;
+
+    /**
+     * Java Agent Debug Option.
+     *
+     * @parameter expression="${project.build.directory}
+     *
+     */
+    private Boolean debug = false;
 
     public void execute()
             throws MojoExecutionException {
