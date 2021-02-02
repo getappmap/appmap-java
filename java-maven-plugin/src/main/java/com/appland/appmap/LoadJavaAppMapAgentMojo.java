@@ -29,7 +29,7 @@ import java.io.File;
  * @goal run-map-agent
  * @phase test-compile
  */
-public class RunAppMapAgentMojo extends AbstractMojo {
+public class LoadJavaAppMapAgentMojo extends AbstractMojo {
     /**
      * Location of the file.
      *
