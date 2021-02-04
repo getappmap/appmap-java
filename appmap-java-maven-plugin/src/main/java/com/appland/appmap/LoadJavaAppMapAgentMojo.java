@@ -31,13 +31,6 @@ import java.util.Properties;
  */
 public class LoadJavaAppMapAgentMojo extends AppMapAgentMojo {
 
-    /**
-     * Map of plugin artifacts.
-     *
-     * @parameter expression="${plugin.artifactMap}
-     */
-    Map<String, Artifact> pluginArtifactMap;
-
     @Override
     public void execute()
             throws MojoExecutionException {
@@ -49,23 +42,12 @@ public class LoadJavaAppMapAgentMojo extends AppMapAgentMojo {
                 skipMojo();
                 return;
             } else {
-                final String name = getEffectivePropertyName();
-                final Properties projectProperties = getProject().getProperties();
-                final String oldValue = projectProperties.getProperty(name);
-
-                final String newValue = prependVMArguments(oldValue, getAgentJarFile());
-                getLog().info(name + " set to " + newValue);
-                projectProperties.setProperty(name, newValue);
+                loadAppMapJavaAgent();
             }
         } catch (Exception e) {
             getLog().error("Error initializing AppLand AppMap Java Recorder");
             e.printStackTrace();
         }
-    }
-
-    private File getAgentJarFile() {
-        final Artifact appmapAgentArtifact = pluginArtifactMap.get(AGENT_ARTIFACT_NAME);
-        return appmapAgentArtifact.getFile();
     }
 
 }

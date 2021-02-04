@@ -1,5 +1,6 @@
 package com.appland.appmap;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -8,6 +9,8 @@ import org.apache.maven.project.MavenProject;
 import java.io.File;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import static java.lang.String.format;
 
@@ -68,11 +71,16 @@ public abstract class AppMapAgentMojo extends AbstractMojo {
     @Parameter(property = "appmap.propertyName")
     String propertyName;
 
-    public abstract void execute()
-            throws MojoExecutionException;
+    /**
+     * Map of plugin artifacts.
+     *
+     * @parameter expression="${plugin.artifactMap}
+     */
+    Map<String, Artifact> pluginArtifactMap;
 
-    protected void skipMojo() {
-    }
+    public abstract void execute() throws MojoExecutionException;
+
+    protected void skipMojo() { }
 
     /**
      * @return Maven project
@@ -121,5 +129,20 @@ public abstract class AppMapAgentMojo extends AbstractMojo {
      */
     protected String getVMArgument(final File agentJarFile) {
         return format("-javaagent:%s=%s", agentJarFile, this);
+    }
+
+    protected void loadAppMapJavaAgent() {
+        final String name = getEffectivePropertyName();
+        final Properties projectProperties = getProject().getProperties();
+        final String oldValue = projectProperties.getProperty(name);
+
+        final String newValue = prependVMArguments(oldValue, getAgentJarFile());
+        getLog().info(name + " set to " + newValue);
+        projectProperties.setProperty(name, newValue);
+    }
+
+    protected File getAgentJarFile() {
+        final Artifact appmapAgentArtifact = pluginArtifactMap.get(AGENT_ARTIFACT_NAME);
+        return appmapAgentArtifact.getFile();
     }
 }
