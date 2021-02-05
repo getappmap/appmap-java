@@ -1,5 +1,6 @@
 package com.appland.appmap;
 
+import com.appland.shade.org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -7,142 +8,69 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
 public abstract class AppMapAgentMojo extends AbstractMojo {
-    /**
-     * Name of the AppMap Agent artifact.
-     */
-    static final String AGENT_ARTIFACT_NAME = "com.appland.appmap:java-agent";
-    /**
-     * Name of the property used in maven-surefire-plugin.
-     */
-    static final String SUREFIRE_ARG_LINE = "argLine";
-    /**
-     * Name of the property used in maven-osgi-test-plugin.
-     */
-    static final String TYCHO_ARG_LINE = "tycho.testArgLine";
-    /**
-     * Directory where reports will be generated. @default /tmp
-     *
-     * @parameter expression="${project.outputDirectory}"
-     */
-    protected File outputDirectory;
-    /**
-     * Configuration file for the java agent @default /appmap.yml.
-     *
-     * @parameter expression="${project.configFile}"
-     */
-    protected File configFile;
-    /**
-     * Java Agent Debug Option.
-     *
-     * @parameter expression="${project.debug}
-     */
-    protected String debug = "disabled";
-    /**
-     * Java Agent Event Description Size.
-     *
-     * @parameter expression="${project.eventValueSize}
-     */
-    protected Integer eventValueSize = 1024;
-    /**
-     * Maven project.
-     *
-     * @parameter expression="${project}
-     */
-    protected MavenProject project;
-    /**
-     * Flag used to suppress execution.
-     *
-     * @parameter expression="${project.skip}
-     */
-    protected boolean skip;
-    /**
-     * Allows to specify property which will contains settings for AppMap Agent.
-     * If not specified, then "argLine" would be used for "jar" packaging and
-     * "tycho.testArgLine" for "eclipse-test-plugin".
-     */
-    @Parameter(property = "appmap.propertyName")
-    String propertyName;
 
-    /**
-     * Map of plugin artifacts.
-     *
-     * @parameter expression="${plugin.artifactMap}
-     */
-    Map<String, Artifact> pluginArtifactMap;
+    static final String APPMAP_AGENT_ARTIFACT_NAME = "com.appland.appmap:java-agent";
+    static final String SUREFIRE_ARG_LINE = "argLine";
+
+    @Parameter(property = "skip")
+    protected boolean skip = false;
+
+    @Parameter(property = "project.outputDirectory")
+    protected File outputDirectory = new File("tmp");
+
+    @Parameter(property = "project.configFile")
+    protected File configFile = new File("appmap.yml");
+
+    @Parameter(property = "project.debug")
+    protected String debug = "disabled";
+
+    @Parameter(property = "project.eventValueSize")
+    protected Integer eventValueSize = 1024;
+
+    @Parameter(property = "project")
+    protected MavenProject project;
+
+    @Parameter(property = "plugin.artifactMap")
+    protected Map<String, Artifact> pluginArtifactMap;
 
     public abstract void execute() throws MojoExecutionException;
 
-    protected void skipMojo() { }
-
-    /**
-     * @return Maven project
-     */
-    protected final MavenProject getProject() {
-        return project;
-    }
-
-    String getEffectivePropertyName() {
-        if (isPropertyNameSpecified()) {
-            return propertyName;
-        }
-        if (isEclipseTestPluginPackaging()) {
-            return TYCHO_ARG_LINE;
-        }
-        return SUREFIRE_ARG_LINE;
-    }
-
-    protected boolean isPropertyNameSpecified() {
-        return propertyName != null && !"".equals(propertyName);
-    }
-
-    protected boolean isEclipseTestPluginPackaging() {
-        return "eclipse-test-plugin".equals(getProject().getPackaging());
-    }
-
-    protected String prependVMArguments(final String arguments,
-                                        final File agentJarFile) {
-        final List<String> args = CommandLineSupport.split(arguments);
-        final String plainAgent = format("-javaagent:%s", agentJarFile);
-        for (final Iterator<String> i = args.iterator(); i.hasNext(); ) {
-            if (i.next().startsWith(plainAgent)) {
-                i.remove();
-            }
-        }
-        args.add(0, getVMArgument(agentJarFile));
-        return CommandLineSupport.quote(args);
-    }
-
-    /**
-     * Generate required JVM argument based on current configuration and
-     * supplied agent jar location.
-     *
-     * @param agentJarFile location of the AppMap Agent Jar
-     * @return Argument to pass to create new VM with App Mapping enabled
-     */
-    protected String getVMArgument(final File agentJarFile) {
-        return format("-javaagent:%s=%s", agentJarFile, this);
+    protected void skipMojo() {
     }
 
     protected void loadAppMapJavaAgent() {
-        final String name = getEffectivePropertyName();
-        final Properties projectProperties = getProject().getProperties();
-        final String oldValue = projectProperties.getProperty(name);
-
-        final String newValue = prependVMArguments(oldValue, getAgentJarFile());
-        getLog().info(name + " set to " + newValue);
-        projectProperties.setProperty(name, newValue);
+        final String newValue = buildArguments();
+        setProjectArgLineProperty(newValue);
+        getLog().info(SUREFIRE_ARG_LINE
+                + " set to " + StringEscapeUtils.unescapeJava(newValue));
     }
 
-    protected File getAgentJarFile() {
-        final Artifact appmapAgentArtifact = pluginArtifactMap.get(AGENT_ARTIFACT_NAME);
-        return appmapAgentArtifact.getFile();
+    private String buildArguments() {
+        List<String> args = new ArrayList<String>();
+        args.add(StringEscapeUtils.escapeJava(
+                format("-javaagent:%s=%s", getAppMapAgentJar(), this)
+        ));
+        args.add("-Dappmap.debug=" + StringEscapeUtils.escapeJava(debug));
+        args.add("-Dappmap.output.directory=" + StringEscapeUtils.escapeJava( format("%s",outputDirectory)));
+        args.add("-Dappmap.config.file=" + StringEscapeUtils.escapeJava( format("%s",configFile)));
+        args.add("-Dappmap.event.valueSize=" + eventValueSize);
+        return args.stream().collect(Collectors.joining(" ")).toString();
+    }
+
+
+    private Object setProjectArgLineProperty(String newValue) {
+        return project.getProperties().setProperty(SUREFIRE_ARG_LINE, newValue);
+    }
+
+    protected File getAppMapAgentJar() {
+        return pluginArtifactMap.get(APPMAP_AGENT_ARTIFACT_NAME).getFile();
     }
 }
