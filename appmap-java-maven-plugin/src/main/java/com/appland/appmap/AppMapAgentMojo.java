@@ -8,9 +8,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -35,11 +33,11 @@ public abstract class AppMapAgentMojo extends AbstractMojo {
     @Parameter(property = "project.eventValueSize")
     protected Integer eventValueSize = 1024;
 
-    @Parameter(property = "project")
-    protected MavenProject project;
-
     @Parameter(property = "plugin.artifactMap")
     protected Map<String, Artifact> pluginArtifactMap;
+
+    @Parameter(property = "project")
+    private MavenProject project;
 
     public abstract void execute() throws MojoExecutionException;
 
@@ -53,16 +51,40 @@ public abstract class AppMapAgentMojo extends AbstractMojo {
                 + " set to " + StringEscapeUtils.unescapeJava(newValue));
     }
 
+    /**
+     * This method builds the needed parameter to run the Agent, if previous configuration is found is also attached in
+     * the SUREFIRE_ARG_LINE, if previous version of the AppMap agent is found is removed and replaced with the version
+     * of this maven plugin
+     *
+     * @return formatted and escaped arguments to run on command line
+     */
     private String buildArguments() {
+        final String oldConfig = getCurrentArgLinePropertyValue();
+        final List<String> oldArgs = Arrays.asList(oldConfig.split(" "));
+        removeOldAppMapAgentFromCommandLine(oldArgs);
         List<String> args = new ArrayList<String>();
+        addMvnAppMapCommandLineArgs(args);
+        args.addAll(oldArgs);
+        return args.stream().collect(Collectors.joining(" "));
+    }
+
+    private void removeOldAppMapAgentFromCommandLine(List<String> oldArgs) {
+        final String plainAgent = format("-javaagent:%s", getAppMapAgentJar());
+        for (final Iterator<String> i = oldArgs.iterator(); i.hasNext(); ) {
+            if (i.next().startsWith(plainAgent)) {
+                i.remove();
+            }
+        }
+    }
+
+    private void addMvnAppMapCommandLineArgs(List<String> args) {
         args.add(StringEscapeUtils.escapeJava(
                 format("-javaagent:%s=%s", getAppMapAgentJar(), this)
         ));
         args.add("-Dappmap.debug=" + StringEscapeUtils.escapeJava(debug));
-        args.add("-Dappmap.output.directory=" + StringEscapeUtils.escapeJava( format("%s",outputDirectory)));
-        args.add("-Dappmap.config.file=" + StringEscapeUtils.escapeJava( format("%s",configFile)));
+        args.add("-Dappmap.output.directory=" + StringEscapeUtils.escapeJava(format("%s", outputDirectory)));
+        args.add("-Dappmap.config.file=" + StringEscapeUtils.escapeJava(format("%s", configFile)));
         args.add("-Dappmap.event.valueSize=" + eventValueSize);
-        return args.stream().collect(Collectors.joining(" ")).toString();
     }
 
 
@@ -70,7 +92,15 @@ public abstract class AppMapAgentMojo extends AbstractMojo {
         return project.getProperties().setProperty(SUREFIRE_ARG_LINE, newValue);
     }
 
+    private String getCurrentArgLinePropertyValue() {
+        return project.getProperties().getProperty(SUREFIRE_ARG_LINE);
+    }
+
     protected File getAppMapAgentJar() {
         return pluginArtifactMap.get(APPMAP_AGENT_ARTIFACT_NAME).getFile();
+    }
+
+    public MavenProject getProject() {
+        return project;
     }
 }

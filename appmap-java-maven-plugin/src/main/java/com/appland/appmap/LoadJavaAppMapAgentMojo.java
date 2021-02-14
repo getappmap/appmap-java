@@ -17,7 +17,7 @@ public class LoadJavaAppMapAgentMojo extends AppMapAgentMojo {
             throws MojoExecutionException {
         try {
             if (skip) {
-                getLog().info("Skipping AppLan AppMap execution because property skip is set.");
+                getLog().info("Skipping AppLand AppMap execution because property skip is set.");
                 skipMojo();
                 return;
             } else {
