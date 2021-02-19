@@ -349,7 +349,16 @@ public class Event {
             .setMethod(method)
             .setPath(path)
             .setProtocol(protocol);
+    this.path = null;
+    removeFieldsNotNeededForHttpOrSqlEvents();
     return this;
+  }
+
+  private void removeFieldsNotNeededForHttpOrSqlEvents() {
+    this.setLineNumber(null);
+    this.setStatic(null);
+    this.setDefinedClass(null);
+    this.setMethodId(null);
   }
 
   /**
@@ -402,6 +411,7 @@ public class Event {
    */
   public Event setSqlQuery(String databaseType, String sql) {
     this.sqlQuery = new SqlQuery(databaseType, sql);
+    removeFieldsNotNeededForHttpOrSqlEvents();
     return this;
   }
 
