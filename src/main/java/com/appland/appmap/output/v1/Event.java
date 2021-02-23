@@ -1,6 +1,7 @@
 package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.appland.appmap.transform.annotations.MethodEvent;
 import javassist.CtBehavior;
 
 import java.lang.reflect.Method;
@@ -125,6 +126,7 @@ public class Event {
    */
   public Event setEvent(String event) {
     this.event = event;
+    removeFieldsNotNeededForHttpSqlOrReturnEvents();
     return this;
   }
 
@@ -350,15 +352,19 @@ public class Event {
             .setPath(path)
             .setProtocol(protocol);
     this.path = null;
-    removeFieldsNotNeededForHttpOrSqlEvents();
+    removeFieldsNotNeededForHttpSqlOrReturnEvents();
     return this;
   }
 
-  private void removeFieldsNotNeededForHttpOrSqlEvents() {
-    this.setLineNumber(null);
-    this.setStatic(null);
-    this.setDefinedClass(null);
-    this.setMethodId(null);
+  /**
+   * Removes unnecessary or duplicated fields depending on the event type
+   */
+  private void removeFieldsNotNeededForHttpSqlOrReturnEvents() {
+      setPath(null);
+      setLineNumber(null);
+      setStatic(null);
+      setDefinedClass(null);
+      setMethodId(null);
   }
 
   /**
@@ -411,7 +417,7 @@ public class Event {
    */
   public Event setSqlQuery(String databaseType, String sql) {
     this.sqlQuery = new SqlQuery(databaseType, sql);
-    removeFieldsNotNeededForHttpOrSqlEvents();
+    removeFieldsNotNeededForHttpSqlOrReturnEvents();
     return this;
   }
 
