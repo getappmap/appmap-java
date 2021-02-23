@@ -1,7 +1,6 @@
 package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.appland.appmap.transform.annotations.MethodEvent;
 import javassist.CtBehavior;
 
 import java.lang.reflect.Method;
