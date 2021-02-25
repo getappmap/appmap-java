@@ -12,7 +12,7 @@
     <dependencies>
         <dependency>
             <groupId>com.appland</groupId>
-            <artifactId>java-agent</artifactId>
+            <artifactId>appmap-agent</artifactId>
             <version>0.5.0</version>
         </dependency>
 

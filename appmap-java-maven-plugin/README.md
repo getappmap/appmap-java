@@ -37,8 +37,8 @@ skip(Boolean, default false)
 ```xml
 <!-- AppMap Java agent, default parameters -->
 <plugin>
-    <groupId>org.appland</groupId>
-    <artifactId>appmap-java-maven-plugin</artifactId>
+    <groupId>com.appland</groupId>
+    <artifactId>appmap-maven-plugin</artifactId>
     <version>${appmap-java.version}</version>
         <configuration>
             <outputDirectory></outputDirectory>
