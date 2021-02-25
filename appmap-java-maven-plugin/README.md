@@ -27,10 +27,10 @@ Please read configuration options from [AppMap Java Agent README.md](../README.m
 prepare-agent : adds appmap.jar to JVM execution as javaagent
 
 ## Plugin configuration options
-outputD.directory (default: ./target/appmap/)
-configF.file (default: ./appmap.yml)
+outputDirectory (default: ./target/appmap/)
+configFile (default: ./appmap.yml)
 debug (enabled|disabled, default: disabled)
-eventV.valueSize (integer, default 1024)
+eventValueSize (integer, default 1024)
 skip(Boolean, default false)
 
 ## Example plugin config in a standard POM.xml file

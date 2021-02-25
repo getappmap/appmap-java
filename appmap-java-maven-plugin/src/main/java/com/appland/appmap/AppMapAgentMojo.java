@@ -15,7 +15,7 @@ import static java.lang.String.format;
 
 public abstract class AppMapAgentMojo extends AbstractMojo {
 
-    static final String APPMAP_AGENT_ARTIFACT_NAME = "com.appland.appmap:java-agent";
+    static final String APPMAP_AGENT_ARTIFACT_NAME = "com.appland:appmap-agent";
     static final String SUREFIRE_ARG_LINE = "argLine";
 
     @Parameter(property = "skip")
@@ -59,32 +59,46 @@ public abstract class AppMapAgentMojo extends AbstractMojo {
      * @return formatted and escaped arguments to run on command line
      */
     private String buildArguments() {
-        final String oldConfig = getCurrentArgLinePropertyValue();
-        final List<String> oldArgs = Arrays.asList(oldConfig.split(" "));
-        removeOldAppMapAgentFromCommandLine(oldArgs);
         List<String> args = new ArrayList<String>();
-        addMvnAppMapCommandLineArgs(args);
-        args.addAll(oldArgs);
+        final String oldConfig = getCurrentArgLinePropertyValue();
+        if (oldConfig != null) {
+            final List<String> oldArgs = Arrays.asList(oldConfig.split(" "));
+            removeOldAppMapAgentFromCommandLine(oldArgs);
+            args.addAll(oldArgs);
+        }
+        addMvnAppMapCommandLineArgsFirst(args);
         return args.stream().collect(Collectors.joining(" "));
     }
 
+    /**
+     * Generate required quotes JVM argument based on current configuration and
+     * prepends it to the given argument command line. If a agent with the same
+     * JAR file is already specified this parameter is removed from the existing
+     * command line, does the same for xbootclasspath command.
+     */
     private void removeOldAppMapAgentFromCommandLine(List<String> oldArgs) {
         final String plainAgent = format("-javaagent:%s", getAppMapAgentJar());
+        final String xbootClasspath =   format("-Xbootclasspath/a:%s", getAppMapAgentJar());
         for (final Iterator<String> i = oldArgs.iterator(); i.hasNext(); ) {
-            if (i.next().startsWith(plainAgent)) {
+            final String oldCommand = i.next();
+            if (oldCommand.startsWith(plainAgent) || oldCommand.startsWith(xbootClasspath)) {
                 i.remove();
             }
         }
     }
 
-    private void addMvnAppMapCommandLineArgs(List<String> args) {
+    private void addMvnAppMapCommandLineArgsFirst(List<String> args) {
+        args.add(StringEscapeUtils.escapeJava(
+                format("-Xbootclasspath/a:%s", getAppMapAgentJar(), this)
+        ));
         args.add(StringEscapeUtils.escapeJava(
                 format("-javaagent:%s=%s", getAppMapAgentJar(), this)
         ));
-        args.add("-Dappmap.debug=" + StringEscapeUtils.escapeJava(debug));
-        args.add("-Dappmap.output.directory=" + StringEscapeUtils.escapeJava(format("%s", outputDirectory)));
-        args.add("-Dappmap.config.file=" + StringEscapeUtils.escapeJava(format("%s", configFile)));
-        args.add("-Dappmap.event.valueSize=" + eventValueSize);
+
+        args.add(0, "-Dappmap.debug=" + StringEscapeUtils.escapeJava(debug));
+        args.add(0, "-Dappmap.output.directory=" + StringEscapeUtils.escapeJava(format("%s", outputDirectory)));
+        args.add(0, "-Dappmap.config.file=" + StringEscapeUtils.escapeJava(format("%s", configFile)));
+        args.add(0, "-Dappmap.event.valueSize=" + eventValueSize);
     }
 
 
