@@ -1,6 +1,6 @@
 package com.appland.appmap;
 
-import com.appland.shade.org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -9,7 +9,6 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -67,7 +66,11 @@ public abstract class AppMapAgentMojo extends AbstractMojo {
             args.addAll(oldArgs);
         }
         addMvnAppMapCommandLineArgsFirst(args);
-        return args.stream().collect(Collectors.joining(" "));
+        StringBuilder builder = new StringBuilder();
+        for ( String arg : args) {
+            builder.append(arg).append(" ");
+        }
+        return builder.toString();
     }
 
     /**
