@@ -138,6 +138,8 @@ public class Recorder {
 
       recordingSession = this.activeSession;
       pendingEvent = this.queuedEvents.get(event.threadId);
+      if(pendingEvent!=null) event.setParentId(pendingEvent.id);
+      event.validateEventAndRemoveUnnecessaryInformation();
       this.queuedEvents.put(event.threadId, event);
     }
 

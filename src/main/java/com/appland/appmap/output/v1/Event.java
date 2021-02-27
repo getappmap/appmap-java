@@ -1,6 +1,7 @@
 package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.appland.appmap.transform.annotations.MethodEvent;
 import javassist.CtBehavior;
 
 import java.lang.reflect.Method;
@@ -125,7 +126,6 @@ public class Event {
    */
   public Event setEvent(String event) {
     this.event = event;
-    removeFieldsNotNeededForHttpSqlOrReturnEvents();
     return this;
   }
 
@@ -217,7 +217,6 @@ public class Event {
     if (val != null) {
       this.returnValue = new Value(val);
     }
-
     return this;
   }
 
@@ -235,7 +234,6 @@ public class Event {
         t = t.getCause();
       }
     }
-
     return this;
   }
 
@@ -249,7 +247,6 @@ public class Event {
     if (val != null) {
       this.receiver = new Value(val);
     }
-
     return this;
   }
 
@@ -351,19 +348,7 @@ public class Event {
             .setPath(path)
             .setProtocol(protocol);
     this.path = null;
-    removeFieldsNotNeededForHttpSqlOrReturnEvents();
     return this;
-  }
-
-  /**
-   * Removes unnecessary or duplicated fields depending on the event type
-   */
-  private void removeFieldsNotNeededForHttpSqlOrReturnEvents() {
-      setPath(null);
-      setLineNumber(null);
-      setStatic(null);
-      setDefinedClass(null);
-      setMethodId(null);
   }
 
   /**
@@ -416,7 +401,6 @@ public class Event {
    */
   public Event setSqlQuery(String databaseType, String sql) {
     this.sqlQuery = new SqlQuery(databaseType, sql);
-    removeFieldsNotNeededForHttpSqlOrReturnEvents();
     return this;
   }
 
@@ -448,5 +432,18 @@ public class Event {
     }
 
     return this;
+  }
+
+  /**
+   * Removes unnecessary or duplicated fields depending on the event type
+   */
+  public void validateEventAndRemoveUnnecessaryInformation() {
+    if (event != null && event.equalsIgnoreCase(MethodEvent.METHOD_RETURN.getEventString())) {
+      if(path!=null) path = null;
+      if(lineNumber!=null) lineNumber = null;
+      if(isStatic != null) isStatic = null;
+      if(definedClass!=null) definedClass= null;
+      if(methodId != null) methodId = null;
+    }
   }
 }
