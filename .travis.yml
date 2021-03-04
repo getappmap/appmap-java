@@ -17,12 +17,20 @@ script:
 - ./gradlew -is integrationTest
 - ./bin/test
 deploy:
-  provider: releases
-  api_key:
-    secure: VklliU5eYog7dVHMdj0py4fzeec8JjOm5zfLdKlcyeJqNeSe5tYjcdKkbwrdBA9BjCRaw2AnplgAnFU2t6FK0eHEVO5uezIn3fU/YM3BM97hJITI+4jl6XA4Af50xGkuY7g4qrhCxVtpJ8bWlVB7JwbA4zABxnkrttsSRSQqydZI2q9G3hsiV6wkiJKMLCFSCttR4xCnrENXypO6QLxBqv/9jEhbNEm/oe8mj9fXSz5zKz8KfSIIGELxYSK/MM/iAA12htVSXxk6NdKwDCKEWXbkDzz1rYwoQfH67mY8TSvQ216Tibf+4BCId6FbSV9m0Z+OISzRVsa/ABQMz2NRm7lyQbS8zBMYvrkE0H7qO8hugb75+cmXYu4K0utcTmFzqnxw8U8lDgrbBXpsb/8rz7jDKpRhueTupoCD7NexEXp/ZRr9U3N+NoyG7S55BYlO+U0rWmmMaywE3EsT8z+s+FSltfAcfDhyFjm0Xn3DUxwjsD8WhQwCT4x+5Rv8AKSU3qTGFZlbD0T8iMbZzPrQe/ElywRBJU+C6LI65h63UI14ePyrVgENdFcQvN7QkLigU0n3PTo+xgEO1e/3zk4jK/IcZzaxZ83nMuqce68xpGj8qTmPLkTSeE6KUFKKfhlyk8kiRCLmFP11Rb9PEh9VzpWRWAw/aird2E0+RO+nD/U=
-  file_glob: true
-  file:
-  - build/libs/appmap-*-java*.jar
-  skip_cleanup: true
-  on:
-    tags: true
+  - provider: releases
+    api_key:
+      secure: VklliU5eYog7dVHMdj0py4fzeec8JjOm5zfLdKlcyeJqNeSe5tYjcdKkbwrdBA9BjCRaw2AnplgAnFU2t6FK0eHEVO5uezIn3fU/YM3BM97hJITI+4jl6XA4Af50xGkuY7g4qrhCxVtpJ8bWlVB7JwbA4zABxnkrttsSRSQqydZI2q9G3hsiV6wkiJKMLCFSCttR4xCnrENXypO6QLxBqv/9jEhbNEm/oe8mj9fXSz5zKz8KfSIIGELxYSK/MM/iAA12htVSXxk6NdKwDCKEWXbkDzz1rYwoQfH67mY8TSvQ216Tibf+4BCId6FbSV9m0Z+OISzRVsa/ABQMz2NRm7lyQbS8zBMYvrkE0H7qO8hugb75+cmXYu4K0utcTmFzqnxw8U8lDgrbBXpsb/8rz7jDKpRhueTupoCD7NexEXp/ZRr9U3N+NoyG7S55BYlO+U0rWmmMaywE3EsT8z+s+FSltfAcfDhyFjm0Xn3DUxwjsD8WhQwCT4x+5Rv8AKSU3qTGFZlbD0T8iMbZzPrQe/ElywRBJU+C6LI65h63UI14ePyrVgENdFcQvN7QkLigU0n3PTo+xgEO1e/3zk4jK/IcZzaxZ83nMuqce68xpGj8qTmPLkTSeE6KUFKKfhlyk8kiRCLmFP11Rb9PEh9VzpWRWAw/aird2E0+RO+nD/U=
+    file_glob: true
+    file:
+    - build/libs/appmap-*-java*.jar
+    skip_cleanup: true
+    on:
+      tags: true
+      repo: applandinc/appmap-java 
+  - provider: script
+    script: ./gradlew publish
+    skip_cleanup: true
+    on:
+      all_branches: true
+      tags: true
+      condition: ^[[:digit:]]+\.[[:digit:]]\..*$
