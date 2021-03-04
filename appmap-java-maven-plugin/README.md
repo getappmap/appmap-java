@@ -12,7 +12,7 @@ The AppMap Maven Plugin provides simple method for recording AppMaps from tests 
 
 ## Typical entry in pom.xml
 ```xml
-<!-- AppMap Java agent, default parameters -->
+<!-- AppMap Java agent -->
 <plugin>
     <groupId>com.appland</groupId>
     <artifactId>appmap-maven-plugin</artifactId>
@@ -43,7 +43,7 @@ The AppMap Maven Plugin provides simple method for recording AppMaps from tests 
 
 ## Example
 ```xml
-<!-- AppMap Java agent, default parameters -->
+<!-- AppMap Java agent, all parameters -->
 <plugin>
     <groupId>com.appland</groupId>
     <artifactId>appmap-maven-plugin</artifactId>
