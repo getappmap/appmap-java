@@ -1,39 +1,14 @@
-AppLand AppMap Maven Plugin for Java
---------------------------------
-
-
+- [About](#about)
+- [Plugin goals](#plugin-goals)
+- [Plugin configuration](#plugin-configuration)
+  - [Example](#example)
+- [Running](#running)
 - [Building](#building)
-- [Agent Configuration](#agent-configuration)
-- [Maven Plugin Configuration](#maven-plugin-config)
-    - [Plugin Goals](#plugin-goals)
-    - [Plugin configuration options](#plugin-configuration)
-    - [Example](#example)
 
+# About
 
-# Building
-Artifacts will be written to `target/` use `appmap-java-plugin-[VERSION].jar`. as your maven plugin.
-```bash
-$ mvn clean install
-```
+The AppMap Maven Plugin provides simple method for recording AppMaps from tests in Maven projects, and a seamless integration into CI/CD pipelines. The recording agent requires `appmap.yml` configuration file, see [appmap-java](../README.md) for details.
 
-# Agent Configuration
-When you run your program, the agent reads configuration settings from `appmap.yml` by default.
-
-Please read configuration options from [AppMap Java Agent README.md](../README.md)
-
-# Maven Plugin Configuration
-
-## Plugin goals
-prepare-agent : adds appmap.jar to JVM execution as javaagent
-
-## Plugin configuration options
-outputDirectory (default: ./target/appmap/)
-configFile (default: ./appmap.yml)
-debug (enabled|disabled, default: disabled)
-eventValueSize (integer, default 1024)
-skip(Boolean, default false)
-
-## Example plugin config in a standard POM.xml file
 ```xml
 <!-- AppMap Java agent, default parameters -->
 <plugin>
@@ -41,11 +16,8 @@ skip(Boolean, default false)
     <artifactId>appmap-maven-plugin</artifactId>
     <version>${appmap-java.version}</version>
         <configuration>
-            <outputDirectory></outputDirectory>
-            <configFile>appmap.yml</configFile>
-            <debug>enabled</debug>
-            <eventValueSize>1024</eventValueSize>
-            <skip>false</skip>
+            <configFile>/mnt/app-one/appmap.yml</configFile>
+            <outputDirectory>/mnt/app-one/tmp/appmap</outputDirectory>
         </configuration>
     <executions>
         <execution>
@@ -57,10 +29,50 @@ skip(Boolean, default false)
 </plugin>
 ```
 
+# Plugin goals
+- `prepare-agent` : adds `appmap.jar` to JVM execution as javaagent
+
+# Plugin configuration
+- `configFile` Path to the `appmap.yml` config file. Default: _./appmap.yml_
+- `outputDirectory` Output directory for `.appmap.json` files. Default: _./tmp/appmap_
+- `skip` Agent won't record tests when set to true. Default: _false_ 
+- `debug` Enable debug logging. Default: _disabled_
+- `eventValueSize` Specifies the length of a value string before truncation occurs. If set to 0, truncation is disabled. Default: _1024_
+
+## Example
+```xml
+<!-- AppMap Java agent, default parameters -->
+<plugin>
+    <groupId>com.appland</groupId>
+    <artifactId>appmap-maven-plugin</artifactId>
+    <version>${appmap-java.version}</version>
+        <configuration>
+            <configFile>/mnt/builds/nightly/my-app/appmap.yml</configFile>
+            <outputDirectory>/mnt/builds/nightly/my-app/dist/tmp/appmap</outputDirectory>
+            <skip>false</skip>
+            <debug>disabled</debug>
+            <eventValueSize>1024</eventValueSize>
+        </configuration>
+    <executions>
+        <execution>
+            <goals>
+                <goal>prepare-agent</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
 
 # Running
-To run the java agent with correct plugin configuration you only need to build your project as usual without skipping
-the test goal.
+Add the plugin to `pom.xml` and build the project as usual. AppMaps will be recorded when the plugin is active and tests are run.
+
+```bash
+$ mvn clean install
+```
+
+# Building
+
+Artifacts will be written to `target/` use `appmap-java-plugin-[VERSION].jar`. as your maven plugin.
 
 ```bash
 $ mvn clean install
