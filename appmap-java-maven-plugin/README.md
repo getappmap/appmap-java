@@ -1,4 +1,5 @@
 - [About](#about)
+  - [Typical entry in pom.xml](#typical-entry-in-pomxml)
 - [Plugin goals](#plugin-goals)
 - [Plugin configuration](#plugin-configuration)
   - [Example](#example)
@@ -9,6 +10,7 @@
 
 The AppMap Maven Plugin provides simple method for recording AppMaps from tests in Maven projects, and a seamless integration into CI/CD pipelines. The recording agent requires `appmap.yml` configuration file, see [appmap-java](../README.md) for details.
 
+## Typical entry in pom.xml
 ```xml
 <!-- AppMap Java agent, default parameters -->
 <plugin>
