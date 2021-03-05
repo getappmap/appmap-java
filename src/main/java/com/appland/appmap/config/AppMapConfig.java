@@ -27,6 +27,7 @@ public class AppMapConfig {
       inputStream = new FileInputStream(configFile);
     } catch (FileNotFoundException e) {
       Logger.println(String.format("error: file not found -> %s", configFile.getPath()));
+      Logger.error(String.format("error: file not found -> %s", configFile.getPath()));
       return null;
     }
 
@@ -35,7 +36,7 @@ public class AppMapConfig {
     try {
       singleton = yaml.loadAs(inputStream, AppMapConfig.class);
     } catch (YAMLException e) {
-      System.err.println("AppMap: encountered syntax error in appmap.yml " + e.getMessage());
+      Logger.error("AppMap: encountered syntax error in appmap.yml " + e.getMessage());
       System.exit(1);
     }
     
