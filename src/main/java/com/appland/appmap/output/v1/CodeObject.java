@@ -6,7 +6,6 @@ import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.bytecode.SourceFileAttribute;
 
-import java.io.File;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -191,22 +190,25 @@ public class CodeObject {
    * @return An estimated source file path
    */
   public static String getSourceFilePath(CtClass classType) {
-
-    String escapedSeparator = Matcher.quoteReplacement(File.separator);
     String sourceFilePath = null;
     if (classType.getClassFile2().getAttribute("SourceFile") != null) {
-      //If debug info is available use it.
-      sourceFilePath =
-              classType.getName().substring(0, classType.getName().lastIndexOf("."))
-                      .replaceAll("\\.", escapedSeparator)
-                      + ((SourceFileAttribute) classType.getClassFile2()
-                      .getAttribute("SourceFile")).getFileName();
-    } else { //If no debug info is available use new heuristics
-      sourceFilePath =
-              classType.getName().replaceAll("\\.", escapedSeparator)
-                      .replaceAll("\\$\\w+", "") + ".java";
+      sourceFilePath = getSourceFilePathWithDebugInfo(classType);
+    } else {
+      sourceFilePath = getSourceCodePath(classType);
     }
     return sourceFilePath;
+  }
+
+  private static String getSourceFilePathWithDebugInfo(CtClass classType) {
+    return classType.getName().substring(0, classType.getName().lastIndexOf("."))
+            .replaceAll("\\.", Matcher.quoteReplacement("/"))
+            + "/" + ((SourceFileAttribute) classType.getClassFile2()
+            .getAttribute("SourceFile")).getFileName();
+  }
+
+  private static String getSourceCodePath(CtClass classType) {
+    return classType.getName().replaceAll("\\.", Matcher.quoteReplacement("/"))
+            .replaceAll("\\$\\w+", "") + ".java";
   }
 
   /**
