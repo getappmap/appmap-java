@@ -1,18 +1,15 @@
 package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
-
 import com.appland.appmap.util.Logger;
-
 import javassist.CtBehavior;
 import javassist.CtClass;
+import javassist.bytecode.SourceFileAttribute;
 
+import java.io.File;
 import java.lang.reflect.Modifier;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Collections;
+import java.util.*;
+import java.util.regex.Matcher;
 
 /**
  * Represents a package, class or method.
@@ -79,7 +76,7 @@ public class CodeObject {
   public List<CodeObject> getChildren() {
     return this.children;
   }
-  
+
   /**
    * Return the list of children, or an empty list if there are
    * none. {@code getChildren} behaves differently to satisfy
@@ -100,15 +97,15 @@ public class CodeObject {
     this.file = file;
     return this;
   }
-  
+
   @JSONField(serialize = false, deserialize = false)
   private Integer lineno;
   private CodeObject setLineno(Integer lineno) {
     this.lineno = lineno;
     return this;
   }
-  
-  
+
+
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -129,7 +126,7 @@ public class CodeObject {
       && codeObject.isStatic == this.isStatic
       && (codeObject.file == null? this.file == null : codeObject.file.equals(this.file))
       && codeObject.lineno == this.lineno;
-                                          
+
   }
 
   /**
@@ -194,12 +191,22 @@ public class CodeObject {
    * @return An estimated source file path
    */
   public static String getSourceFilePath(CtClass classType) {
-    String[] parts = {
-      "src", "main", "java",
-      classType.getPackageName().replace('.', '/'),
-      classType.getClassFile().getSourceFile()
-    };
-    return String.join("/", parts);
+
+    String escapedSeparator = Matcher.quoteReplacement(File.separator);
+    String sourceFilePath = null;
+    if (classType.getClassFile2().getAttribute("SourceFile") != null) {
+      //If debug info is available use it.
+      sourceFilePath =
+              classType.getName().substring(0, classType.getName().lastIndexOf("."))
+                      .replaceAll("\\.", escapedSeparator)
+                      + ((SourceFileAttribute) classType.getClassFile2()
+                      .getAttribute("SourceFile")).getFileName();
+    } else { //If no debug info is available use new heuristics
+      sourceFilePath =
+              classType.getName().replaceAll("\\.", escapedSeparator)
+                      .replaceAll("\\$\\w+", "") + ".java";
+    }
+    return sourceFilePath;
   }
 
   /**
@@ -321,7 +328,7 @@ public class CodeObject {
   public CodeObject findChild(String name, Boolean isStatic, int lineNumber) {
     for (CodeObject child : this.safeGetChildren()) {
       if (child.name.equals(name)
-          && child.isStatic == isStatic 
+          && child.isStatic == isStatic
           && child.lineno == lineNumber) {
         return child;
       }
@@ -357,7 +364,7 @@ public class CodeObject {
 
     return true;
   }
-  
+
   public CodeObject findChildBySubstring(String name, int start, int end) {
     for (CodeObject child : this.safeGetChildren()) {
       if (equalBySubstring(child.name, name, start, end)) {
@@ -367,7 +374,7 @@ public class CodeObject {
 
     return null;
   }
-  
+
   /**
    * Add an immediate child to this CodeObject.
    * @param child The child to be added
