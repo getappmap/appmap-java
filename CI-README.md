@@ -2,11 +2,11 @@
 
 
 1. Every release master (person allowed to manage releases), should do following:
-1.1. Generate GPG pair for signing releases (please use password protection!)
-See [Guide 1](https://www.gnupg.org/gph/en/manual/c14.html)  
-also [Guide 2](https://www.redhat.com/sysadmin/creating-gpg-keypairs) 
-1.2 Publish key on public servers via `gpg2 --keyserver hkp://pool.sks-keyservers.net --send-keys <KEYID>`
-1.3. [Register sonatype account](https://issues.sonatype.org/secure/Signup!default.jspa)  
+    1.1. Generate GPG pair for signing releases (please use password protection!)
+        See [Guide 1](https://www.gnupg.org/gph/en/manual/c14.html)  
+        also [Guide 2](https://www.redhat.com/sysadmin/creating-gpg-keypairs) 
+    1.2 Publish key on public servers via `gpg2 --keyserver hkp://pool.sks-keyservers.net --send-keys <KEYID>`
+    1.3. [Register sonatype account](https://issues.sonatype.org/secure/Signup!default.jspa)  
 2. The same operations (sonatype account and published GPG identity) should be done for CI bot (please create password-protected key, as suggested by default)
 3. [Create a New Project ticket, requesting new project/namespace to be created.](https://issues.sonatype.org/secure/CreateIssue.jspa?issuetype=21&pid=10134)
 Mention all release masters and CI bot in a list of collaborators.
