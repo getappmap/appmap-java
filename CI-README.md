@@ -2,7 +2,7 @@
 
 
 1. Every release master (person allowed to manage releases), should do following:
-    1.1. Generate GPG pair for signing releases (please use password protection!)
+1.1. Generate GPG pair for signing releases (please use password protection!)
 See [Guide 1](https://www.gnupg.org/gph/en/manual/c14.html)  
 also [Guide 2](https://www.redhat.com/sysadmin/creating-gpg-keypairs) 
 1.2 Publish key on public servers via `gpg2 --keyserver hkp://pool.sks-keyservers.net --send-keys <KEYID>`
