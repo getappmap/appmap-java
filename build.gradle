@@ -36,7 +36,7 @@ def defaultGitSlug="applandinc/appmap-java"
 def currentGitSlug=System.getenv("TRAVIS_REPO_SLUG") ?: defaultGitSlug
 
 def defaultGroupId      = 'com.appland'
-def defaultArtifactId   = 'appMapAgent' 
+def defaultArtifactId   = 'appmap-agent' 
 def publishGroupId      = findProperty('publishGroupId') ?: defaultGroupId 
 def publishArtifactId   = findProperty('publishArtifactId') ?: defaultArtifactId
 
@@ -200,7 +200,7 @@ publishing {
    
                  
             groupId     publishGroupId
-            artifactId  publishArtifactId + '-' + versionSuffix
+            artifactId  publishArtifactId //+ '-' + versionSuffix
     
             // version defined globally
  
