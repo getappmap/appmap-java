@@ -217,6 +217,7 @@ public class Event {
     if (val != null) {
       this.returnValue = new Value(val);
     }
+
     return this;
   }
 
@@ -234,6 +235,7 @@ public class Event {
         t = t.getCause();
       }
     }
+
     return this;
   }
 
@@ -247,6 +249,7 @@ public class Event {
     if (val != null) {
       this.receiver = new Value(val);
     }
+
     return this;
   }
 
@@ -347,7 +350,6 @@ public class Event {
             .setMethod(method)
             .setPath(path)
             .setProtocol(protocol);
-    this.path = null;
     return this;
   }
 

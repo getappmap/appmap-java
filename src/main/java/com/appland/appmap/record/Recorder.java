@@ -12,6 +12,7 @@ import java.util.Map;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.IRecordingSession.Metadata;
+import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.util.Logger;
 
 /**
@@ -138,7 +139,10 @@ public class Recorder {
 
       recordingSession = this.activeSession;
       pendingEvent = this.queuedEvents.get(event.threadId);
-      if(pendingEvent!=null) event.setParentId(pendingEvent.id);
+      if(pendingEvent!=null
+              && event.event.equalsIgnoreCase(MethodEvent.METHOD_RETURN.getEventString())){
+        event.setParentId(pendingEvent.id);
+      }
       event.validateEventAndRemoveUnnecessaryInformation();
       this.queuedEvents.put(event.threadId, event);
     }
