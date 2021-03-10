@@ -255,8 +255,8 @@ publishing {
 
         def local_url       = "file://${buildDir}/repo"
         // see https://central.sonatype.org/pages/gradle.html
-        //def default_base        = "https://s01.oss.sonatype.org"
-        def default_base    = "https://oss.sonatype.org"
+        def default_base        = "https://s01.oss.sonatype.org"
+        //def default_base    = "https://oss.sonatype.org"
         def url_base        = findProperty("mavenRepoURL") ?: default_base
         def staging_url     = url_base + "/service/local/staging/deploy/maven2/"
         def snapshots_url   = url_base + "/content/repositories/snapshots/"
