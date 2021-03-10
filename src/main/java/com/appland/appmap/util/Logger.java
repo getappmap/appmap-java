@@ -28,6 +28,10 @@ public class Logger {
     log.printf("AppMap [DEBUG]: " + format, args);
   }
 
+  public static void error(String msg) {
+    System.err.println("AppMap [ERROR]: " + msg);
+  }
+
   public static void whereAmI() {
     new Exception().printStackTrace(log);
   }
