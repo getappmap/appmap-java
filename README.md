@@ -96,13 +96,20 @@ To record AppMaps from tests, run
 ```
 
 
-For continuous integration, add the AppMap plugin to `pom.xml`:
+For continuous integration, add the AppMap plugin and its properties to `pom.xml`:
+
 
 ```xml
+<!-- this goes to the properties section -->
+<appmap-java.version>0.5.0</appmap-java.version>
+
+<!-- -snip- -->
+
+<!-- the plugin element goes to plugins -->
 <!-- AppMap Java agent, default parameters -->
 <plugin>
     <groupId>com.appland</groupId>
-    <artifactId>appmap- maven-plugin</artifactId>
+    <artifactId>appmap-maven-plugin</artifactId>
     <version>${appmap-java.version}</version>
     <executions>
         <execution>
