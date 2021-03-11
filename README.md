@@ -96,12 +96,12 @@ To record AppMaps from tests, run
 ```
 
 
-For continuous integration, add the AppMap plugin and its properties to `pom.xml`:
+For continuous integration or custom configuration, add the AppMap plugin and its properties to `pom.xml`:
 
 
 ```xml
 <!-- this goes to the properties section -->
-<appmap-java.version>0.5.0</appmap-java.version>
+<appmap-java.version>0.5</appmap-java.version>
 
 <!-- -snip- -->
 
