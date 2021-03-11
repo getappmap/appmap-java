@@ -87,9 +87,8 @@ Each entry in the `packages` list is a YAML object which has the following keys:
 
 ### Maven
 
-We recommend using the [AppMap Maven plugin](appmap-maven-plugin/README.md).
-Visit the [documentation](appmap-maven-plugin/README.md#quickstart) to get
-started.
+We recommend using the
+[AppMap Maven plugin](https://github.com/applandinc/appmap-maven-plugin#quickstart).
 
 ### Other than Maven
 
