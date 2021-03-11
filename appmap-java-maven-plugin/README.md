@@ -8,19 +8,21 @@
 
 # About
 
-The AppMap Maven Plugin provides simple method for recording AppMaps from tests in Maven projects, and a seamless integration into CI/CD pipelines. The recording agent requires `appmap.yml` configuration file, see [appmap-java](../README.md) for details.
+The AppMap Maven Plugin provides simple method for recording AppMaps in running tests in Maven projects and a seamless integration into CI/CD pipelines. The recording agent requires `appmap.yml` configuration file, see [appmap-java](https://github.com/applandinc/appmap-java/blob/master/README.md) for details.
 
 ## Typical entry in pom.xml
 ```xml
-<!-- AppMap Java agent -->
+<!-- this goes to the properties section -->
+<appmap-java.version>0.5</appmap-java.version>
+
+<!-- -snip- -->
+
+<!-- the plugin element goes to plugins -->
+<!-- AppMap Java agent, default parameters -->
 <plugin>
     <groupId>com.appland</groupId>
     <artifactId>appmap-maven-plugin</artifactId>
     <version>${appmap-java.version}</version>
-        <configuration>
-            <configFile>/mnt/app-one/appmap.yml</configFile>
-            <outputDirectory>/mnt/app-one/tmp/appmap</outputDirectory>
-        </configuration>
     <executions>
         <execution>
             <goals>
@@ -41,7 +43,7 @@ The AppMap Maven Plugin provides simple method for recording AppMaps from tests 
 - `debug` Enable debug logging. Default: _disabled_
 - `eventValueSize` Specifies the length of a value string before truncation occurs. If set to 0, truncation is disabled. Default: _1024_
 
-## Example
+## Configuration example
 ```xml
 <!-- AppMap Java agent, all parameters -->
 <plugin>
@@ -66,16 +68,17 @@ The AppMap Maven Plugin provides simple method for recording AppMaps from tests 
 ```
 
 # Running
-Add the plugin to `pom.xml` and build the project as usual. AppMaps will be recorded when the plugin is active and tests are run.
+Add the plugin to `pom.xml` and run tests as usual. AppMaps will be recorded when the plugin is active and tests are run.
 
-```bash
-$ mvn clean install
+Alertnatively, you can run the tests with the AppMap agent with this command:
+```shell
+mvn com.appland:appmap-maven-plugin:prepare-agent test
 ```
 
 # Building
 
 Artifacts will be written to `target/` use `appmap-java-plugin-[VERSION].jar`. as your maven plugin.
 
-```bash
-$ mvn clean install
+```shell
+mvn clean install
 ```
