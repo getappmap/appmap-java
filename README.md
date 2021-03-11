@@ -92,7 +92,7 @@ Each entry in the `packages` list is a YAML object which has the following keys:
 To record AppMaps from tests, run
 
 ```shell
-% mvn com.appland:appmap-maven-plugin:prepare-agent test
+mvn com.appland:appmap-maven-plugin:prepare-agent test
 ```
 
 
@@ -123,15 +123,15 @@ For continuous integration or custom configuration, add the AppMap plugin and it
 
 The `prepare-agent` goal adds `appmap.jar` javaagent to JVM parameters when tests are run.
 
-See the [Maven plugin documentation](appmap-java-maven-plugin/README.md) for configuration instructions. 
+See the [Maven plugin documentation](https://github.com/applandinc/appmap-java-maven-plugin/blob/master/README.md) for configuration instructions. 
 
 ## Other than Maven
 
 The recorder is run as a Java agent. Currently, it must be started along with the JVM. This is typically done by passing the `-javaagent` argument to your JVM.
 For example:
 
-```bash
-$ java -javaagent:lib/appmap.jar myapp.jar
+```shell
+java -javaagent:lib/appmap.jar myapp.jar
 ```
 
 ### Maven Surefire
@@ -236,30 +236,30 @@ The [Spring PetClinic](https://github.com/spring-projects/spring-petclinic) prov
 
 Obtain the `spring-petclinic` JAR file, and launch it with the AppLand Java agent:
 
-```shell script
-$ export PETCLINIC_DIR=<path-to-petclinic>
-$ java -Dappmap.debug \
-  -javaagent:build/libs/appmap.jar \
-  -Dappmap.config.file=test/appmap.yml \
-  -jar $(PETCLINIC_DIR)/target/spring-petclinic-2.2.0.BUILD-SNAPSHOT.jar
+```shell
+export PETCLINIC_DIR=<path-to-petclinic>
+java -Dappmap.debug \
+-javaagent:build/libs/appmap.jar \
+-Dappmap.config.file=test/appmap.yml \
+-jar $(PETCLINIC_DIR)/target/spring-petclinic-2.2.0.BUILD-SNAPSHOT.jar
 ```
 
 You can use Java remote debug settings to attach a debugger:
 
-```shell script
-$ export PETCLINIC_DIR=<path-to-petclinic>
-$ java -Dappmap.debug \
-  -javaagent:build/libs/appmap.jar \
-  -Dappmap.config.file=test/appmap.yml \
-  -Xdebug \
-  -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=y \
-  -jar $PETCLINIC_DIR/target/spring-petclinic-2.2.0.BUILD-SNAPSHOT.jar
+```shell
+export PETCLINIC_DIR=<path-to-petclinic>
+java -Dappmap.debug \
+-javaagent:build/libs/appmap.jar \
+-Dappmap.config.file=test/appmap.yml \
+-Xdebug \
+-Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=y \
+-jar $PETCLINIC_DIR/target/spring-petclinic-2.2.0.BUILD-SNAPSHOT.jar
 ```
 
 ## Building
 Artifacts will be written to `build/libs`. Use `appmap.jar` as your agent.
-```
-$ ./gradlew build
+```shell
+./gradlew build
 ```
 
 ## Testing
@@ -268,6 +268,6 @@ Unit tests are run via the `test` task.
 
 Docker is required to run integration tests. Run the following command:
 
-```
-$ ./bin/test
+```shell
+./bin/test
 ```
