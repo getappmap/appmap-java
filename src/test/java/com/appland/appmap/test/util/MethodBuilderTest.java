@@ -32,7 +32,7 @@ public class MethodBuilderTest {
     Method myMethod = testClass.getMethod("myMethod");
 
     myMethod.invoke(obj);
-    assertEquals(myMethodMessage + "\n", systemOutRule.getLog());
+    assertEquals(myMethodMessage + System.getProperty("line.separator"), systemOutRule.getLog());
   }
 
   @Test
@@ -52,7 +52,7 @@ public class MethodBuilderTest {
     double y = 12.0;
 
     myMethod.invoke(obj, x, y);
-    assertEquals(x + " " + y + "\n", systemOutRule.getLog());
+    assertEquals(x + " " + y + System.getProperty("line.separator"), systemOutRule.getLog());
     assertEquals(2, myMethod.getParameterCount());
 
     assertArrayEquals(new Class<?>[]{ int.class, double.class }, myMethod.getParameterTypes());
