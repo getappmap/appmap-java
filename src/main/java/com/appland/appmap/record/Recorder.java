@@ -1,19 +1,14 @@
 package com.appland.appmap.record;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.IRecordingSession.Metadata;
-import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.util.Logger;
+
+import static com.appland.appmap.util.EventUtil.*;
 
 /**
  * Recorder is a singleton responsible for managing recording sessions and routing events to any
@@ -26,6 +21,7 @@ public class Recorder {
   private IRecordingSession activeSession = null;
   private CodeObjectTree globalCodeObjects = new CodeObjectTree();
   private Map<Long, Event> queuedEvents = new HashMap<Long, Event>();
+  private Stack<Event> callStack = new Stack<>();
 
   private static Recorder instance = new Recorder();
 
@@ -139,11 +135,20 @@ public class Recorder {
 
       recordingSession = this.activeSession;
       pendingEvent = this.queuedEvents.get(event.threadId);
-      if(pendingEvent!=null
-              && event.event.equalsIgnoreCase(MethodEvent.METHOD_RETURN.getEventString())){
-        event.setParentId(pendingEvent.id);
+
+
+      if (isReturnEvent(event)) {
+            Event lastEventInStack = callStack.peek();
+            if (lastEventInStack.isParentEventOf(event) ) {
+              callStack.pop();
+              removeUnnecessaryInfoForReturnEvents(event);
+              event.setParentId(lastEventInStack.id);
+            } else {
+              callStack.push(event);
+            }
+      } else {
+        callStack.push(event);
       }
-      event.validateEventAndRemoveUnnecessaryInformation();
       this.queuedEvents.put(event.threadId, event);
     }
 

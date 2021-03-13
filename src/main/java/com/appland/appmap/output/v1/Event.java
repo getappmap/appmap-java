@@ -436,16 +436,9 @@ public class Event {
     return this;
   }
 
-  /**
-   * Removes unnecessary or duplicated fields depending on the event type
-   */
-  public void validateEventAndRemoveUnnecessaryInformation() {
-    if (event != null && event.equalsIgnoreCase(MethodEvent.METHOD_RETURN.getEventString())) {
-      if(path!=null) path = null;
-      if(lineNumber!=null) lineNumber = null;
-      if(isStatic != null) isStatic = null;
-      if(definedClass!=null) definedClass= null;
-      if(methodId != null) methodId = null;
-    }
+  public boolean isParentEventOf(Event other) {
+    return this.definedClass == other.definedClass
+            && this.methodId == other.methodId
+            && this.lineNumber == other.lineNumber;
   }
 }
