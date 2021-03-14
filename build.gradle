@@ -22,6 +22,7 @@ repositories {
 
 version = '0.5.2'
 
+
 dependencies {
   implementation 'org.yaml:snakeyaml:1.25'
   implementation 'com.alibaba:fastjson:1.2.61'
