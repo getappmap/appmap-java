@@ -437,8 +437,8 @@ public class Event {
   }
 
   public boolean isParentEventOf(Event other) {
-    return this.definedClass == other.definedClass
-            && this.methodId == other.methodId
-            && this.lineNumber == other.lineNumber;
+    return this.definedClass.equals(other.definedClass)
+            && this.methodId.equals(other.methodId)
+            && this.lineNumber.equals(other.lineNumber);
   }
 }

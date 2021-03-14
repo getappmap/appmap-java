@@ -71,6 +71,7 @@ public class RecorderTest {
                 .setEvent("return")
                 .setHttpClientResponse(200, "text/html;charset=UTF-8")
                 .setLineNumber(167)
+                .setMethodId("doFilter")
                 .setPath("src/main/java/org/springframework/mock/web/MockFilterChain.java")
                 .setStatic(false)
                 .setThreadId(threadId);

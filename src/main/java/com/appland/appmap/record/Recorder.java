@@ -136,19 +136,19 @@ public class Recorder {
       recordingSession = this.activeSession;
       pendingEvent = this.queuedEvents.get(event.threadId);
 
-
       if (isReturnEvent(event)) {
             Event lastEventInStack = callStack.peek();
             if (lastEventInStack.isParentEventOf(event) ) {
               callStack.pop();
-              removeUnnecessaryInfoForReturnEvents(event);
               event.setParentId(lastEventInStack.id);
+              removeUnnecessaryInfoForReturnEvents(event);
             } else {
               callStack.push(event);
             }
       } else {
         callStack.push(event);
       }
+
       this.queuedEvents.put(event.threadId, event);
     }
 
