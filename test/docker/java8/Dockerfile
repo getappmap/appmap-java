@@ -16,7 +16,8 @@ ADD src                 ./src
 ADD buildSrc            ./buildSrc
 
 RUN ./gradlew --no-daemon build  \
-    && mv build/libs/appmap-*-java*.jar /build/appmap.jar
+    && cd build/libs \
+    && mv $(ls | grep 'appmap-[[:digit:]]') /build/appmap.jar
 
 FROM openjdk:8-alpine
 LABEL maintainer="Dustin Byrne <dustin@app.land>"
