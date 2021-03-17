@@ -1,3 +1,11 @@
+# 1.0.0 (2021-03-17)
+
+
+### Features
+
+* AppMap Maven plugin ([#46](https://github.com/applandinc/appmap-java/issues/46)) ([1798df2](https://github.com/applandinc/appmap-java/commit/1798df254f76155bdae9d74ff1f32b7be6f1d15b))
+* appmap.yml errors are logged to stderr ([e746253](https://github.com/applandinc/appmap-java/commit/e7462538725142b50638c036835e04345f1a81d4))
+
 ## 0.5.1 (2021-03-09)
 
 ### Added
