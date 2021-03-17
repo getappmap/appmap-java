@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/applandinc/appmap-java/compare/v1.0.0...v1.0.1) (2021-03-17)
+
+
+### Bug Fixes
+
+* disable http client requests ([#60](https://github.com/applandinc/appmap-java/issues/60)) ([2131d82](https://github.com/applandinc/appmap-java/commit/2131d822d8026900f00bacac7ccb8b146c65d464))
+
 # 1.0.0 (2021-03-17)
 
 
