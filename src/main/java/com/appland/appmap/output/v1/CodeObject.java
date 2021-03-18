@@ -1,18 +1,14 @@
 package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
-
 import com.appland.appmap.util.Logger;
-
 import javassist.CtBehavior;
 import javassist.CtClass;
+import javassist.bytecode.SourceFileAttribute;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Collections;
+import java.util.*;
+import java.util.regex.Matcher;
 
 /**
  * Represents a package, class or method.
@@ -79,7 +75,7 @@ public class CodeObject {
   public List<CodeObject> getChildren() {
     return this.children;
   }
-  
+
   /**
    * Return the list of children, or an empty list if there are
    * none. {@code getChildren} behaves differently to satisfy
@@ -100,15 +96,15 @@ public class CodeObject {
     this.file = file;
     return this;
   }
-  
+
   @JSONField(serialize = false, deserialize = false)
   private Integer lineno;
   private CodeObject setLineno(Integer lineno) {
     this.lineno = lineno;
     return this;
   }
-  
-  
+
+
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -129,7 +125,7 @@ public class CodeObject {
       && codeObject.isStatic == this.isStatic
       && (codeObject.file == null? this.file == null : codeObject.file.equals(this.file))
       && codeObject.lineno == this.lineno;
-                                          
+
   }
 
   /**
@@ -194,12 +190,39 @@ public class CodeObject {
    * @return An estimated source file path
    */
   public static String getSourceFilePath(CtClass classType) {
-    String[] parts = {
-      "src", "main", "java",
-      classType.getPackageName().replace('.', '/'),
-      classType.getClassFile().getSourceFile()
-    };
-    return String.join("/", parts);
+    String sourceFilePath = getSourceFilePathWithDebugInfo(classType);
+    
+    if (sourceFilePath == null) {
+      sourceFilePath = guessSourceFilePath(classType);
+    }
+
+    return sourceFilePath;
+  }
+
+  private static String getSourceFilePathWithDebugInfo(CtClass classType) {
+    final String sourceFile = classType.getClassFile2().getSourceFile();
+    if (sourceFile == null) {
+      return null;
+    }
+
+    final List<String> tokens = new ArrayList<>();
+    final String packageName = classType.getPackageName();
+
+    if (packageName != null) {
+      for(String token : packageName.split("\\.")) {
+        tokens.add(token);
+      }
+    }
+
+    tokens.add(sourceFile);
+    return String.join("/", tokens);
+  }
+
+  private static String guessSourceFilePath(CtClass classType) {
+    return classType
+      .getName()
+      .replaceAll("\\.", Matcher.quoteReplacement("/"))
+      .replaceAll("\\$\\w+", "") + ".java";
   }
 
   /**
@@ -209,7 +232,13 @@ public class CodeObject {
    * @return The root CodeObject
    */
   public static CodeObject createTree(String packageName) {
-    String[] packageTokens = packageName.split("\\.");
+    final List<String> packageTokens = new ArrayList();
+    if (packageName != null) {
+      for (String token : packageName.split("\\.")) {
+        packageTokens.add(token);
+      }
+    }
+
     CodeObject rootObject = null;
     CodeObject previousObject = null;
 
@@ -241,15 +270,19 @@ public class CodeObject {
    */
   public static CodeObject createTree(CtClass classType) {
     String packageName = classType.getPackageName();
-    CodeObject rootObject = CodeObject.createTree(packageName);
-    CodeObject pkgLeafObject = rootObject.get(packageName);
-    if (pkgLeafObject == null) {
-      Logger.println("failed to get leaf pkg object for package " + packageName);
-      return null;
-    }
-
     CodeObject classObj = new CodeObject(classType);
-    pkgLeafObject.addChild(classObj);
+    CodeObject rootObject = CodeObject.createTree(packageName);
+    if (rootObject == null) {
+      rootObject = classObj;
+    } else {
+      CodeObject pkgLeafObject = rootObject.get(packageName);
+      if (pkgLeafObject == null) {
+        Logger.println("failed to get leaf pkg object for package " + packageName);
+        return null;
+      }
+
+      pkgLeafObject.addChild(classObj);
+    }
 
     return rootObject;
   }
@@ -321,7 +354,7 @@ public class CodeObject {
   public CodeObject findChild(String name, Boolean isStatic, int lineNumber) {
     for (CodeObject child : this.safeGetChildren()) {
       if (child.name.equals(name)
-          && child.isStatic == isStatic 
+          && child.isStatic == isStatic
           && child.lineno == lineNumber) {
         return child;
       }
@@ -357,7 +390,7 @@ public class CodeObject {
 
     return true;
   }
-  
+
   public CodeObject findChildBySubstring(String name, int start, int end) {
     for (CodeObject child : this.safeGetChildren()) {
       if (equalBySubstring(child.name, name, start, end)) {
@@ -367,7 +400,7 @@ public class CodeObject {
 
     return null;
   }
-  
+
   /**
    * Add an immediate child to this CodeObject.
    * @param child The child to be added
