@@ -190,25 +190,39 @@ public class CodeObject {
    * @return An estimated source file path
    */
   public static String getSourceFilePath(CtClass classType) {
-    String sourceFilePath = null;
-    if (classType.getClassFile2().getAttribute("SourceFile") != null) {
-      sourceFilePath = getSourceFilePathWithDebugInfo(classType);
-    } else {
-      sourceFilePath = getSourceCodePath(classType);
+    String sourceFilePath = getSourceFilePathWithDebugInfo(classType);
+    
+    if (sourceFilePath == null) {
+      sourceFilePath = guessSourceFilePath(classType);
     }
+
     return sourceFilePath;
   }
 
   private static String getSourceFilePathWithDebugInfo(CtClass classType) {
-    return classType.getName().substring(0, classType.getName().lastIndexOf("."))
-            .replaceAll("\\.", Matcher.quoteReplacement("/"))
-            + "/" + ((SourceFileAttribute) classType.getClassFile2()
-            .getAttribute("SourceFile")).getFileName();
+    final String sourceFile = classType.getClassFile2().getSourceFile();
+    if (sourceFile == null) {
+      return null;
+    }
+
+    final List<String> tokens = new ArrayList<>();
+    final String packageName = classType.getPackageName();
+
+    if (packageName != null) {
+      for(String token : packageName.split("\\.")) {
+        tokens.add(token);
+      }
+    }
+
+    tokens.add(sourceFile);
+    return String.join("/", tokens);
   }
 
-  private static String getSourceCodePath(CtClass classType) {
-    return classType.getName().replaceAll("\\.", Matcher.quoteReplacement("/"))
-            .replaceAll("\\$\\w+", "") + ".java";
+  private static String guessSourceFilePath(CtClass classType) {
+    return classType
+      .getName()
+      .replaceAll("\\.", Matcher.quoteReplacement("/"))
+      .replaceAll("\\$\\w+", "") + ".java";
   }
 
   /**
@@ -218,7 +232,13 @@ public class CodeObject {
    * @return The root CodeObject
    */
   public static CodeObject createTree(String packageName) {
-    String[] packageTokens = packageName.split("\\.");
+    final List<String> packageTokens = new ArrayList();
+    if (packageName != null) {
+      for (String token : packageName.split("\\.")) {
+        packageTokens.add(token);
+      }
+    }
+
     CodeObject rootObject = null;
     CodeObject previousObject = null;
 
@@ -250,15 +270,19 @@ public class CodeObject {
    */
   public static CodeObject createTree(CtClass classType) {
     String packageName = classType.getPackageName();
-    CodeObject rootObject = CodeObject.createTree(packageName);
-    CodeObject pkgLeafObject = rootObject.get(packageName);
-    if (pkgLeafObject == null) {
-      Logger.println("failed to get leaf pkg object for package " + packageName);
-      return null;
-    }
-
     CodeObject classObj = new CodeObject(classType);
-    pkgLeafObject.addChild(classObj);
+    CodeObject rootObject = CodeObject.createTree(packageName);
+    if (rootObject == null) {
+      rootObject = classObj;
+    } else {
+      CodeObject pkgLeafObject = rootObject.get(packageName);
+      if (pkgLeafObject == null) {
+        Logger.println("failed to get leaf pkg object for package " + packageName);
+        return null;
+      }
+
+      pkgLeafObject.addChild(classObj);
+    }
 
     return rootObject;
   }
