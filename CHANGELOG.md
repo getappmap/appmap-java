@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/applandinc/appmap-java/compare/v1.0.1...v1.0.2) (2021-03-18)
+
+
+### Bug Fixes
+
+* improve path and package resolution ([#62](https://github.com/applandinc/appmap-java/issues/62)) ([c3ba3df](https://github.com/applandinc/appmap-java/commit/c3ba3df5286cba6efd929e6cdcf583ebc28b96b2))
+
 ## [1.0.1](https://github.com/applandinc/appmap-java/compare/v1.0.0...v1.0.1) (2021-03-17)
 
 
