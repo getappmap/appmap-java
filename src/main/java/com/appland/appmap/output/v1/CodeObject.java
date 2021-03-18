@@ -6,6 +6,7 @@ import com.appland.appmap.util.Logger;
 
 import javassist.CtBehavior;
 import javassist.CtClass;
+import javassist.bytecode.ClassFile;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
@@ -194,11 +195,24 @@ public class CodeObject {
    * @return An estimated source file path
    */
   public static String getSourceFilePath(CtClass classType) {
-    String[] parts = {
-      "src", "main", "java",
-      classType.getPackageName().replace('.', '/'),
-      classType.getClassFile().getSourceFile()
-    };
+    final List<String> parts = new ArrayList(Arrays.asList("src", "main", "java"));
+    final String packageName = classType.getPackageName();
+
+    if (packageName != null) {
+      parts.add(packageName.replace('.', '/'));
+    }
+
+    final ClassFile classFile = classType.getClassFile();
+    if (classFile != null) {
+      String sourceFile = classFile.getSourceFile();
+      if (sourceFile != null) {
+        parts.add(sourceFile);
+      } else {
+        final String className = classType.getName().replaceAll("\\$.*", "");
+        parts.add(className + ".java");
+      }
+    }
+
     return String.join("/", parts);
   }
 
@@ -209,7 +223,13 @@ public class CodeObject {
    * @return The root CodeObject
    */
   public static CodeObject createTree(String packageName) {
-    String[] packageTokens = packageName.split("\\.");
+    final List<String> packageTokens = new ArrayList();
+    if (packageName != null) {
+      for (String token : packageName.split("\\.")) {
+        packageTokens.add(token);
+      }
+    }
+
     CodeObject rootObject = null;
     CodeObject previousObject = null;
 
@@ -241,15 +261,19 @@ public class CodeObject {
    */
   public static CodeObject createTree(CtClass classType) {
     String packageName = classType.getPackageName();
-    CodeObject rootObject = CodeObject.createTree(packageName);
-    CodeObject pkgLeafObject = rootObject.get(packageName);
-    if (pkgLeafObject == null) {
-      Logger.println("failed to get leaf pkg object for package " + packageName);
-      return null;
-    }
-
     CodeObject classObj = new CodeObject(classType);
-    pkgLeafObject.addChild(classObj);
+    CodeObject rootObject = CodeObject.createTree(packageName);
+    if (rootObject == null) {
+      rootObject = classObj;
+    } else {
+      CodeObject pkgLeafObject = rootObject.get(packageName);
+      if (pkgLeafObject == null) {
+        Logger.println("failed to get leaf pkg object for package " + packageName);
+        return null;
+      }
+
+      pkgLeafObject.addChild(classObj);
+    }
 
     return rootObject;
   }
