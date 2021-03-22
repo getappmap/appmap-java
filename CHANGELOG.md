@@ -1,3 +1,11 @@
+## [1.0.3](https://github.com/applandinc/appmap-java/compare/v1.0.2...v1.0.3) (2021-03-22)
+
+
+### Bug Fixes
+
+* Allow classes compiled without locals to be hooked ([0e0a0d3](https://github.com/applandinc/appmap-java/commit/0e0a0d333bf1b3323492765aa29df064a1de027d))
+* Capture exceptions thrown from SQL interfaces ([9d1e66f](https://github.com/applandinc/appmap-java/commit/9d1e66fe7254bb262bf6b1ab2b8156d1bd1fee77))
+
 ## [1.0.2](https://github.com/applandinc/appmap-java/compare/v1.0.1...v1.0.2) (2021-03-18)
 
 
