@@ -116,19 +116,11 @@ public class Value {
    */
   public Value freeze() {
     if (this.value != null) {
-      try {
+      final String className = this.value.getClass().getName();
+      if (className.startsWith("java.")) {
         this.value = this.value.toString();
-
-        if (Properties.MaxValueSize > 0 && this.value != null) {
-          this.value = StringUtils.abbreviate((String) this.value, "...", Properties.MaxValueSize);
-        }
-      } catch (Throwable e) {
-        Logger.println("failed to resolve value of " + this.classType);
-        Logger.println(e.getMessage());
-        // it's possible our value object has been partially cleaned up and
-        // calls toString on a null object or the operation is otherwise
-        // unsupported
-        this.value = "< invalid >";
+      } else {
+        this.value = className + '@' + Integer.toHexString(hashCode());
       }
     }
     return this;
