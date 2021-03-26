@@ -231,7 +231,7 @@ public class Recorder {
     final Metadata metadata = new Metadata();
     metadata.scenarioName = name;
 
-    this.start(fileName, metadata);
+    this.start(fileName + ".appmap.json", metadata);
     fn.run();
     this.stop();
   }
