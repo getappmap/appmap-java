@@ -42,8 +42,10 @@ class CtClassUtil {
         superClass = superClass.getSuperclass();
       }
     } catch (NotFoundException e) {
-      Logger.println("could not resolve class hierarchy");
-      Logger.println(e);
+      if (Properties.DebugHooks) {
+        Logger.println("could not resolve class hierarchy");
+        Logger.println(e);
+      }
     }
 
     return false;
