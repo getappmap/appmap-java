@@ -1,8 +1,12 @@
 package com.appland.appmap.record;
 
+import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.output.v1.Value;
+import com.appland.appmap.record.UnknownEventException;
+import com.appland.appmap.util.Logger;
+
 import javassist.CtBehavior;
 
 import java.util.ArrayList;
@@ -57,7 +61,7 @@ public class EventTemplateRegistry {
   public Event getTemplate(Integer templateId) {
     try {
       return eventTemplates.get(templateId);
-    } catch (ArrayIndexOutOfBoundsException e) {
+    } catch (IndexOutOfBoundsException e) {
       // fall through
     }
     return null;
@@ -85,8 +89,14 @@ public class EventTemplateRegistry {
           event.addParameter(param);
         }
       }
-    } catch (ArrayIndexOutOfBoundsException e) {
-      throw new UnknownEventException(String.format("unknown template for ordinal %d", templateId));
+    } catch (IndexOutOfBoundsException e) {
+      final String msg = String.format("unknown template for ordinal %d - have we been loaded by a non-system class loader?", templateId);
+
+      if (Properties.DebugHooks) {
+        Logger.println(msg);
+      }
+
+      throw new UnknownEventException(msg);
     }
     
     return event;
