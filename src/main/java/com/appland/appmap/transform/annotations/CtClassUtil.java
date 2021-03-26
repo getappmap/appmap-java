@@ -1,5 +1,6 @@
 package com.appland.appmap.transform.annotations;
 
+import com.appland.appmap.config.Properties;
 import com.appland.appmap.util.Logger;
 
 import javassist.CtClass;
@@ -42,7 +43,7 @@ class CtClassUtil {
       }
     } catch (NotFoundException e) {
       Logger.println("could not resolve class hierarchy");
-      Logger.println(e.getMessage());
+      Logger.println(e);
     }
 
     return false;

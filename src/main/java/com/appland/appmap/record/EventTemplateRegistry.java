@@ -94,6 +94,7 @@ public class EventTemplateRegistry {
 
       if (Properties.DebugHooks) {
         Logger.println(msg);
+        Logger.println(e);
       }
 
       throw new UnknownEventException(msg);

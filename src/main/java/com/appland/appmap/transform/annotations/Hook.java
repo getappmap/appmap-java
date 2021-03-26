@@ -195,12 +195,10 @@ public class Hook {
           + targetBehavior.getName());
       Logger.println("  cause: " + e.getCause());
       Logger.println("  reason: " + e.getReason());
-      
-
-      Logger.println(e.getMessage());
+      Logger.println(e);
     } catch (NotFoundException e) {
       Logger.println("failed to find class\n");
-      Logger.println(e.getMessage());
+      Logger.println(e);
     }
   }
 
@@ -288,7 +286,7 @@ public class Hook {
         returnType = ((CtMethod) behavior).getReturnType();
       } catch (NotFoundException e) {
         Logger.println("warning - unknown return type");
-        Logger.println(e.getMessage());
+        Logger.println(e);
       }
     }
     return returnType;
