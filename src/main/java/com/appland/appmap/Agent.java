@@ -4,11 +4,14 @@ import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
+import com.appland.appmap.record.IRecordingSession.Metadata;
 import com.appland.appmap.transform.ClassFileTransformer;
 import com.appland.appmap.util.Logger;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Agent is a JVM agent which instruments, records, and prints appmap files
@@ -42,6 +45,33 @@ public class Agent {
     if (AppMapConfig.load(new File(Properties.ConfigFile)) == null) {
       Logger.printf("failed to load config %s\n", Properties.ConfigFile);
       return;
+    }
+
+    if (Properties.RecordingAuto) {
+      final Date date = new Date();
+      final SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss");
+      final String timestamp = dateFormat.format(date);
+      final Metadata metadata = new Metadata();
+      final Recorder recorder = Recorder.getInstance();
+      String fileName = Properties.RecordingFile;
+      String appmapName = Properties.RecordingName;
+
+      if (fileName == null || fileName.trim().isEmpty()) {
+        fileName = String.format("%s.appmap.json", timestamp);
+      }
+
+      if (appmapName == null || appmapName.trim().isEmpty()) {
+        appmapName = timestamp;
+      }
+
+      metadata.recorderName = "remote_recording";
+      metadata.scenarioName = appmapName;
+
+      recorder.start(fileName, metadata);
+
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        recorder.stop();
+      }));
     }
   }
 }
