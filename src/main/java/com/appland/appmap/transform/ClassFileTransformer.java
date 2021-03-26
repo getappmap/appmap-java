@@ -151,7 +151,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           Class redefiningClass,
                           ProtectionDomain domain,
                           byte[] bytes) throws IllegalClassFormatException {
-    ClassPool classPool = new ClassPool(true);
+    ClassPool classPool = new ClassPool();
     classPool.appendClassPath(new LoaderClassPath(loader));
 
     try {
