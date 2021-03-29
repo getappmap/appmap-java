@@ -33,4 +33,8 @@ public class ExampleClass {
     String local = "variables";
     buildString(this.someState, x, local);
   }
+
+  public String toString() {
+    throw new RuntimeException("this method should never be called");
+  }
 }
