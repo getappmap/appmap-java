@@ -57,7 +57,7 @@ public class HookConditionSystem extends SourceMethodSystem {
       return (Boolean) this.conditionMethod.invoke(null, behavior);
     } catch (Exception e) {
       Logger.printf("match failed due to %s exception\n", e.getClass().getName());
-      Logger.println(e.getMessage());
+      Logger.println(e);
       return false;
     }
   }

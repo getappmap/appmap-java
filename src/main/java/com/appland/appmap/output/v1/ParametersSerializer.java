@@ -48,7 +48,7 @@ public class ParametersSerializer implements ObjectSerializer {
       out.write(JSON.toJSONString(valuesField.get(params)));
     } catch (Exception e) {
       Logger.println("failed to serialize parameters");
-      Logger.println(e.getMessage());
+      Logger.println(e);
       out.writeNull();
     }
   }
