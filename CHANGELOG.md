@@ -1,3 +1,11 @@
+## [1.0.4](https://github.com/applandinc/appmap-java/compare/v1.0.3...v1.0.4) (2021-04-08)
+
+
+### Bug Fixes
+
+* Don't append System path to class pools ([681d74e](https://github.com/applandinc/appmap-java/commit/681d74ec843a5b4c7acf317114cd54766a3b2d87))
+* Provide better error message when encountering an unknown event ([c69a877](https://github.com/applandinc/appmap-java/commit/c69a87779a5a33994b295aade6cfcfd188d3cc37))
+
 ## [1.0.3](https://github.com/applandinc/appmap-java/compare/v1.0.2...v1.0.3) (2021-03-22)
 
 
