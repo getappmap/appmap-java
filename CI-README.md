@@ -62,44 +62,30 @@ via variable `ORG_GRADLE_PROJECT_publishArtifactId`
 
 # Publishing 
 
-## Manual 
+`semantic-release` invoked by Travis on master branch, 
+triggers publishing task as a hook defined in `.releaserc.yml`
 
-`./gradlew publish`
 
-## Travis 
+Since April 2021 we're using Gradle Nexus Publish plugin, 
+old `./gradlew publish` command is deprecated 
+and likely won't work in "local filesystem" mode any more 
+(not tested and not needed).
 
-Maven publication is triggered by semantic-versioned tags in the form `x.y.z`, 
-`x.y.z-whatever` (releases) or `x.y.z-SNAPSHOT` (snapshots)
+Nexus Publishing plugin takes care not only of uploading artifacts 
+(like previously used `maven-publish` plugin does)
+but also automates 
+[the procedures of "closing" and "releasing" repository in OSSRH](https://central.sonatype.org/pages/releasing-the-deployment.html) 
 
-# Releases
+## Manual invocation of publication task:
 
-Follow the steps in 
-[Official guide](https://central.sonatype.org/pages/releasing-the-deployment.html) 
-to manually close-validate-release the repository after successful publication.
+```./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository```
+(triggered by semantic-release, most complete flow)
 
-*After first release in the namespace happens, do not forget to comment on the 
-OSSRH ticket which was used to claim the namespace.*
+or 
+
+```./gradlew publishToSonatype closeReleaseSonatypeStagingRepository```
+(more conservative, skips the step of pushing to Maven Central)
 
 # Backlog
 
-## Done
-
-
-* Generate Source Jar
-* Generate JavaDoc Jar
-* Publish to local repo
-* Sign artifacts
-* Plug together signing and publishing
-* Fill POM metadata according to Maven requirements
-* Parameterizable coordinates (version, group, artifact)
-* Support Java8
-* Release into real (remote, sonatype) repo
-* BUG: POM contains prohibited syntax for mockito dependency
-* Automate via Travis
-* Regresion in Java8 test
-
-
-## TODO:
-
-* Support release cycle for appmap-java-maven-plugin
 * BUG? Javadoc is intentionally empty due to errors in javadoc generation.

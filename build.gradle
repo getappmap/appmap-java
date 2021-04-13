@@ -13,6 +13,7 @@ plugins {
   id 'war'
   id 'jacoco'
   id 'signing'
+  id 'io.github.gradle-nexus.publish-plugin' version '1.0.0'
 }
 
 repositories {
@@ -28,8 +29,6 @@ def defaultVersion = '1.3.0'
 def versionLikeRegexp = /^\d+\.\d+.*/
 def travisVersionValid = travisVersion && (travisVersion ==~ versionLikeRegexp)
 
-version = parameterizedVersion ?: (travisVersionValid ? travisVersion : defaultVersion)
-
 def defaultGitSlug = "applandinc/appmap-java"
 def currentGitSlug = System.getenv("TRAVIS_REPO_SLUG") ?: defaultGitSlug
 
@@ -37,6 +36,10 @@ def defaultGroupId = 'com.appland'
 def defaultArtifactId = 'appmap-agent'
 def publishGroupId = findProperty('publishGroupId') ?: defaultGroupId
 def publishArtifactId = findProperty('publishArtifactId') ?: defaultArtifactId
+
+// these two are required by Gradle-Nexus-Publishing
+version = parameterizedVersion ?: ( travisVersionValid ? travisVersion : defaultVersion )
+group = publishGroupId
 
 dependencies {
   implementation 'com.alibaba:fastjson:1.2.61'
@@ -195,30 +198,27 @@ publishing {
       }
     }
   }
+}
 
-  repositories {
-    def local_url = "file://${buildDir}/repo"
-    // see https://central.sonatype.org/pages/gradle.html
-    def default_base = "https://s01.oss.sonatype.org"
-    def url_base = findProperty("mavenRepoURL") ?: default_base
-    def staging_url = url_base + "/service/local/staging/deploy/maven2/"
-    def snapshots_url = url_base + "/content/repositories/snapshots/"
-    def is_snapshot = version.endsWith('SNAPSHOT')
-    def remote_url = is_snapshot ? snapshots_url : staging_url
-    def ossrh_username = findProperty('ossrhUsername')
+nexusPublishing {
+    repositories {
+        sonatype {
 
-    maven {
-      if (ossrh_username) {
-        url = remote_url
-        credentials {
-          username = ossrh_username
-          password = getProperty('ossrhPassword')
+            // this is evaluated even when task itself is not invoked
+            // so we use fault-tolerant `findProperty` instead of strict `getProperty`
+            // solely in order to allow building artifacts 
+            // without runtime configuration (e.g. in context of Docker build)
+
+            // see https://central.sonatype.org/pages/gradle.html
+            def default_base        = "https://s01.oss.sonatype.org"
+            def url_base            = findProperty("mavenRepoURL") ?: default_base
+
+            nexusUrl                = uri(  url_base + "/service/local/")
+            snapshotRepositoryUrl   = uri(  url_base + "/content/repositories/snapshots" )
+            username                = project.findProperty('ossrhUsername')
+            password                = project.findProperty('ossrhPassword')
         }
-      } else {
-        url = local_url
-      }
     }
-  }
 }
 
 if (project.hasProperty("signingKey")) {
