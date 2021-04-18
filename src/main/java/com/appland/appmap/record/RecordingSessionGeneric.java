@@ -23,8 +23,7 @@ public class RecordingSessionGeneric implements IRecordingSession {
         } else {
           Optional.ofNullable(events.stream()
                     .filter(it -> it.id == event.parentId)
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Missing parent Event.")))
+                    .findFirst().get())
                   .ifPresent( parentEvent ->
                           this.classReferences.add(parentEvent.definedClass +
                                   ":" + parentEvent.methodId +
