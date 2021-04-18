@@ -8,8 +8,8 @@ import com.appland.appmap.config.Properties;
 public class Logger {
   private static PrintStream log = ensureLog();
   
-  public static void println(Exception e) {
-    Logger.println(e.getMessage());
+  public static void println(Throwable e) {
+    e.printStackTrace(log);
   }
 
   public static void println(String msg) {

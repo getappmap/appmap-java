@@ -3,6 +3,11 @@
 # run smoke tests
 set -e
 
+# see https://blog.travis-ci.com/docker-rate-limits
+if [ ! -z "$DOCKERHUB_PASSWORD" ] && [ ! -z "$DOCKERHUB_USERNAME" ]; then
+    echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin 
+fi
+
 JAVA_VERSION=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | sed 's/^1\.//'| cut -d'.' -f1)
 
 if [ $JAVA_VERSION -lt "9" ]; then
@@ -24,8 +29,9 @@ docker build \
   -f $CONFIG \
   .
 
+
 printf '\n=== begin tests ===\n'
-docker run -i $(tty -s && echo '-t') \
+exec docker run -i $(tty -s && echo '-t') \
   --rm \
   "${IMAGE_NAME}:${IMAGE_TAG}" \
   "${@:-/sbin/entrypoint}"

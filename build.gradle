@@ -13,6 +13,7 @@ plugins {
   id 'java'
   id 'war'
   id 'jacoco'
+  id 'signing'
 }
 
 repositories {
@@ -20,8 +21,23 @@ repositories {
   mavenCentral()
 }
 
-version = '0.5.2'
+// hardcoded -- could be redefined via env variables and project properties (see below)
+def parameterizedVersion    = findProperty('appMapAgentVersion')
+def travisVersion           = System.getenv("TRAVIS_BRANCH")
+def defaultVersion          = '1.0.4'
 
+def versionLikeRegexp       = /^\d+\.\d+.*/
+def travisVersionValid      = travisVersion && (travisVersion ==~ versionLikeRegexp)
+
+version = parameterizedVersion ?: ( travisVersionValid ? travisVersion : defaultVersion )
+
+def defaultGitSlug="applandinc/appmap-java"
+def currentGitSlug=System.getenv("TRAVIS_REPO_SLUG") ?: defaultGitSlug
+
+def defaultGroupId      = 'com.appland'
+def defaultArtifactId   = 'appmap-agent'
+def publishGroupId      = findProperty('publishGroupId') ?: defaultGroupId
+def publishArtifactId   = findProperty('publishArtifactId') ?: defaultArtifactId
 
 dependencies {
   implementation 'org.yaml:snakeyaml:1.25'
@@ -32,9 +48,20 @@ dependencies {
   implementation 'org.apache.commons:commons-lang3:3.10'
   implementation 'org.slf4j:slf4j-nop:1.7.30'
 
+  /*
+  /// are test classes becoming part of "build" purposedly or by mistake?
+  implementation 'junit:junit:4.12'
+  implementation 'com.github.stefanbirkner:system-rules:1.19.0'
+  //implementation "org.mockito:mockito-core:2.+" # maven requires  strict syntax
+  implementation "org.mockito:mockito-core:2.28.2"
+  compile 'com.github.stefanbirkner:system-rules:1.19.0'
+  */
+
   testImplementation 'junit:junit:4.12'
   testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
-  testImplementation "org.mockito:mockito-core:2.+"
+  //testImplementation "org.mockito:mockito-core:2.+"
+  testImplementation "org.mockito:mockito-core:2.28.2"
+
 }
 
 jar {
@@ -45,38 +72,23 @@ jar {
 
 apply plugin: 'com.github.johnrengelman.shadow'
 
-def versionSuffix
-def v = JavaVersion.current()
-switch(v = JavaVersion.current()) {
-  case '1.8':
-    versionSuffix = 'java8'
-    break
-  case '11':
-    versionSuffix = 'java11'
-    break
-  default:
-    throw new GradleException("unknown Java version ${v}, can't copy jar")
-}
-
 shadowJar {
   baseName = 'appmap'
-  classifier = versionSuffix
+  classifier = ''
   minimize()
   dependencies {
     exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
   }
 }
 
-// For backward compatibility, produce a file named
-// appmap-<version>.jar, too.
-task copyJar(type: Copy) {
-  from shadowJar
-  into shadowJar.destinationDir
-  rename { f -> f - "-${versionSuffix}" }
-}
-shadowJar.finalizedBy copyJar
-
 sourceSets {
+  /*
+  main {
+    java {
+      srcDirs = ['src/main']
+    }
+  }
+  */
   integrationTest {
     java {
       srcDirs = [ 'src/test/java/com/appland/appmap/integration' ]
@@ -124,4 +136,122 @@ jacocoTestReport {
     csv.enabled false
     html.enabled true
   }
+}
+
+// extra artifacts used in publishing
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+// for some reason this block generates empty Javadoc
+// which we use as a workaround to bypass javadoc errors issue
+javadoc {
+    exclude 'com/appland/**'
+}
+task mockJavadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+apply plugin: 'maven-publish'
+publishing {
+  publications {
+
+        appMapAgent(MavenPublication) {
+
+            // requirements: https://central.sonatype.org/pages/requirements.html
+
+            // 1. coordinates (parameterized)
+
+            groupId     publishGroupId
+            artifactId  publishArtifactId
+
+            // version defined globally
+
+            // 2. artifacts
+            // inclusion of javadoc and source jars is Maven-Central requirement
+
+            artifact shadowJar
+            artifact sourcesJar
+            artifact mockJavadocJar // empty javadoc generated until errors are fixed
+
+            //// the artifacts below added automatically by `java { with... }` block above
+            // artifact sourcesJar
+            // artifact javadocJar
+
+            // metadata
+            // TBD: parameterize more values?
+
+            pom {
+                name = "$publishGroupId:$publishArtifactId"
+                description = "Inspect and record the execution of Java for use with App Land"
+                url = "https://appland.com"
+
+                licenses {
+                  license {
+                    name = "MIT"
+                    url = "https://raw.githubusercontent.com/$currentGitSlug/master/LICENSE.txt"
+                  }
+                }
+                developers {
+                  developer {
+                    // id = "kgilpin"
+                    name = "Kevin Gilpin"
+                    email = "kevin@appland.com"
+                    organization = "AppLand Inc."
+                    url="https://dev.to/kgilpin"
+                  }
+                }
+                scm {
+                    connection = "scm:git:git://github.com/${currentGitSlug}.git"
+                    developerConnection = "scm:git:ssh://github.com:${currentGitSlug}.git"
+                    url = "https://github.com/${currentGitSlug}/tree/master"
+                }
+            }
+        }
+  }
+
+   repositories {
+
+        def local_url       = "file://${buildDir}/repo"
+        // see https://central.sonatype.org/pages/gradle.html
+        def default_base        = "https://s01.oss.sonatype.org"
+        //def default_base    = "https://oss.sonatype.org"
+        def url_base        = findProperty("mavenRepoURL") ?: default_base
+        def staging_url     = url_base + "/service/local/staging/deploy/maven2/"
+        def snapshots_url   = url_base + "/content/repositories/snapshots/"
+
+        def is_snapshot     = version.endsWith('SNAPSHOT')
+        def remote_url      = is_snapshot ? snapshots_url : staging_url
+
+        def ossrh_username  = findProperty('ossrhUsername')
+
+
+        maven {
+            if (ossrh_username) {
+                url = remote_url
+                credentials {
+                    username = ossrh_username
+                    password = getProperty('ossrhPassword')
+                }
+            } else {
+                url = local_url
+            }
+        }
+    }
+}
+
+
+
+if (project.hasProperty("signingKey")) {
+
+    apply plugin: 'signing'
+
+    signing {
+        def signingKey = findProperty("signingKey")
+        def signingPassword = findProperty("signingPassword")
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications.appMapAgent
+    }
 }

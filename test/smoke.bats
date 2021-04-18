@@ -127,6 +127,7 @@ load 'helper'
 }
 
 @test "expected number of http client events captured" {
+  skip
 
   java_version=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | sed 's/^1\.//'| cut -d'.' -f1 | cut -d'-' -f1)
   if [ $java_version -gt "8" ]; then

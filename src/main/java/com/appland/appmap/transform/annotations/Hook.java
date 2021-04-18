@@ -1,5 +1,6 @@
 package com.appland.appmap.transform.annotations;
 
+import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.record.EventTemplateRegistry;
 import com.appland.appmap.util.Logger;
@@ -188,19 +189,19 @@ public class Hook {
           ClassPool.getDefault().get("java.lang.Exception"));
       
     } catch (CannotCompileException e) {
-      Logger.println("failed to compile");
-      Logger.println("       method "
-          + targetBehavior.getDeclaringClass().getName()
-          + "."
-          + targetBehavior.getName());
-      Logger.println("  cause: " + e.getCause());
-      Logger.println("  reason: " + e.getReason());
-      
-
-      Logger.println(e.getMessage());
+      if (Properties.DebugHooks) {
+        Logger.println("failed to compile");
+        Logger.println("       method "
+            + targetBehavior.getDeclaringClass().getName()
+            + "."
+            + targetBehavior.getName());
+        Logger.println("  cause: " + e.getCause());
+        Logger.println("  reason: " + e.getReason());
+        Logger.println(e);
+      }
     } catch (NotFoundException e) {
       Logger.println("failed to find class\n");
-      Logger.println(e.getMessage());
+      Logger.println(e);
     }
   }
 
@@ -288,7 +289,7 @@ public class Hook {
         returnType = ((CtMethod) behavior).getReturnType();
       } catch (NotFoundException e) {
         Logger.println("warning - unknown return type");
-        Logger.println(e.getMessage());
+        Logger.println(e);
       }
     }
     return returnType;

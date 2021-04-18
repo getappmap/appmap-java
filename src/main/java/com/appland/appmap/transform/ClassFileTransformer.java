@@ -52,7 +52,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         ctClass.detach();
       } catch (NotFoundException e) {
         Logger.printf("failed to find %s in class pool", classType.getName());
-        Logger.println(e.getMessage());
+        Logger.println(e);
       }
     } 
   }
@@ -103,7 +103,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         hook.validate();
       } catch (HookValidationException e) {
         Logger.println("failed to validate hook");
-        Logger.println(e.getMessage());
+        Logger.println(e);
         continue;
       }
 
@@ -151,7 +151,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           Class redefiningClass,
                           ProtectionDomain domain,
                           byte[] bytes) throws IllegalClassFormatException {
-    ClassPool classPool = new ClassPool(true);
+    ClassPool classPool = new ClassPool();
     classPool.appendClassPath(new LoaderClassPath(loader));
 
     try {

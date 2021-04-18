@@ -53,12 +53,6 @@ public class Parameters implements Iterable<Value> {
     LocalVariableAttribute locals = (LocalVariableAttribute) codeAttribute.getAttribute(
         javassist.bytecode.LocalVariableAttribute.tag);
 
-    // We should be able to handle methods without debug
-    // information. However, as of 20200822, other errors come up if
-    // do hook them, so bail out here.
-    if (locals == null) {
-      throw new NoSourceAvailableException("No local variables for " + fqn);
-    }
 
     CtClass[] paramTypes = null;
     try {
@@ -71,7 +65,7 @@ public class Parameters implements Iterable<Value> {
 
     String[] paramNames = null;
     int numParams = paramTypes.length;
-    if (numParams > 0) {
+    if (locals != null && numParams > 0) {
       int numLocals = locals.tableLength();
       
       // This is handy when debugging this code, but produces too much

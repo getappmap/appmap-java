@@ -54,7 +54,7 @@ public class CallbackOnSystem extends BaseSystem {
           runtimeParameters.add(returnValue);
         } catch (NotFoundException e) {
           Logger.println("warning - unknown return type");
-          Logger.println(e.getMessage());
+          Logger.println(e);
         }
       }
     } else if (this.methodEvent == MethodEvent.METHOD_EXCEPTION) {
