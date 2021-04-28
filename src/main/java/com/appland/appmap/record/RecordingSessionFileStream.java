@@ -6,13 +6,18 @@ import com.appland.appmap.util.Logger;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 /**
  * Receives recording data and writes it to disk.
  */
 public class RecordingSessionFileStream extends RecordingSessionGeneric {
   private static final Integer MAX_EVENTS = 32;
+  private static final Integer FILENAME_MAX_LENGTH = 255;
   private static final String DEFAULT_FILENAME = "appmap.json";
 
   private FileWriter fileWriter;
@@ -28,7 +33,20 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
   public RecordingSessionFileStream(String fileName, Metadata metadata) {
     this.metadata = metadata;
     if (fileName != null) {
-      this.fileName = String.format("%s.appmap.json", fileName);
+      if (fileName.length() + DEFAULT_FILENAME.length() >=  FILENAME_MAX_LENGTH) {
+        try {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(fileName.getBytes(StandardCharsets.UTF_8));
+        String nameDigest = Base64.getUrlEncoder().encodeToString(md.digest());
+
+        this.fileName = String.format(
+                "%s." + DEFAULT_FILENAME,
+                fileName.substring(0, FILENAME_MAX_LENGTH - nameDigest.length() - DEFAULT_FILENAME.length() - 1)
+                        + nameDigest);
+        } catch (NoSuchAlgorithmException e) { }
+      } else {
+        this.fileName = String.format("%s." + DEFAULT_FILENAME, fileName);
+      }
     }
   }
 

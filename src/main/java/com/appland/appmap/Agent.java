@@ -36,6 +36,7 @@ public class Agent {
     }
 
     Logger.printf("agent loaded using config %s\n", Properties.ConfigFile);
+    Logger.printf("agent 1.0.5 \n");
 
     inst.addTransformer(new ClassFileTransformer());
 
