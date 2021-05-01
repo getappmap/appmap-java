@@ -28,25 +28,13 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
   /**
    * Constructor. You typically shouldn't be creating this outside of the {@link Recorder}.
    * @param fileName Output file name
+   *
    * @param metadata Recording metadata
    */
   public RecordingSessionFileStream(String fileName, Metadata metadata) {
     this.metadata = metadata;
     if (fileName != null) {
-      if (fileName.length() + DEFAULT_FILENAME.length() >=  FILENAME_MAX_LENGTH) {
-        try {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        md.update(fileName.getBytes(StandardCharsets.UTF_8));
-        String nameDigest = Base64.getUrlEncoder().encodeToString(md.digest());
-
-        this.fileName = String.format(
-                "%s." + DEFAULT_FILENAME,
-                fileName.substring(0, FILENAME_MAX_LENGTH - nameDigest.length() - DEFAULT_FILENAME.length() - 1)
-                        + nameDigest);
-        } catch (NoSuchAlgorithmException e) { }
-      } else {
-        this.fileName = String.format("%s." + DEFAULT_FILENAME, fileName);
-      }
+      this.fileName = String.format("%s.appmap.json", fileName);
     }
   }
 

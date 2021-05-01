@@ -4,7 +4,6 @@ import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Vector;
 
 public class RecordingSessionGeneric implements IRecordingSession {
@@ -20,16 +19,6 @@ public class RecordingSessionGeneric implements IRecordingSession {
                             ":" + event.methodId +
                             ":" + event.isStatic +
                             ":" + event.lineNumber);
-        } else {
-          Optional.ofNullable(events.stream()
-                    .filter(it -> it.id == event.parentId)
-                    .findFirst().get())
-                  .ifPresent( parentEvent ->
-                          this.classReferences.add(parentEvent.definedClass +
-                                  ":" + parentEvent.methodId +
-                                  ":" + parentEvent.isStatic +
-                                  ":" + parentEvent.lineNumber)
-                  );
         }
     }
 

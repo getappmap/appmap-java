@@ -77,23 +77,4 @@ public class RecorderTest {
     t.join();
     assertFalse(recorder.hasActiveSession());
   }
-
-  @Test
-  public void testReallyLongTestNamesAreHandledCorrectly() throws IOException  {
-    final String reallyLongName = "co_example_package_application_appmap_tests_really_long_package_name_for_testing_issue_in_windows_SO_about_too_long_appmap_agent_generated_names_tests_reported_on_the_twenty_four_of_april_of_twenty_twenty_one_service_UserServiceTest_testFindNotActivatedUsersByCreationDateBeforeMockLongTestNames";
-    final MyClass myClass = new MyClass();
-    final File output = new File(Paths.get(Properties.OutputDirectory, reallyLongName).toString());
-
-    if (output.exists()) {
-      output.delete();
-    }
-
-    recorder.record(reallyLongName, () -> {
-      for (int i = 0; i < 10; i++) {
-        myClass.myMethod();
-      }
-    });
-
-    assertTrue(output.exists());
-  }
 }

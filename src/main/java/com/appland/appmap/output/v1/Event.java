@@ -2,11 +2,10 @@ package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.appland.appmap.transform.annotations.MethodEvent;
-import javassist.CtBehavior;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import javassist.CtBehavior;
 
 /**
  * Represents a snapshot of a method invocation, return, exception or some other kind of runtime
@@ -217,7 +216,6 @@ public class Event {
     if (val != null) {
       this.returnValue = new Value(val);
     }
-
     return this;
   }
 
@@ -235,7 +233,6 @@ public class Event {
         t = t.getCause();
       }
     }
-
     return this;
   }
 
@@ -249,7 +246,6 @@ public class Event {
     if (val != null) {
       this.receiver = new Value(val);
     }
-
     return this;
   }
 
@@ -436,9 +432,40 @@ public class Event {
     return this;
   }
 
-  public boolean isParentEventOf(Event other) {
+  /**
+   * Checks where or not the <code>other<code/> event relates to the same piece of code.
+   *
+   * @param other
+   * @return
+   */
+  public boolean isSameCodeAs(Event other) {
     return this.definedClass.equals(other.definedClass)
             && this.methodId.equals(other.methodId)
             && this.lineNumber.equals(other.lineNumber);
+  }
+
+  /**
+   * Checks where or not the event is of type <code>MethodEvent.METHOD_RETURN<code/>
+   * @return
+   */
+  public boolean isReturnEvent() {
+    if (event != null) {
+      return event.equalsIgnoreCase(MethodEvent.METHOD_RETURN.getEventString());
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Removes unnecessary or duplicated fields depending on the event type.
+   */
+  public void removeUnnecessaryInfoForReturnEvents(){
+    if (isReturnEvent()) {
+      path = null;
+      lineNumber = null;
+      isStatic = null;
+      definedClass = null;
+      methodId = null;
+    }
   }
 }
