@@ -8,13 +8,14 @@ import com.appland.appmap.config.Properties;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.test.util.MyClass;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-
 import org.junit.Test;
 
+/**
+ * Test for the main functionality of the agent, record sessions.
+ */
 public class RecorderTest {
   private static final Recorder recorder = Recorder.getInstance();
 
@@ -32,7 +33,10 @@ public class RecorderTest {
   @Test
   public void testRecordBlockToFile() throws IOException {
     final MyClass myClass = new MyClass();
-    final File output = new File(Paths.get(Properties.OutputDirectory, "Recording_a_block_to_a_file.appmap.json").toString());
+    final File output = new File(Paths.get(
+        Properties.OutputDirectory,
+        "Recording_a_block_to_a_file.appmap.json"
+    ).toString());
 
     if (output.exists()) {
       output.delete();
@@ -80,7 +84,11 @@ public class RecorderTest {
 
   @Test
   public void testReallyLongTestNamesAreHandledCorrectly() throws IOException  {
-    final String reallyLongName = "co_example_package_application_appmap_tests_really_long_package_name_for_testing_issue_in_windows_SO_about_too_long_appmap_agent_generated_names_tests_reported_on_the_twenty_four_of_april_of_twenty_twenty_one_service_UserServiceTest_testFindNotActivatedUsersByCreationDateBeforeMockLongTestNames";
+    final String reallyLongName = "co_example_package_application_appmap_tests_"
+        + "really_long_package_name_for_testing_issue_in_windows_SO_about_"
+        + "too_long_appmap_agent_generated_names_tests_reported_on_the_twenty_"
+        + "four_of_april_of_twenty_twenty_one_service_UserServiceTest_"
+        + "testFindNotActivatedUsersByCreationDateBeforeMockLongTestNames";
     final MyClass myClass = new MyClass();
     final File output = new File(Paths.get(Properties.OutputDirectory, reallyLongName).toString());
 
