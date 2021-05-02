@@ -19,6 +19,7 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
   private static final Integer MAX_EVENTS = 32;
   private static final Integer FILENAME_MAX_LENGTH = 255;
   private static final String DEFAULT_FILENAME = "appmap.json";
+  private static final String FILE_EXTENSION  = "appmap.json";
 
   private FileWriter fileWriter;
   private final Metadata metadata;
@@ -40,8 +41,8 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
         String nameDigest = Base64.getUrlEncoder().encodeToString(md.digest());
 
         this.fileName = String.format(
-                "%s." + DEFAULT_FILENAME,
-                fileName.substring(0, FILENAME_MAX_LENGTH - nameDigest.length() - DEFAULT_FILENAME.length() - 1)
+                "%s." + FILE_EXTENSION,
+                fileName.substring(0, FILENAME_MAX_LENGTH - nameDigest.length() - FILE_EXTENSION.length() - 1)
                         + nameDigest);
         } catch (NoSuchAlgorithmException e) { }
       } else {
