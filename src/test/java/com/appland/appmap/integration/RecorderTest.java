@@ -88,7 +88,7 @@ public class RecorderTest {
         + "really_long_package_name_for_testing_issue_in_windows_SO_about_"
         + "too_long_appmap_agent_generated_names_tests_reported_on_the_twenty_"
         + "four_of_april_of_twenty_twenty_one_service_UserServiceTest_"
-        + "testFindNotActivatedUsersByCreationDateBeforeMockLongTestNames";
+        + "testFindNotActivatedUsersByCreationDateBeforeMockLongTestNamesLONG";
     final MyClass myClass = new MyClass();
     final File output = new File(Paths.get(Properties.OutputDirectory, reallyLongName).toString());
 
