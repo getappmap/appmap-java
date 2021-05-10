@@ -39,6 +39,9 @@ def defaultArtifactId   = 'appmap-agent'
 def publishGroupId      = findProperty('publishGroupId') ?: defaultGroupId
 def publishArtifactId   = findProperty('publishArtifactId') ?: defaultArtifactId
 
+def defaultDescription = "Inspect and record the execution of Java for use with App Land"
+def parameterizedDescription = findProperty('appMapAgentDescription') ?: defaultDescription
+
 
 // these two are required by Gradle-Nexus-Publishing
 version = parameterizedVersion ?: ( travisVersionValid ? travisVersion : defaultVersion )
@@ -190,7 +193,7 @@ publishing {
 
             pom {
                 name = "$publishGroupId:$publishArtifactId"
-                description = "Inspect and record the execution of Java for use with App Land"
+                description = parameterizedDescription
                 url = "https://appland.com"
 
                 licenses {
