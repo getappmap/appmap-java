@@ -32,10 +32,14 @@ def travisVersionValid = travisVersion && (travisVersion ==~ versionLikeRegexp)
 def defaultGitSlug = "applandinc/appmap-java"
 def currentGitSlug = System.getenv("TRAVIS_REPO_SLUG") ?: defaultGitSlug
 
-def defaultGroupId = 'com.appland'
-def defaultArtifactId = 'appmap-agent'
-def publishGroupId = findProperty('publishGroupId') ?: defaultGroupId
-def publishArtifactId = findProperty('publishArtifactId') ?: defaultArtifactId
+def defaultGroupId      = 'com.appland'
+def defaultArtifactId   = 'appmap-agent'
+def publishGroupId      = findProperty('publishGroupId') ?: defaultGroupId
+def publishArtifactId   = findProperty('publishArtifactId') ?: defaultArtifactId
+
+def defaultDescription = "Inspect and record the execution of Java for use with App Land"
+def parameterizedDescription = findProperty('appMapAgentDescription') ?: defaultDescription
+
 
 // these two are required by Gradle-Nexus-Publishing
 version = parameterizedVersion ?: ( travisVersionValid ? travisVersion : defaultVersion )
