@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <annotationProcessing>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/info.picocli/picocli/4.0.4/28c5aafb118876f644aae30bdcbd89ae27b198a8/picocli-4.0.4.jar" />
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/info.picocli/picocli-codegen/4.0.4/93f1281132877e4a68b454552ec52bb4d1098055/picocli-codegen-4.0.4.jar" />
-        </processorPath>
-        <module name="appmap-java.main" />
-      </profile>
-    </annotationProcessing>
+    <bytecodeTargetLevel target="11" />
   </component>
 </project>
