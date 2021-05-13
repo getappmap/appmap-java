@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/applandinc/appmap-java/compare/v1.0.4...v1.1.0) (2021-05-13)
+
+
+### Features
+
+* Add a property to enable automatic recording at boot time ([7c83614](https://github.com/applandinc/appmap-java/commit/7c83614d630cd9d995cc34856035fd31a7ff810a))
+
 ## [1.0.4](https://github.com/applandinc/appmap-java/compare/v1.0.3...v1.0.4) (2021-04-08)
 
 
