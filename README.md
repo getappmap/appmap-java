@@ -5,9 +5,9 @@
     - [Supported versions](#supported-versions)
   - [Configuration](#configuration)
   - [Running the AppMap agent](#running-the-appmap-agent)
-    - [Maven](#maven)
-    - [Other than Maven](#other-than-maven)
-      - [Gradle](#gradle)
+    - [Recording tests with Maven](#recording-tests-with-maven)
+    - [Recording tests with Gradle](#recording-tests-with-gradle)
+    - [Other situations](#other-situations)
   - [System Properties](#system-properties)
   - [Operation](#operation)
     - [Recording test cases](#recording-test-cases)
@@ -47,6 +47,7 @@ Once you have made a recording, there are two ways to view automatically
 generated diagrams of the AppMaps.
 
 The first option is to load the diagrams directly in your IDE, using the
+[AppMap for IntelliJ IDEA](https://plugins.jetbrains.com/plugin/16701-appmap) or
 [AppMap for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=appland.appmap).
 
 The second option is to upload them to the [AppLand server](https://app.land)
@@ -85,12 +86,18 @@ Each entry in the `packages` list is a YAML object which has the following keys:
 
 ## Running the AppMap agent
 
-### Maven
+### Recording tests with Maven
 
 We recommend using the
 [AppMap Maven plugin](https://github.com/applandinc/appmap-maven-plugin#quickstart).
 
-### Other than Maven
+### Recording tests with Gradle
+
+We recommend using the
+[AppMap Gradle plugin](https://github.com/applandinc/appmap-gradle-plugin#quickstart).
+
+
+### Other situations
 
 Download the latest release from
 [https://github.com/applandinc/appmap-java/releases](https://github.com/applandinc/appmap-java/releases).
@@ -103,13 +110,6 @@ JVM. For example:
 java -javaagent:lib/appmap.jar myapp.jar
 ```
 
-#### Gradle
-
-```groovy
-test {
-  jvmArgs "-javaagent:$rootDir/lib/appmap.jar"
-}
-```
 
 ## System Properties
 
