@@ -120,6 +120,13 @@ java -javaagent:lib/appmap.jar myapp.jar
 - `appmap.debug` Enable debug logging. Default: `null` (disabled)
 - `appmap.event.valueSize` Specifies the length of a value string before
   truncation occurs. If set to `0`, truncation is disabled. Default: `1024`
+- `appmap.recording.auto` Automatically begin recording at boot time. Default:
+  `false`
+- `appmap.recording.file` The file name of the automatic recording to be
+  emitted. Note that the file name will still be prefixed by
+  `appmap.output.directory`. Default: `$TIMESTAMP.appmap.json`
+- `appmap.recording.name` Populates the `metadata.name` field of the AppMap.
+  Default: `$TIMESTAMP`
 
 ## Operation
 
