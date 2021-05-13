@@ -27,8 +27,8 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
    */
   public RecordingSessionFileStream(String fileName, Metadata metadata) {
     this.metadata = metadata;
-    if (fileName != null) {
-      this.fileName = String.format("%s.appmap.json", fileName);
+    if (fileName != null && !fileName.trim().isEmpty()) {
+      this.fileName = fileName;
     }
   }
 
