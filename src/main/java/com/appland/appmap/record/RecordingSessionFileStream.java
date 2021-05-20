@@ -33,7 +33,7 @@ public class RecordingSessionFileStream extends RecordingSessionGeneric {
    */
   public RecordingSessionFileStream(String fileName, Metadata metadata) {
     this.metadata = metadata;
-    if (fileName != null) {
+    if (fileName != null && !fileName.trim().isEmpty()) {
       if (fileName.length() + DEFAULT_FILENAME.length() >=  FILENAME_MAX_LENGTH) {
         try {
         MessageDigest md = MessageDigest.getInstance("MD5");

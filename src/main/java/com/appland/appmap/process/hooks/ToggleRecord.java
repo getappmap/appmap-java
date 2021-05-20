@@ -200,7 +200,7 @@ public class ToggleRecord {
         decapitalize(metadata.feature));
       metadata.recordedClassName = event.definedClass;
       metadata.recordedMethodName = event.methodId;
-      recorder.start(fileName, metadata);
+      recorder.start(fileName + ".appmap.json", metadata);
     } catch (ActiveSessionException e) {
       Logger.printf("%s\n", e.getMessage());
     }

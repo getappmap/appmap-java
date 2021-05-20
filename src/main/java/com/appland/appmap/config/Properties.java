@@ -11,6 +11,13 @@ public class Properties {
   public static final String DebugFile = resolveProperty("appmap.debug.file", (String)null);
   public static final Boolean DebugHttp = System.getProperty("appmap.debug.http") != null;
 
+  public static final Boolean RecordingAuto = resolveProperty(
+      "appmap.recording.auto", Boolean::valueOf, false);
+  public static final String RecordingName = resolveProperty(
+      "appmap.recording.name", (String)null);
+  public static final String RecordingFile = resolveProperty(
+      "appmap.recording.file", (String)null);
+
   public static final String DefaultOutputDirectory = "./tmp/appmap";
   public static final String OutputDirectory = resolveProperty(
       "appmap.output.directory", DefaultOutputDirectory);

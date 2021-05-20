@@ -8,9 +8,11 @@ import com.appland.appmap.config.Properties;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.test.util.MyClass;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+
 import org.junit.Test;
 
 /**
@@ -95,7 +97,7 @@ public class RecorderTest {
             "co_example_package_application_appmap_tests_really_long_package_name"
                 + "_for_testing_issue_in_windows_SO_about_too_long_appmap_agent_generated"
                 + "_names_tests_reported_on_the_twenty_four_of_april_of_twenty_twenty_one"
-                + "_service_Ustom1ir7WLVvT1Vw3gkPoPg==.appmap.json").toString()
+                + "_service_Us6IMgzeF-SKe3ZWSrbmzDiA==.appmap.json").toString()
     );
 
     if (expectedCutName.exists()) {
@@ -108,6 +110,22 @@ public class RecorderTest {
       }
     });
 
-    assertTrue(expectedCutName.exists());
+    assertTrue(doesFileExistWithPrefix("co_example_package_application_appmap_tests_really_long_package_name"
+        + "_for_testing_issue_in_windows_SO_about_too_long_appmap_agent_generated"
+        + "_names_tests_reported_on_the_twenty_four_of_april_of_twenty_twenty_one"
+        + "_service_Us6IMgzeF-SKe3ZWSrbmzDiA"));
+  }
+
+   public boolean doesFileExistWithPrefix(String prefix) {
+     File[] listFiles = new File(Properties.OutputDirectory).listFiles();
+      for (int i = 0; i < listFiles.length; i++) {
+        if (listFiles[i].isFile()) {
+          String fileName = listFiles[i].getName();
+          if (fileName.startsWith(prefix)) {
+            return true;
+          }
+        }
+      }
+     return false;
   }
 }
