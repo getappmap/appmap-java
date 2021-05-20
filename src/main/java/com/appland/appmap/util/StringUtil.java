@@ -86,7 +86,7 @@ public class StringUtil {
    */
   public static String canonicalName(CtBehavior behavior) {
     return canonicalName(behavior.getDeclaringClass().getName(),
-                         Modifier.isStatic(behavior.getModifiers()) ,
+                         Modifier.isStatic(behavior.getModifiers()),
                          behavior.getMethodInfo().getName());
   }
 }
