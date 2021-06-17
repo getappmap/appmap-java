@@ -1,11 +1,26 @@
-# AppMap for Java
+- [About](#about)
+- [Usage](#usage)
+- [Development](#development)
+  - [Building](#building)
+  - [Testing](#testing)
 
-## Installation, configuration and usage
+# About
 
-Visit [https://appland.com/docs/reference/appmap-java](https://appland.com/docs/reference/appmap-java)
-for quickstart instructions and full documentation.
+`appmap-java` is a Java agent for recording
+[AppMaps](https://github.com/applandinc/appmap) of your code. "AppMap" is a data
+format which records code structure (modules, classes, and methods), code
+execution events (function calls and returns), and code metadata (repo name,
+repo URL, commit SHA, labels, etc). It's more granular than a performance
+profile, but it's less granular than a full debug trace. It's designed to be
+optimal for understanding the design intent and structure of code and key data
+flows.
 
-## Developing
+# Usage
+
+Visit the [AppMap for Java](https://appland.com/docs/reference/appmap-java.html)
+reference page on AppLand.com for a complete reference guide.
+
+# Development
 
 [![Build Status](https://travis-ci.com/applandinc/appmap-java.svg?branch=master)](https://travis-ci.com/applandinc/appmap-java)
 
