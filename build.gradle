@@ -47,6 +47,7 @@ dependencies {
   implementation 'javax.servlet:javax.servlet-api:4.0.1'
   implementation 'org.apache.commons:commons-lang3:3.10'
   implementation 'org.slf4j:slf4j-nop:1.7.30'
+  implementation 'info.picocli:picocli:4.6.1'
 
   testImplementation 'junit:junit:4.12'
   testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
@@ -56,6 +57,7 @@ dependencies {
 jar {
   manifest {
     attributes 'Premain-Class': 'com.appland.appmap.Agent'
+    attributes 'Main-Class': 'com.appland.appmap.cli.CLI'
   }
 }
 
