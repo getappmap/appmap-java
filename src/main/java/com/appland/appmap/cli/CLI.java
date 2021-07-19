@@ -8,7 +8,10 @@ public class CLI {
   public String directory;
 
   public static void main(String[] args) {
-    int exitCode = new CommandLine(new CLI()).addSubcommand("status", Status.class).execute(args);
+    int exitCode = new CommandLine(new CLI())
+        .addSubcommand("status", Status.class)
+        .addSubcommand("init", Init.class)
+        .execute(args);
     System.exit(exitCode);
   }
 }
