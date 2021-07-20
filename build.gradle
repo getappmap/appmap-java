@@ -40,12 +40,12 @@ def publishGroupId = findProperty('publishGroupId') ?: defaultGroupId
 def publishArtifactId = findProperty('publishArtifactId') ?: defaultArtifactId
 
 dependencies {
-  implementation 'org.yaml:snakeyaml:1.25'
   implementation 'com.alibaba:fastjson:1.2.61'
   implementation 'org.javassist:javassist:3.27.0-GA'
   implementation 'org.reflections:reflections:0.9.11'
   implementation 'javax.servlet:javax.servlet-api:4.0.1'
   implementation 'org.apache.commons:commons-lang3:3.10'
+  implementation 'org.yaml:snakeyaml:1.29'
   implementation 'org.slf4j:slf4j-nop:1.7.30'
   implementation 'info.picocli:picocli:4.6.1'
 
@@ -58,6 +58,7 @@ jar {
   manifest {
     attributes 'Premain-Class': 'com.appland.appmap.Agent'
     attributes 'Main-Class': 'com.appland.appmap.cli.CLI'
+    attributes 'Implementation-Version': version
   }
 }
 

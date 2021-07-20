@@ -41,13 +41,12 @@ public class Init implements Callable<Integer> {
   public Integer call() throws Exception {
     System.err.printf("Init AppMap project configuration in directory: %s\n", parent.directory);
 
-    String projectName = new File(parent.directory).getCanonicalFile().getName();
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
     pw.println("# This is the AppMap configuration file.");
     pw.println("# For full documentation of this file for Java programs, see:");
     pw.println("# https://appland.com/docs/reference/appmap-java.html#configuration");
-    pw.format("name: %s\n", projectName);
+    pw.format("name: %s\n", CLI.projectName(new File(parent.directory)));
 
     // For now, this only works in this type of standardize repo structure.
     File javaDir = new File("src/main/java");
