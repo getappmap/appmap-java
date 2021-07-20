@@ -1,0 +1,436 @@
+diff --git a/.gitignore b/.gitignore
+index 5379097..1343470 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -4,7 +4,7 @@
+ # Ignore Gradle build output directory
+ build
+ 
+-# Appmap files
++# AppMap files
+ tmp
+ 
+ .classpath
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+index 0255334..fb7f4a8 100644
+--- a/.idea/compiler.xml
++++ b/.idea/compiler.xml
+@@ -1,15 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+   <component name="CompilerConfiguration">
+-    <annotationProcessing>
+-      <profile name="Gradle Imported" enabled="true">
+-        <outputRelativeToContentRoot value="true" />
+-        <processorPath uselasspath="false">
+-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/info.picocli/picocli/4.0.4/28c5aafb118876f644aae30bdcbd89ae27b198a8/picocli-4.0.4.jar" />
+-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/info.picocli/picocli-codegen/4.0.4/93f1281132877e4a68b454552ec52bb4d1098055/picocli-codegen-4.0.4.jar" />
+-        </processorPath>
+-        <module name="appmap-java.main" />
+-      </profile>
+-    </annotationProcessing>
++    <bytecodeTargetLevel target="11" />
+   </component>
+ </project>
+\ No newline at end of file
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+index 25d34a4..a4ceb47 100644
+--- a/.idea/misc.xml
++++ b/.idea/misc.xml
+@@ -1,5 +1,13 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
++  <component name="EntryPointsManager">
++    <writeAnnotations>
++      <writeAnnotation name="picocli.CommandLine.ParentCommand" />
++    </writeAnnotations>
++  </component>
+   <component name="ExternalStorageConfigurationManager" enabled="true" />
+-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="11" project-jdk-type="JavaSDK" />
++  <component name="FrameworkDetectionExcludesConfiguration">
++    <file type="web" url="file://$PROJECT_DIR$" />
++  </component>
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
+ </project>
+\ No newline at end of file
+diff --git a/appmap.yml b/appmap.yml
+index 618a5bd..3a621bf 100644
+--- a/appmap.yml
++++ b/appmap.yml
+@@ -1,7 +1,6 @@
+-name: AppMap - Java
++name: appmap-java
+ packages:
+ - path: com.appland.appmap.test.util
+   exclude:
+   - com.appland.appmap.test.util.UnhandledExceptionCollection
+-
+ - exclude: [ com.appland.appmap.integration.RecorderTest ]
+diff --git a/build.gradle b/build.gradle
+index 3e2f12e..f9c7a70 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -22,51 +22,43 @@ repositories {
+ }
+ 
+ // hardcoded -- could be redefined via env variables and project properties (see below)
+-def parameterizedVersion    = findProperty('appMapAgentVersion')
+-def travisVersion           = System.getenv("TRAVIS_BRANCH")
+-def defaultVersion          = '1.1.0'
++def parameterizedVersion = findProperty('appMapAgentVersion')
++def travisVersion = System.getenv("TRAVIS_BRANCH")
++def defaultVersion = '1.2.0'
+ 
+-def versionLikeRegexp       = /^\d+\.\d+.*/
+-def travisVersionValid      = travisVersion && (travisVersion ==~ versionLikeRegexp)
++def versionLikeRegexp = /^\d+\.\d+.*/
++def travisVersionValid = travisVersion && (travisVersion ==~ versionLikeRegexp)
+ 
+-version = parameterizedVersion ?: ( travisVersionValid ? travisVersion : defaultVersion )
++version = parameterizedVersion ?: (travisVersionValid ? travisVersion : defaultVersion)
+ 
+-def defaultGitSlug="applandinc/appmap-java"
+-def currentGitSlug=System.getenv("TRAVIS_REPO_SLUG") ?: defaultGitSlug
++def defaultGitSlug = "applandinc/appmap-java"
++def currentGitSlug = System.getenv("TRAVIS_REPO_SLUG") ?: defaultGitSlug
+ 
+-def defaultGroupId      = 'com.appland'
+-def defaultArtifactId   = 'appmap-agent'
+-def publishGroupId      = findProperty('publishGroupId') ?: defaultGroupId
+-def publishArtifactId   = findProperty('publishArtifactId') ?: defaultArtifactId
++def defaultGroupId = 'com.appland'
++def defaultArtifactId = 'appmap-agent'
++def publishGroupId = findProperty('publishGroupId') ?: defaultGroupId
++def publishArtifactId = findProperty('publishArtifactId') ?: defaultArtifactId
+ 
+ dependencies {
+-  implementation 'org.yaml:snakeyaml:1.25'
+   implementation 'com.alibaba:fastjson:1.2.61'
+   implementation 'org.javassist:javassist:3.27.0-GA'
+   implementation 'org.reflections:reflections:0.9.11'
+   implementation 'javax.servlet:javax.servlet-api:4.0.1'
+   implementation 'org.apache.commons:commons-lang3:3.10'
++  implementation 'org.yaml:snakeyaml:1.29'
+   implementation 'org.slf4j:slf4j-nop:1.7.30'
+-
+-  /*
+-  /// are test classes becoming part of "build" purposedly or by mistake?
+-  implementation 'junit:junit:4.12'
+-  implementation 'com.github.stefanbirkner:system-rules:1.19.0'
+-  //implementation "org.mockito:mockito-core:2.+" # maven requires  strict syntax
+-  implementation "org.mockito:mockito-core:2.28.2"
+-  compile 'com.github.stefanbirkner:system-rules:1.19.0'
+-  */
++  implementation 'info.picocli:picocli:4.6.1'
+ 
+   testImplementation 'junit:junit:4.12'
+   testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+-  //testImplementation "org.mockito:mockito-core:2.+"
+   testImplementation "org.mockito:mockito-core:2.28.2"
+-
+ }
+ 
+ jar {
+   manifest {
+     attributes 'Premain-Class': 'com.appland.appmap.Agent'
++    attributes 'Main-Class': 'com.appland.appmap.cli.CLI'
++    attributes 'Implementation-Version': version
+   }
+ }
+ 
+@@ -82,16 +74,9 @@ shadowJar {
+ }
+ 
+ sourceSets {
+-  /*
+-  main {
+-    java {
+-      srcDirs = ['src/main']
+-    }
+-  }
+-  */
+   integrationTest {
+     java {
+-      srcDirs = [ 'src/test/java/com/appland/appmap/integration' ]
++      srcDirs = ['src/test/java/com/appland/appmap/integration']
+     }
+     compileClasspath += main.output + test.output + sourceSets.test.compileClasspath
+     runtimeClasspath += main.output + test.output + sourceSets.test.runtimeClasspath
+@@ -99,7 +84,7 @@ sourceSets {
+ }
+ 
+ task integrationTest(type: Test) {
+-  description = 'Runs integration tests.'
++  description = 'Runs integration tests'
+   group = 'verification'
+ 
+   testClassesDirs = sourceSets.integrationTest.output.classesDirs
+@@ -120,12 +105,12 @@ test {
+ }
+ 
+ task relocateShadowJar(type: ShadowRelocation) {
+-    target = tasks.shadowJar
+-    prefix = "com.appland.shade"
+-    excludes = [
+-      "javax.",
+-      "java."
+-    ]
++  target = tasks.shadowJar
++  prefix = "com.appland.shade"
++  excludes = [
++    "javax.",
++    "java."
++  ]
+ }
+ 
+ tasks.shadowJar.dependsOn tasks.relocateShadowJar
+@@ -140,118 +125,109 @@ jacocoTestReport {
+ 
+ // extra artifacts used in publishing
+ task sourcesJar(type: Jar) {
+-    from sourceSets.main.allJava
+-    classifier = 'sources'
++  from sourceSets.main.allJava
++  classifier = 'sources'
+ }
+ 
+ // for some reason this block generates empty Javadoc
+ // which we use as a workaround to bypass javadoc errors issue
+ javadoc {
+-    exclude 'com/appland/**'
++  exclude 'com/appland/**'
+ }
+ task mockJavadocJar(type: Jar) {
+-    classifier = 'javadoc'
+-    from javadoc.destinationDir
++  classifier = 'javadoc'
++  from javadoc.destinationDir
+ }
+ 
+ apply plugin: 'maven-publish'
+ publishing {
+   publications {
+ 
+-        appMapAgent(MavenPublication) {
+-
+-            // requirements: https://central.sonatype.org/pages/requirements.html
+-
+-            // 1. coordinates (parameterized)
+-
+-            groupId     publishGroupId
+-            artifactId  publishArtifactId
+-
+-            // version defined globally
+-
+-            // 2. artifacts
+-            // inclusion of javadoc and source jars is Maven-Central requirement
+-
+-            artifact shadowJar
+-            artifact sourcesJar
+-            artifact mockJavadocJar // empty javadoc generated until errors are fixed
+-
+-            //// the artifacts below added automatically by `java { with... }` block above
+-            // artifact sourcesJar
+-            // artifact javadocJar
+-
+-            // metadata
+-            // TBD: parameterize more values?
+-
+-            pom {
+-                name = "$publishGroupId:$publishArtifactId"
+-                description = "Inspect and record the execution of Java for use with App Land"
+-                url = "https://appland.com"
+-
+-                licenses {
+-                  license {
+-                    name = "MIT"
+-                    url = "https://raw.githubusercontent.com/$currentGitSlug/master/LICENSE.txt"
+-                  }
+-                }
+-                developers {
+-                  developer {
+-                    // id = "kgilpin"
+-                    name = "Kevin Gilpin"
+-                    email = "kevin@appland.com"
+-                    organization = "AppLand Inc."
+-                    url="https://dev.to/kgilpin"
+-                  }
+-                }
+-                scm {
+-                    connection = "scm:git:git://github.com/${currentGitSlug}.git"
+-                    developerConnection = "scm:git:ssh://github.com:${currentGitSlug}.git"
+-                    url = "https://github.com/${currentGitSlug}/tree/master"
+-                }
+-            }
+-        }
+-  }
++    appMapAgent(MavenPublication) {
+ 
+-   repositories {
++      // requirements: https://central.sonatype.org/pages/requirements.html
+ 
+-        def local_url       = "file://${buildDir}/repo"
+-        // see https://central.sonatype.org/pages/gradle.html
+-        def default_base        = "https://s01.oss.sonatype.org"
+-        //def default_base    = "https://oss.sonatype.org"
+-        def url_base        = findProperty("mavenRepoURL") ?: default_base
+-        def staging_url     = url_base + "/service/local/staging/deploy/maven2/"
+-        def snapshots_url   = url_base + "/content/repositories/snapshots/"
++      // 1. coordinates (parameterized)
+ 
+-        def is_snapshot     = version.endsWith('SNAPSHOT')
+-        def remote_url      = is_snapshot ? snapshots_url : staging_url
++      groupId publishGroupId
++      artifactId publishArtifactId
+ 
+-        def ossrh_username  = findProperty('ossrhUsername')
++      // version defined globally
+ 
++      // 2. artifacts
++      // inclusion of javadoc and source jars is Maven-Central requirement
+ 
+-        maven {
+-            if (ossrh_username) {
+-                url = remote_url
+-                credentials {
+-                    username = ossrh_username
+-                    password = getProperty('ossrhPassword')
+-                }
+-            } else {
+-                url = local_url
+-            }
+-        }
+-    }
+-}
++      artifact shadowJar
++      artifact sourcesJar
++      artifact mockJavadocJar // empty javadoc generated until errors are fixed
+ 
++      //// the artifacts below added automatically by `java { with... }` block above
++      // artifact sourcesJar
++      // artifact javadocJar
+ 
++      // metadata
++      // TBD: parameterize more values?
+ 
+-if (project.hasProperty("signingKey")) {
++      pom {
++        name = "$publishGroupId:$publishArtifactId"
++        description = "Inspect and record the execution of Java for use with App Land"
++        url = "https://appland.com"
+ 
+-    apply plugin: 'signing'
++        licenses {
++          license {
++            name = "MIT"
++            url = "https://raw.githubusercontent.com/$currentGitSlug/master/LICENSE.txt"
++          }
++        }
++        developers {
++          developer {
++            // id = "kgilpin"
++            name = "Kevin Gilpin"
++            email = "kevin@appland.com"
++            organization = "AppLand Inc."
++            url = "https://dev.to/kgilpin"
++          }
++        }
++        scm {
++          connection = "scm:git:git://github.com/${currentGitSlug}.git"
++          developerConnection = "scm:git:ssh://github.com:${currentGitSlug}.git"
++          url = "https://github.com/${currentGitSlug}/tree/master"
++        }
++      }
++    }
++  }
+ 
+-    signing {
+-        def signingKey = findProperty("signingKey")
+-        def signingPassword = findProperty("signingPassword")
+-        useInMemoryPgpKeys(signingKey, signingPassword)
+-        sign publishing.publications.appMapAgent
++  repositories {
++    def local_url = "file://${buildDir}/repo"
++    // see https://central.sonatype.org/pages/gradle.html
++    def default_base = "https://s01.oss.sonatype.org"
++    def url_base = findProperty("mavenRepoURL") ?: default_base
++    def staging_url = url_base + "/service/local/staging/deploy/maven2/"
++    def snapshots_url = url_base + "/content/repositories/snapshots/"
++    def is_snapshot = version.endsWith('SNAPSHOT')
++    def remote_url = is_snapshot ? snapshots_url : staging_url
++    def ossrh_username = findProperty('ossrhUsername')
++
++    maven {
++      if (ossrh_username) {
++        url = remote_url
++        credentials {
++          username = ossrh_username
++          password = getProperty('ossrhPassword')
++        }
++      } else {
++        url = local_url
++      }
+     }
++  }
++}
++
++if (project.hasProperty("signingKey")) {
++  apply plugin: 'signing'
++  signing {
++    def signingKey = findProperty("signingKey")
++    def signingPassword = findProperty("signingPassword")
++    useInMemoryPgpKeys(signingKey, signingPassword)
++    sign publishing.publications.appMapAgent
++  }
+ }
+diff --git a/src/main/java/com/appland/appmap/config/AppMapPackage.java b/src/main/java/com/appland/appmap/config/AppMapPackage.java
+index 985b285..98ebd79 100644
+--- a/src/main/java/com/appland/appmap/config/AppMapPackage.java
++++ b/src/main/java/com/appland/appmap/config/AppMapPackage.java
+@@ -25,7 +25,6 @@ public class AppMapPackage {
+   /**
+    * Returns whether or not the canonical name is explicitly excluded
+    * @param canonicalName the canonical name of the class/method to be checked
+-   * @return
+    */
+   public Boolean excludes(String canonicalName) {
+     for (String exclusion : this.exclude) {
+diff --git a/test/docker/java11/Dockerfile b/test/docker/java11/Dockerfile
+index 46269cb..b2241a5 100644
+--- a/test/docker/java11/Dockerfile
++++ b/test/docker/java11/Dockerfile
+@@ -31,6 +31,7 @@ RUN git clone https://github.com/bats-core/bats-core.git \
+     && ./install.sh /usr/local
+ 
+ COPY --from=petclinic:latest /build /
++COPY --from=petclinic:latest /spring-petclinic /spring-petclinic
+ COPY --from=build /build /
+ COPY test/appmap.yml     /
+ COPY test/entrypoint     /sbin/
+diff --git a/test/docker/java8/Dockerfile b/test/docker/java8/Dockerfile
+index 6ec379c..8995bc9 100644
+--- a/test/docker/java8/Dockerfile
++++ b/test/docker/java8/Dockerfile
+@@ -31,6 +31,7 @@ RUN git clone https://github.com/bats-core/bats-core.git \
+     && ./install.sh /usr/local
+ 
+ COPY --from=petclinic:latest /build /
++COPY --from=petclinic:latest /spring-petclinic /spring-petclinic
+ COPY --from=build /build /
+ COPY test/appmap.yml     /
+ COPY test/entrypoint     /sbin/
+diff --git a/test/helper.bash b/test/helper.bash
+index dafa49a..0f64201 100644
+--- a/test/helper.bash
++++ b/test/helper.bash
+@@ -6,6 +6,10 @@ _curl() {
+   curl -H 'Accept: application/json' "${@}"
+ }
+ 
++_appmap() {
++  java -jar /appmap.jar -d /spring-petclinic "${@}"
++}
++
+ start_recording() {
+   _curl -sXPOST "${WS_URL}/_appmap/record"
+ }
