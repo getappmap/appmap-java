@@ -6,6 +6,10 @@ _curl() {
   curl -H 'Accept: application/json' "${@}"
 }
 
+_appmap() {
+  java -jar /appmap.jar -d /spring-petclinic "${@}"
+}
+
 start_recording() {
   _curl -sXPOST "${WS_URL}/_appmap/record"
 }
