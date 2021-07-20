@@ -31,6 +31,7 @@ RUN git clone https://github.com/bats-core/bats-core.git \
     && ./install.sh /usr/local
 
 COPY --from=petclinic:latest /build /
+COPY --from=petclinic:latest /spring-petclinic /spring-petclinic
 COPY --from=build /build /
 COPY test/appmap.yml     /
 COPY test/entrypoint     /sbin/
