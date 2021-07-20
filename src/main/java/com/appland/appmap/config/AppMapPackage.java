@@ -25,7 +25,6 @@ public class AppMapPackage {
   /**
    * Returns whether or not the canonical name is explicitly excluded
    * @param canonicalName the canonical name of the class/method to be checked
-   * @return
    */
   public Boolean excludes(String canonicalName) {
     for (String exclusion : this.exclude) {
