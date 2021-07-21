@@ -106,7 +106,7 @@ public class Init implements Callable<Integer> {
     Result result = new Result();
     result.configuration = configuration;
 
-    System.out.println(JSON.toJSONString(result, SerializerFeature.PrettyFormat));
+    parent.getOutputStream().println(JSON.toJSONString(result, SerializerFeature.PrettyFormat));
 
     return 0;
   }
