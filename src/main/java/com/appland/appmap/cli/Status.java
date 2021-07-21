@@ -226,7 +226,7 @@ public class Status implements Callable<Integer> {
       result.testCommands.add(tc);
     }
 
-    System.out.println(JSON.toJSONString(result, SerializerFeature.PrettyFormat));
+    parent.getOutputStream().println(JSON.toJSONString(result, SerializerFeature.PrettyFormat));
 
     return 0;
   }
