@@ -28,9 +28,11 @@ print_debug() {
 
   if [[ ! -z "${DEBUG_JSON}" ]]; then
     echo >&3
-    echo "${output}" >&3
+    echo "query: ${query}" >&3
     echo >&3
-    echo "result: ${result}" >&3
+    echo "output: '${output}'" >&3
+    echo >&3
+    echo "result: '${result}'" >&3
     echo >&3
   fi
 }
