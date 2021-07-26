@@ -1,23 +1,20 @@
 package com.appland.appmap.cli;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.apache.commons.lang3.SystemUtils;
 import org.yaml.snakeyaml.Yaml;
 import picocli.CommandLine;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 @CommandLine.Command(name = "status", description = "Prints AppMap status of the Java project in a specified directory.")
 public class Status implements Callable<Integer> {
@@ -114,26 +111,22 @@ public class Status implements Callable<Integer> {
     }
 
     static boolean isGradleValid(Path projectPath) {
+      String gradleWrapper = SystemUtils.IS_OS_WINDOWS ? "gradlew.bat" : "./gradlew";
+      if (!projectPath.resolve(gradleWrapper).toFile().exists()) {
+        gradleWrapper = "gradle";
+      }
+
       // Our doc says that the user can run: gradle appmap test
       // Try and run gradle --help appmap
-      return Arrays.stream(new String[]{"gradlew", "gradlew.bat"})
-          .map(new Function<String, Path>() {
-            public Path apply(String pathName) {
-              return projectPath.resolve(pathName);
-            }
-          })
-          .filter((Path path) -> Files.exists(path))
-          .anyMatch((commandPath) -> {
-            try {
-              String command = String.format("%s --help appmap", commandPath);
-              // System.err.printf("Attempting: %s\n", command);
-              Process process = Runtime.getRuntime().exec(command);
-              process.waitFor(60, TimeUnit.SECONDS);
-              return process.exitValue() == 0;
-            } catch (IOException | InterruptedException e) {
-              return false;
-            }
-          });
+      String command = gradleWrapper + " --help appmap";
+      // System.err.printf("Attempting: %s\n", command);
+      try {
+        Process process = Runtime.getRuntime().exec(command);
+        process.waitFor(60, TimeUnit.SECONDS);
+        return process.exitValue() == 0;
+      } catch (IOException | InterruptedException e) {
+        return false;
+      }
     }
 
     static boolean isMavenPresent(Path projectPath) {
@@ -151,10 +144,14 @@ public class Status implements Callable<Integer> {
     }
 
     static boolean isMavenValid(Path projectPath) {
+      String mavenWrapper = SystemUtils.IS_OS_WINDOWS ? "mvnw.cmd" : "./mvnw";
+      if (!projectPath.resolve(mavenWrapper).toFile().exists()) {
+        mavenWrapper = "mvn";
+      }
+
+      String command = mavenWrapper + " -Dplugin=com.appland:appmap-maven-plugin help:describe";
+      // System.err.printf("Attempting: %s\n", command);
       try {
-        // If this works, things are looking pretty good.
-        String command = "mvn prepare-agent";
-        // System.err.printf("Attempting: %s\n", command);
         Process process = Runtime.getRuntime().exec(command);
         process.waitFor(60, TimeUnit.SECONDS);
         return process.exitValue() == 0;
@@ -172,7 +169,7 @@ public class Status implements Callable<Integer> {
   public Integer call() {
     System.err.printf("Reporting AppMap project status in directory: %s\n", parent.directory);
 
-    Path dirPath = FileSystems.getDefault().getPath(parent.directory);
+    Path dirPath = Paths.get(parent.directory);
     Path configPath = dirPath.resolve("appmap.yml");
 
     Result result = new Result();
@@ -195,9 +192,9 @@ public class Status implements Callable<Integer> {
     if (mavenStatus.present) {
       mavenStatus.valid = Properties.isMavenValid(dirPath);
     }
+    result.properties.frameworks.add(mavenStatus);
 
     if (gradleStatus.valid) {
-
       String gradleWrapper = SystemUtils.IS_OS_WINDOWS ? "gradlew.bat" : "./gradlew";
 
       Command command = new Command();
@@ -212,7 +209,7 @@ public class Status implements Callable<Integer> {
     }
     if (mavenStatus.valid) {
       String mavenWrapper = SystemUtils.IS_OS_WINDOWS ? "mvnw.cmd" : "./mvnw";
-      if ( !new File(mavenWrapper).exists() ) {
+      if (!dirPath.resolve(mavenWrapper).toFile().exists()) {
         mavenWrapper = "mvn";
       }
 

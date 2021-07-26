@@ -8,10 +8,7 @@ import picocli.CommandLine;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -49,7 +46,7 @@ public class Init implements Callable<Integer> {
     pw.format("name: %s\n", CLI.projectName(new File(parent.directory)));
 
     // For now, this only works in this type of standardize repo structure.
-    File javaDir = new File("src/main/java");
+    File javaDir = Paths.get(parent.directory).resolve("src/main/java").toFile();
     if (javaDir.isDirectory()) {
       // Collect package names in src/main/java
       Set<Path> packages = new HashSet<>();
@@ -57,8 +54,8 @@ public class Init implements Callable<Integer> {
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
           if (file.getFileName().toString().endsWith(".java")) {
-            Path packagePath = pathPackage(file.getParent());
-            if (packagePath != null) {
+            Path packagePath = file.getParent().subpath(javaDir.toPath().getNameCount(), file.getParent().getNameCount());
+            if (packagePath.getNameCount() > 0) {
               packages.add(packagePath);
             }
           }
@@ -109,13 +106,5 @@ public class Init implements Callable<Integer> {
     parent.getOutputStream().println(JSON.toJSONString(result, SerializerFeature.PrettyFormat));
 
     return 0;
-  }
-
-  private static Path pathPackage(Path dir) {
-    if (dir.getNameCount() <= 3) {
-      return null;
-    }
-
-    return dir.subpath(3, dir.getNameCount());
   }
 }
