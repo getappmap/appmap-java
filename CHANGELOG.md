@@ -1,3 +1,21 @@
+# [1.2.0](https://github.com/applandinc/appmap-java/compare/v1.1.0...v1.2.0) (2021-07-26)
+
+
+### Bug Fixes
+
+* Fix some path bugs and get the tests working ([ec32e23](https://github.com/applandinc/appmap-java/commit/ec32e2364c0a1f44d60c8c4907d7b5e2cc617a1e))
+* Remove unused class RecordServlet ([1bd39de](https://github.com/applandinc/appmap-java/commit/1bd39de4585845d790140b0d7735716d643b76e8))
+
+
+### Features
+
+* 'init' command suggests appmap.yml with project name and packages ([299bb70](https://github.com/applandinc/appmap-java/commit/299bb70714b706448dd0a56439540737e2894f81))
+* 'status' command reports project properties ([cb4693d](https://github.com/applandinc/appmap-java/commit/cb4693d568ff891ee62db8f4c456fbf4215b0d1a))
+* 'status' command reports test commands ([058ae0e](https://github.com/applandinc/appmap-java/commit/058ae0ee64d099fcecb6427ffed62c3568c8212b))
+* Add stub for agent 'init' command ([55d9fc8](https://github.com/applandinc/appmap-java/commit/55d9fc87db2df54b7f5d6c9a50613012c7ae50d7))
+* Add stub for agent 'status' command ([7f5fd02](https://github.com/applandinc/appmap-java/commit/7f5fd02abe9e99497f17a0265e33495e7c2dc0ed))
+* Helper commands can direct output to a file ([bf1c699](https://github.com/applandinc/appmap-java/commit/bf1c6992aac43742074f21b6d72acee9365f0181)), closes [#89](https://github.com/applandinc/appmap-java/issues/89)
+
 # [1.1.0](https://github.com/applandinc/appmap-java/compare/v1.0.4...v1.1.0) (2021-05-13)
 
 
