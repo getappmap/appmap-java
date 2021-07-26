@@ -4,7 +4,7 @@
 # Ignore Gradle build output directory
 build
 
-# Appmap files
+# AppMap files
 tmp
 
 .classpath

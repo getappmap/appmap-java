@@ -140,3 +140,22 @@ load 'helper'
   assert_json_eq '[.events[] | select(.http_client_request)] | length' 3
   assert_json_eq '[.events[] | select(.http_client_response)] | length' 3
 }
+
+# bats captures stdout and stderr to the same variable ($output). We
+# need to hide the informational message from the agent commands so
+# json assertions don't get confused.
+@test "appmap agent init" {
+  run bash -c 'java -jar /appmap.jar -d /spring-petclinic init 2>/dev/null'
+  assert_success
+
+  assert_json_contains '.configuration.contents' 'path: org.springframework.samples.petclinic'
+}
+
+@test "appmap agent status" {
+  run bash -c 'java -jar /appmap.jar -d /spring-petclinic status 2>/dev/null'
+  assert_success
+
+  assert_json_eq '.properties.config.app' 'spring-petclinic'
+  assert_json_eq '.properties.frameworks[0].name' 'gradle'
+  assert_json_eq '.properties.frameworks[1].name' 'maven'
+}
