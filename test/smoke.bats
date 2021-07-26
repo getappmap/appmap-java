@@ -157,4 +157,5 @@ load 'helper'
 
   assert_json_eq '.properties.config.app' 'spring-petclinic'
   assert_json_eq '.properties.frameworks[0].name' 'gradle'
+  assert_json_eq '.properties.frameworks[1].name' 'maven'
 }
