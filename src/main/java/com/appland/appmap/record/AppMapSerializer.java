@@ -3,7 +3,7 @@ package com.appland.appmap.record;
 import com.alibaba.fastjson.JSONWriter;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.record.IRecordingSession.Metadata;
+import com.appland.appmap.record.RecordingSession.Metadata;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -14,6 +14,8 @@ import java.util.List;
  * Writes AppMap data to JSON.
  */
 public class AppMapSerializer {
+  private final Writer writer;
+
   public static class FileSections {
     public static final String Version = "version";
     public static final String Metadata = "metadata";
@@ -31,13 +33,24 @@ public class AppMapSerializer {
     }
   }
 
-  private JSONWriter json;
+  private final JSONWriter json;
   private SectionInfo currentSection = null;
-  private HashSet<String> sectionsWritten = new HashSet<String>();
+  private final HashSet<String> sectionsWritten = new HashSet<String>();
 
-  AppMapSerializer(Writer writer) {
+  private AppMapSerializer(Writer writer, boolean startObject) {
+    this.writer = writer;
     this.json = new JSONWriter(writer);
-    this.json.startObject();
+    if ( startObject ) {
+      this.json.startObject();
+    }
+  }
+
+  public static AppMapSerializer open(Writer writer) {
+    return new AppMapSerializer(writer, true);
+  }
+
+  public static AppMapSerializer reopen(Writer writer) {
+    return new AppMapSerializer(writer, false);
   }
 
   private void setCurrentSection(String section, String type) throws IOException {
@@ -78,7 +91,7 @@ public class AppMapSerializer {
    * @param metadata {@link Metadata} to be serialized and written.
    * @throws IOException If a writer error occurs
    */
-  public void write(Metadata metadata) throws IOException {
+  public void writeMetadata(Metadata metadata) throws IOException {
     this.setCurrentSection(FileSections.Version, "");
     this.json.writeKey("version");
     this.json.writeValue("1.2");
@@ -173,10 +186,11 @@ public class AppMapSerializer {
    * @param codeObjects {@link CodeObjectTree} to be serialized and written.
    * @throws IOException If a writer error occurs
    */
-  public void write(CodeObjectTree codeObjects) throws IOException {
+  public void writeClassMap(CodeObjectTree codeObjects) throws IOException {
     this.setCurrentSection(FileSections.ClassMap, "");
     this.json.writeKey("classMap");
     this.json.writeValue(codeObjects.toArray());
+    this.json.flush();
   }
 
   /**
@@ -185,7 +199,7 @@ public class AppMapSerializer {
    * @param events A list of {@link Event}s to be serialized and written.
    * @throws IOException If a writer error occurs
    */
-  public void write(List<Event> events) throws IOException {
+  public void writeEvents(List<Event> events) throws IOException {
     this.setCurrentSection(FileSections.Events, "array");
 
     for (Event event : events) {
@@ -195,22 +209,15 @@ public class AppMapSerializer {
     this.json.flush();
   }
 
-  /**
-   * Writes a single {@link Event} to the "events" field. This method can be called more than once
-   * to stream {@link Event}s to a writer.
-   * @param event An {@link Event} to be serialized and written.
-   * @throws IOException If a writer error occurs
-   */
-  public void write(Event event) throws IOException {
-    this.setCurrentSection(FileSections.Events, "array");
-    this.json.writeObject(event);
+  public void flush() throws IOException {
+    this.writer.flush();
   }
 
   /**
    * Closes outstanding JSON objects and closes the writer.
    * @throws IOException If a writer error occurs
    */
-  public void finalize() throws IOException {
+  public void finish() throws IOException {
     this.setCurrentSection("EOF", "");
     this.json.endObject();
     this.json.close();

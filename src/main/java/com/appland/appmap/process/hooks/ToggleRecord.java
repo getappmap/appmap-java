@@ -5,8 +5,9 @@ import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.ExitEarly;
 import com.appland.appmap.process.conditions.RecordCondition;
 import com.appland.appmap.record.ActiveSessionException;
-import com.appland.appmap.record.IRecordingSession;
 import com.appland.appmap.record.Recorder;
+import com.appland.appmap.record.Recording;
+import com.appland.appmap.record.RecordingSession;
 import com.appland.appmap.reflect.FilterChain;
 import com.appland.appmap.reflect.HttpServletRequest;
 import com.appland.appmap.reflect.HttpServletResponse;
@@ -18,6 +19,10 @@ import java.io.PrintWriter;
 
 import static com.appland.appmap.util.StringUtil.*;
 
+interface HandlerFunction {
+  void call(HttpServletRequest req, HttpServletResponse res) throws IOException;
+}
+
 /**
  * Hooks to toggle event recording. This could be either via HTTP or by entering a unit test method.
  */
@@ -25,45 +30,38 @@ public class ToggleRecord {
   private static boolean debug = Properties.DebugHttp;
   private static final Recorder recorder = Recorder.getInstance();
   public static final String RecordRoute = "/_appmap/record";
+  public static final String CheckpointRoute = "/_appmap/record/checkpoint";
 
-  private static void doDelete(HttpServletRequest req, HttpServletResponse res) {
+  private static void doDelete(HttpServletRequest req, HttpServletResponse res) throws IOException {
     if (debug) {
       Logger.println("ToggleRecord.doDelete");
     }
 
-    try {
-      String json = recorder.stop();
-      res.setContentType("application/json");
-      res.setContentLength(json.length());
-
-      PrintWriter writer = res.getWriter();
-      writer.write(json);
-      writer.flush();
-    } catch (ActiveSessionException e) {
+    if (!recorder.hasActiveSession()) {
       res.setStatus(HttpServletResponse.SC_NOT_FOUND);
-    } catch (IOException e) {
-      Logger.printf("failed to write response: %s\n", e.getMessage());
+      return;
     }
+
+    Recording recording = recorder.stop();
+    res.setContentType("application/json");
+    res.setContentLength(recording.size());
+
+    recording.readFully(true, res.getWriter());
   }
 
-  private static void doGet(HttpServletRequest req, HttpServletResponse res) {
+  private static void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
     if (debug) {
       Logger.println("ToggleRecord.doGet");
     }
 
-    res.setStatus(HttpServletResponse.SC_OK);
-
     String responseJson = String.format("{\"enabled\":%b}", recorder.hasActiveSession());
     res.setContentType("application/json");
     res.setContentLength(responseJson.length());
+    res.setStatus(HttpServletResponse.SC_OK);
 
-    try {
-      PrintWriter writer = res.getWriter();
-      writer.write(responseJson);
-      writer.flush();
-    } catch (IOException e) {
-      Logger.printf("failed to write response: %s\n", e.getMessage());
-    }
+    PrintWriter writer = res.getWriter();
+    writer.write(responseJson);
+    writer.flush();
   }
 
   private static void doPost(HttpServletRequest req, HttpServletResponse res) {
@@ -71,13 +69,53 @@ public class ToggleRecord {
       Logger.println("ToggleRecord.doPost");
     }
 
-    IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
-    metadata.recorderName = "remote_recording";
-    try {
-      recorder.start(metadata);
-    } catch (ActiveSessionException e) {
+    if (recorder.hasActiveSession()) {
       res.setStatus(HttpServletResponse.SC_CONFLICT);
+      return;
     }
+
+    RecordingSession.Metadata metadata = new RecordingSession.Metadata();
+    metadata.recorderName = "remote_recording";
+    recorder.start(metadata);
+  }
+
+  private static void doCheckpoint(HttpServletRequest req, HttpServletResponse res) {
+    if (debug) {
+      Logger.println("ToggleRecord.doCheckpoint");
+    }
+
+    if (!recorder.hasActiveSession()) {
+      res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
+
+    Recording recording = recorder.checkpoint();
+    res.setContentType("application/json");
+    res.setContentLength(recording.size());
+
+    try {
+      recording.readFully(true, res.getWriter());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static void handleRecordRequest(HttpServletRequest req, HttpServletResponse res, HandlerFunction fn) throws ExitEarly {
+    if (debug) {
+      Logger.printf("ToggleRecord.service - handling appmap request for %s\n", req.getRequestURI());
+    }
+
+    try {
+      fn.call(req, res);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    if (debug) {
+      Logger.println("ToggleRecord.service - successfully handled appmap request, exiting early");
+    }
+
+    throw new ExitEarly();
   }
 
   private static void service(Object[] args) throws ExitEarly {
@@ -86,28 +124,21 @@ public class ToggleRecord {
     }
 
     final HttpServletRequest req = new HttpServletRequest(args[0]);
-    if (!req.getRequestURI().endsWith(RecordRoute)) {
-      return;
-    }
-
-    if (debug) {
-      Logger.println("ToggleRecord.service - handling appmap request");
-    }
-
     final HttpServletResponse res = new HttpServletResponse(args[1]);
-    if (req.getMethod().equals("GET")) {
-      doGet(req, res);
-    } else if (req.getMethod().equals("POST")) {
-      doPost(req, res);
-    } else if (req.getMethod().equals("DELETE")) {
-      doDelete(req, res);
-    }
 
-    if (debug) {
-      Logger.println("ToggleRecord.service - successfully handled appmap request, exiting early");
+    if (req.getRequestURI().endsWith(CheckpointRoute)) {
+      if (req.getMethod().equals("GET")) {
+        handleRecordRequest(req, res, ToggleRecord::doCheckpoint);
+      }
+    } else if (req.getRequestURI().endsWith(RecordRoute)) {
+      if (req.getMethod().equals("GET")) {
+        handleRecordRequest(req, res, ToggleRecord::doGet);
+      } else if (req.getMethod().equals("POST")) {
+        handleRecordRequest(req, res, ToggleRecord::doPost);
+      } else if (req.getMethod().equals("DELETE")) {
+        handleRecordRequest(req, res, ToggleRecord::doDelete);
+      }
     }
-
-    throw new ExitEarly();
   }
 
   private static void skipFilterChain(Object[] args) throws ExitEarly {
@@ -167,8 +198,7 @@ public class ToggleRecord {
     skipFilterChain(args);
   }
 
-  private static IRecordingSession.Metadata getMetadata(Event event) {
-
+  private static RecordingSession.Metadata getMetadata(Event event) {
     // TODO: Obtain this info in the constructor
     boolean junit = false;
     StackTraceElement[] stack = Thread.currentThread().getStackTrace();
@@ -177,7 +207,7 @@ public class ToggleRecord {
         junit = true;
       }
     }
-    IRecordingSession.Metadata metadata = new IRecordingSession.Metadata();
+    RecordingSession.Metadata metadata = new RecordingSession.Metadata();
     if (junit) {
       metadata.recorderName = "toggle_record_receiver";
       metadata.framework = "junit";
@@ -188,30 +218,30 @@ public class ToggleRecord {
   }
 
   private static void startRecording(Event event) {
+    Logger.printf("Recording started for %s\n", canonicalName(event));
     try {
-      final String fileName = String.join("_", event.definedClass, event.methodId)
-              .replaceAll("[^a-zA-Z0-9-_]", "_");
-      IRecordingSession.Metadata metadata = getMetadata(event);
-      metadata.feature = identifierToSentence(event.methodId);
-      metadata.featureGroup = identifierToSentence(event.definedClass);
+      RecordingSession.Metadata metadata = getMetadata(event);
+      final String feature = identifierToSentence(event.methodId);
+      final String featureGroup = identifierToSentence(event.definedClass);
       metadata.scenarioName = String.format(
-        "%s %s",
-        metadata.featureGroup,
-        decapitalize(metadata.feature));
+          "%s %s",
+          featureGroup,
+          decapitalize(feature));
       metadata.recordedClassName = event.definedClass;
       metadata.recordedMethodName = event.methodId;
-      recorder.start(fileName + ".appmap.json", metadata);
+      recorder.start(metadata);
     } catch (ActiveSessionException e) {
       Logger.printf("%s\n", e.getMessage());
     }
   }
 
-  private static void stopRecording(){
-    try {
-      recorder.stop();
-    } catch (ActiveSessionException e) {
-      Logger.printf("%s\n", e.getMessage());
-    }
+  private static void stopRecording(Event event) {
+    Logger.printf("Recording stopped for %s\n", canonicalName(event));
+    String filePath = String.join("_", event.definedClass, event.methodId)
+        .replaceAll("[^a-zA-Z0-9-_]", "_");
+    filePath += ".appmap.json";
+    Recording recording = recorder.stop();
+    recording.moveTo(filePath);
   }
 
   @ArgumentArray
@@ -226,7 +256,7 @@ public class ToggleRecord {
   @ExcludeReceiver
   @HookAnnotated("org.junit.Test")
   public static void junit(Event event, Object returnValue, Object[] args) {
-    stopRecording();
+    stopRecording(event);
   }
 
   @ArgumentArray
@@ -236,7 +266,7 @@ public class ToggleRecord {
   public static void junit(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
-    stopRecording();
+    stopRecording(event);
   }
 
   @ArgumentArray
@@ -251,7 +281,7 @@ public class ToggleRecord {
   @ExcludeReceiver
   @HookAnnotated("org.junit.jupiter.api.Test")
   public static void junitJupiter(Event event, Object returnValue, Object[] args) {
-    stopRecording();
+    stopRecording(event);
   }
 
   @ArgumentArray
@@ -261,7 +291,7 @@ public class ToggleRecord {
   public static void junitJupiter(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
-    stopRecording();
+    stopRecording(event);
   }
 
   @ArgumentArray
@@ -276,7 +306,7 @@ public class ToggleRecord {
   @ExcludeReceiver
   @HookAnnotated("org.testng.annotations.Test")
   public static void testnt(Event event, Object returnValue, Object[] args) {
-    stopRecording();
+    stopRecording(event);
   }
 
   @ArgumentArray
@@ -286,14 +316,13 @@ public class ToggleRecord {
   public static void testng(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
-    stopRecording();
+    stopRecording(event);
   }
 
   @ArgumentArray
   @ExcludeReceiver
   @HookCondition(RecordCondition.class)
   public static void record(Event event, Object[] args) {
-    Logger.printf("Recording started for %s\n", canonicalName(event));
     startRecording(event);
   }
 
@@ -302,7 +331,7 @@ public class ToggleRecord {
   @ExcludeReceiver
   @HookCondition(RecordCondition.class)
   public static void record(Event event, Object returnValue, Object[] args) {
-    stopRecording();
+    stopRecording(event);
   }
 
   @ArgumentArray
@@ -312,6 +341,6 @@ public class ToggleRecord {
   public static void record(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
-    stopRecording();
+    stopRecording(event);
   }
 }
