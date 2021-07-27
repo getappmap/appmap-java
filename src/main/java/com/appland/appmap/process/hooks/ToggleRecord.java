@@ -7,9 +7,9 @@ import com.appland.appmap.process.conditions.RecordCondition;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.IRecordingSession;
 import com.appland.appmap.record.Recorder;
+import com.appland.appmap.reflect.FilterChain;
 import com.appland.appmap.reflect.HttpServletRequest;
 import com.appland.appmap.reflect.HttpServletResponse;
-import com.appland.appmap.reflect.FilterChain;
 import com.appland.appmap.transform.annotations.*;
 import com.appland.appmap.util.Logger;
 

@@ -4,9 +4,7 @@ import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.output.v1.Value;
-import com.appland.appmap.record.UnknownEventException;
 import com.appland.appmap.util.Logger;
-
 import javassist.CtBehavior;
 
 import java.util.ArrayList;

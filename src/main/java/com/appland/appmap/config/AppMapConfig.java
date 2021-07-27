@@ -1,7 +1,6 @@
 package com.appland.appmap.config;
 
 import com.appland.appmap.util.Logger;
-
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 

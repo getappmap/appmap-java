@@ -4,7 +4,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.appland.appmap.util.Logger;
 import javassist.CtBehavior;
 import javassist.CtClass;
-import javassist.bytecode.SourceFileAttribute;
 
 import java.lang.reflect.Modifier;
 import java.util.*;

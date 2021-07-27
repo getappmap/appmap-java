@@ -1,19 +1,16 @@
 package com.appland.appmap.integration;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.test.util.MyClass;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class RecorderTest {
   private static final Recorder recorder = Recorder.getInstance();

@@ -1,7 +1,7 @@
 package com.appland.appmap.reflect;
 
-import java.io.PrintWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 
 public class HttpServletResponse extends ReflectiveType {

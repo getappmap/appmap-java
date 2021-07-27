@@ -1,8 +1,8 @@
 package com.appland.appmap.reflect;
 
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 public class HttpServletRequest extends ReflectiveType {
   private Method fnGetMethod;

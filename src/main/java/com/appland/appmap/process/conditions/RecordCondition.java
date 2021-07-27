@@ -2,12 +2,11 @@ package com.appland.appmap.process.conditions;
 
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
+import com.appland.appmap.util.StringUtil;
 import javassist.CtBehavior;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-
-import com.appland.appmap.util.StringUtil;
 
 /**
  * RecordCondition checks if the behavior should be recorded due to its inclusion in the

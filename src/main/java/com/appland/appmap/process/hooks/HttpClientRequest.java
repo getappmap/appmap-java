@@ -2,7 +2,7 @@ package com.appland.appmap.process.hooks;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.Recorder;
-import com.appland.appmap.transform.annotations.*;
+import com.appland.appmap.transform.annotations.Unique;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

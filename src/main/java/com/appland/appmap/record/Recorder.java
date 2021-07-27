@@ -1,18 +1,15 @@
 package com.appland.appmap.record;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.IRecordingSession.Metadata;
 import com.appland.appmap.util.Logger;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * Recorder is a singleton responsible for managing recording sessions and routing events to any

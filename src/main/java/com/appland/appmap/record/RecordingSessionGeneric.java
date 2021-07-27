@@ -2,10 +2,9 @@ package com.appland.appmap.record;
 
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.util.Logger;
 
-import java.util.Vector;
 import java.util.HashSet;
+import java.util.Vector;
 
 public class RecordingSessionGeneric implements IRecordingSession {
   protected Vector<Event> events = new Vector<Event>();

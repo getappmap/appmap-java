@@ -1,7 +1,6 @@
 package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.util.Logger;
-
 import javassist.CtBehavior;
 
 public class HookClassSystem extends SourceMethodSystem {

@@ -1,12 +1,11 @@
 package com.appland.appmap.transform;
 
+import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.NoSourceAvailableException;
 import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
 import com.appland.appmap.util.Logger;
-import com.appland.appmap.config.Properties;
-
 import javassist.*;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;

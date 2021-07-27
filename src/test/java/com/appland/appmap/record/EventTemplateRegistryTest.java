@@ -3,17 +3,12 @@
  */
 package com.appland.appmap.record;
 
-import com.appland.appmap.record.EventTemplateRegistry;
-import com.appland.appmap.record.UnknownEventException;
 import com.appland.appmap.test.util.ClassBuilder;
-
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
-import javassist.NotFoundException;
-
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;

@@ -1,13 +1,16 @@
 package com.appland.appmap.process.hooks;
 
-import java.sql.Connection;
-import java.sql.Statement;
-import java.sql.SQLException;
-
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.Recorder;
-import com.appland.appmap.transform.annotations.*;
+import com.appland.appmap.transform.annotations.CallbackOn;
+import com.appland.appmap.transform.annotations.HookClass;
+import com.appland.appmap.transform.annotations.MethodEvent;
+import com.appland.appmap.transform.annotations.Unique;
 import com.appland.appmap.util.Logger;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * Hooks to capture {@code sql_query} data from classes included in configuration.

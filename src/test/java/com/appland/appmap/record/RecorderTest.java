@@ -1,12 +1,11 @@
 package com.appland.appmap.record;
 
-import static org.junit.Assert.assertEquals;
-
 import com.appland.appmap.output.v1.Event;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class RecorderTest {
 

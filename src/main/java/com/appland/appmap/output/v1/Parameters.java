@@ -1,16 +1,13 @@
 package com.appland.appmap.output.v1;
 
-import com.appland.appmap.util.Logger;
 import com.appland.appmap.config.Properties;
-
+import com.appland.appmap.util.Logger;
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.NotFoundException;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.LocalVariableAttribute;
-import javassist.bytecode.MethodParametersAttribute;
 import javassist.bytecode.MethodInfo;
-import javassist.bytecode.AttributeInfo;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;

@@ -1,13 +1,6 @@
 package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.serializer.JSONSerializer;
-import com.alibaba.fastjson.serializer.ObjectSerializer;
-import com.alibaba.fastjson.serializer.SerializeConfig;
-import com.alibaba.fastjson.serializer.SerializeWriter;
-
-import java.io.IOException;
-import java.lang.reflect.Type;
 
 /**
  * A serializable snapshot of a runtime exception.

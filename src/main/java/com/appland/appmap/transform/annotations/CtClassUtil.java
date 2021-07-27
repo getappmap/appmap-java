@@ -2,7 +2,6 @@ package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.util.Logger;
-
 import javassist.CtClass;
 import javassist.NotFoundException;
 
