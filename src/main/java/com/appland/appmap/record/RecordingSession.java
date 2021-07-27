@@ -25,66 +25,17 @@ public class RecordingSession {
     public String frameworkVersion;
     public String recordedClassName;
     public String recordedMethodName;
-    public String feature;
-    public String featureGroup;
   }
 
-  static class EventList {
-    private static final Integer MAX_BUFFER_SIZE = 32;
-
-    private final Vector<Event> events = new Vector<Event>();
-    private final HashSet<String> classReferences = new HashSet<>();
-
-    public synchronized List<Event> add(Event event) {
-      this.events.add(event);
-
-      String key = event.definedClass +
-          ":" + event.methodId +
-          ":" + event.isStatic +
-          ":" + event.lineNumber;
-      this.classReferences.add(key);
-
-      if (this.events.size() <= MAX_BUFFER_SIZE) {
-        return Collections.emptyList();
-      }
-
-      return flush();
-    }
-
-    public synchronized List<Event> flush() {
-      final List<Event> result = events.stream().collect(Collectors.toList());
-      this.events.clear();
-      return result;
-    }
-
-    protected CodeObjectTree getClassMap() {
-      CodeObjectTree registeredObjects = Recorder.getInstance().getRegisteredObjects();
-      CodeObjectTree classMap = new CodeObjectTree();
-      for (String key : this.classReferences) {
-        String[] parts = key.split(":");
-
-        CodeObject methodBranch = registeredObjects.getMethodBranch(parts[0], parts[1], Boolean.valueOf(parts[2]), Integer.valueOf(parts[3]));
-        if (methodBranch != null)
-          classMap.add(methodBranch);
-      }
-
-      return classMap;
-    }
-  }
-
-  private final EventList eventList = new EventList();
-
+  private final HashSet<String> classReferences = new HashSet<>();
   private Path tmpPath;
   private AppMapSerializer serializer;
 
-  /**
-   * Constructor. You typically shouldn't be creating this outside of the {@link Recorder}.
-   */
-  public RecordingSession() {
+  RecordingSession() {
     this.tmpPath = null;
   }
 
-  public synchronized void start(Metadata metadata) {
+  void start(Metadata metadata) {
     if (this.serializer != null) {
       throw new IllegalStateException("AppMap: Unable to start a recording, because a recording is already in progress");
     }
@@ -108,8 +59,14 @@ public class RecordingSession {
   }
 
   public synchronized void add(Event event) {
+    String key = event.definedClass +
+        ":" + event.methodId +
+        ":" + event.isStatic +
+        ":" + event.lineNumber;
+    this.classReferences.add(key);
+
     try {
-      this.serializer.writeEvents(this.eventList.add(event));
+      this.serializer.writeEvents(Collections.singletonList(event));
     } catch (IOException e) {
       throw new ActiveSessionException(String.format("Failed to flush recording session:\n%s\n", e.getMessage()), e);
     }
@@ -120,14 +77,8 @@ public class RecordingSession {
       throw new IllegalStateException("AppMap: Unable to checkpoint the recording because no recording is in progress.");
     }
 
-    // Flush events
-    // Close the writer and copy the temp file to a new file
-    // Write the class map
-    // Reopen the event stream on the temp file
-
     Path targetPath;
     try {
-      this.serializer.writeEvents(this.eventList.flush());
       this.serializer.flush();
 
       targetPath = Files.createTempFile(null, ".appmap.json");
@@ -136,7 +87,7 @@ public class RecordingSession {
       FileWriter fw = new FileWriter(targetPath.toFile(), true);
       fw.write("],\"classMap\":");
       JSONWriter jw = new JSONWriter(fw);
-      jw.writeObject(this.eventList.getClassMap().toArray());
+      jw.writeObject(this.getClassMap().toArray());
       jw.flush();
       fw.write('}');
       fw.flush();
@@ -156,8 +107,7 @@ public class RecordingSession {
     }
 
     try {
-      this.serializer.writeEvents(this.eventList.flush());
-      this.serializer.writeClassMap(this.eventList.getClassMap());
+      this.serializer.writeClassMap(this.getClassMap());
       this.serializer.finish();
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -171,5 +121,19 @@ public class RecordingSession {
     Logger.printf("AppMap: Wrote recording to file %s\n", file.getPath());
 
     return new Recording(file);
+  }
+
+  CodeObjectTree getClassMap() {
+    CodeObjectTree registeredObjects = Recorder.getInstance().getRegisteredObjects();
+    CodeObjectTree classMap = new CodeObjectTree();
+    for (String key : this.classReferences) {
+      String[] parts = key.split(":");
+
+      CodeObject methodBranch = registeredObjects.getMethodBranch(parts[0], parts[1], Boolean.valueOf(parts[2]), Integer.valueOf(parts[3]));
+      if (methodBranch != null)
+        classMap.add(methodBranch);
+    }
+
+    return classMap;
   }
 }

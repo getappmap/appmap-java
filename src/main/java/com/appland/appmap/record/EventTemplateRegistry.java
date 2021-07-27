@@ -46,7 +46,7 @@ public class EventTemplateRegistry {
    * @returns The behavior ordinal (an index to the {@link Event} template)
    */
   public synchronized Integer register(Event event, CtBehavior behavior) {
-    recorder.register(CodeObject.createTree(behavior));
+    recorder.registerCodeObject(CodeObject.createTree(behavior));
     eventTemplates.add(event);
     return eventTemplates.size() - 1;
   }

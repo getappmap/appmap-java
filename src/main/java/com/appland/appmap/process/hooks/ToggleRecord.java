@@ -45,7 +45,6 @@ public class ToggleRecord {
     Recording recording = recorder.stop();
     res.setContentType("application/json");
     res.setContentLength(recording.size());
-
     recording.readFully(true, res.getWriter());
   }
 
@@ -79,7 +78,7 @@ public class ToggleRecord {
     recorder.start(metadata);
   }
 
-  private static void doCheckpoint(HttpServletRequest req, HttpServletResponse res) {
+  private static void doCheckpoint(HttpServletRequest req, HttpServletResponse res) throws IOException {
     if (debug) {
       Logger.println("ToggleRecord.doCheckpoint");
     }
@@ -92,12 +91,7 @@ public class ToggleRecord {
     Recording recording = recorder.checkpoint();
     res.setContentType("application/json");
     res.setContentLength(recording.size());
-
-    try {
-      recording.readFully(true, res.getWriter());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    recording.readFully(true, res.getWriter());
   }
 
   private static void handleRecordRequest(HttpServletRequest req, HttpServletResponse res, HandlerFunction fn) throws ExitEarly {

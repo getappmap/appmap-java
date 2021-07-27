@@ -108,16 +108,6 @@ public class AppMapSerializer {
       this.json.writeKey("app");
       this.json.writeValue(AppMapConfig.get().name);
 
-      if (metadata.feature != null && !metadata.feature.isEmpty()) {
-        this.json.writeKey("feature");
-        this.json.writeValue(metadata.feature);
-      }
-
-      if (metadata.featureGroup != null && !metadata.featureGroup.isEmpty()) {
-        this.json.writeKey("feature_group");
-        this.json.writeValue(metadata.featureGroup);
-      }
-
       this.json.writeKey("language");
       this.json.startObject();
       {
