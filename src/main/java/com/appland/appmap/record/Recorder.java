@@ -1,9 +1,6 @@
 package com.appland.appmap.record;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -11,7 +8,7 @@ import java.util.Map;
 
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.record.IRecordingSession.Metadata;
+import com.appland.appmap.record.RecordingSession.Metadata;
 import com.appland.appmap.util.Logger;
 
 /**
@@ -22,7 +19,7 @@ public class Recorder {
   private static final String ERROR_SESSION_PRESENT = "an active recording session already exists";
   private static final String ERROR_NO_SESSION = "there is no active recording session";
 
-  private IRecordingSession activeSession = null;
+  private RecordingSession activeSession = null;
   private CodeObjectTree globalCodeObjects = new CodeObjectTree();
   private Map<Long, Event> queuedEvents = new HashMap<Long, Event>();
 
@@ -32,27 +29,9 @@ public class Recorder {
 
   }
 
-  private synchronized void setActiveSession(IRecordingSession activeSession)
-      throws ActiveSessionException {
-    if (this.hasActiveSession()) {
-      throw new ActiveSessionException(ERROR_SESSION_PRESENT);
-    }
-
-    this.activeSession = activeSession;
-
-    try {
-      this.activeSession.start();
-    } catch (ActiveSessionException e) {
-      Logger.printf("failed to start recording", e.getMessage());
-      Logger.println(e);
-
-      this.stop();
-      throw e;
-    }
-  }
-
   /**
    * Get the global Recorder instance.
+   *
    * @return The global recorder instance
    */
   public static Recorder getInstance() {
@@ -61,13 +40,14 @@ public class Recorder {
 
   /**
    * Checks whether or not the Recorder has an active recording session.
+   *
    * @return {@code true} If a session is in progress. Otherwise, {@code false}.
    */
   public synchronized Boolean hasActiveSession() {
     return this.activeSession != null;
   }
 
-  public synchronized IRecordingSession getActiveSession()
+  public synchronized RecordingSession getActiveSession()
       throws ActiveSessionException {
     if (this.activeSession == null) {
       throw new ActiveSessionException(ERROR_NO_SESSION);
@@ -77,24 +57,24 @@ public class Recorder {
   }
 
   /**
-   * Start a recording session, writing the output to a file.
-   * @param fileName Destination file
+   * Start a recording session.
+   *
    * @param metadata Recording metadata to be written
    * @throws ActiveSessionException If a session is already in progress
    */
-  public synchronized void start(String fileName, Metadata metadata)
-      throws ActiveSessionException {
-    this.setActiveSession(new RecordingSessionFileStream(fileName, metadata));
+  public synchronized void start(Metadata metadata) throws ActiveSessionException {
+    if (this.hasActiveSession()) {
+      throw new ActiveSessionException(ERROR_SESSION_PRESENT);
+    }
+
+    this.activeSession = new RecordingSession();
+    this.activeSession.start(metadata);
   }
 
-  /**
-   * Start a recording session, storing recording data in memory.
-   * @param metadata Recording metadata to be written
-   * @throws ActiveSessionException If a recording session is already in progress
-   */
-  public synchronized void start(Metadata metadata)
-      throws ActiveSessionException {
-    this.setActiveSession(new RecordingSessionMemory(metadata));
+  public Recording checkpoint() {
+    RecordingSession recordingSession = this.getActiveSession();
+    this.flush(recordingSession);
+    return recordingSession.checkpoint();
   }
 
   /**
@@ -103,7 +83,7 @@ public class Recorder {
    * into target application code, potentially accessing a locked resource and
    * entering a deadlocked state.
    */
-  private void writeEvent(Event event, IRecordingSession recordingSession)
+  private void writeEvent(Event event, RecordingSession recordingSession)
       throws ActiveSessionException {
     event.freeze();
 
@@ -114,7 +94,7 @@ public class Recorder {
    * Flush all queued events, writing them to the active session and clearing
    * the queue.
    */
-  private void flush(IRecordingSession recordingSession) throws ActiveSessionException {
+  private void flush(RecordingSession recordingSession) throws ActiveSessionException {
     Collection<Event> events;
 
     synchronized (this) {
@@ -129,7 +109,7 @@ public class Recorder {
 
   private void queueEvent(Event event) throws ActiveSessionException {
     Event pendingEvent;
-    IRecordingSession recordingSession;
+    RecordingSession recordingSession;
 
     synchronized (this) {
       if (this.activeSession == null) {
@@ -151,18 +131,20 @@ public class Recorder {
       return;
     }
 
-    this.activeSession.stop();
+    Recording recording = this.activeSession.stop();
+    recording.delete();
     this.activeSession = null;
   }
 
   /**
    * Stops the active recording session.
+   *
    * @return Output from the current session. This will be empty unless recording to memory.
    * @throws ActiveSessionException If no recording session is in progress or the session cannot be
    *                                stopped.
    */
-  public String stop() throws ActiveSessionException {
-    IRecordingSession recordingSession;
+  public Recording stop() throws ActiveSessionException {
+    RecordingSession recordingSession;
 
     synchronized (this) {
       recordingSession = this.getActiveSession();
@@ -175,12 +157,13 @@ public class Recorder {
     } catch (ActiveSessionException e) {
       Logger.printf("failed to stop recording\n%s\n", e.getMessage());
       this.forceStop();
-      return "";
+      return null;
     }
   }
 
   /**
    * Record an {@link Event} to the active session.
+   *
    * @param event The event to be recorded.
    */
   public void add(Event event) {
@@ -196,6 +179,7 @@ public class Recorder {
   /**
    * Register a {@link CodeObject}, allowing it to propagate to an output's Class Map if referenced
    * in an event.
+   *
    * @param codeObject The code object to be registered
    */
   public synchronized void register(CodeObject codeObject) {
@@ -205,7 +189,7 @@ public class Recorder {
   public CodeObjectTree getRegisteredObjects() {
     return this.globalCodeObjects;
   }
-  
+
   /**
    * Retrieve the last event recorded.
    */
@@ -216,8 +200,9 @@ public class Recorder {
 
   /**
    * Record the execution of a Runnable and return the scenario data as a String
+   * @return
    */
-  public String record(Runnable fn) throws ActiveSessionException {
+  public Recording record(Runnable fn) throws ActiveSessionException {
     this.start(new Metadata());
     fn.run();
     return this.stop();
@@ -231,8 +216,9 @@ public class Recorder {
     final Metadata metadata = new Metadata();
     metadata.scenarioName = name;
 
-    this.start(fileName + ".appmap.json", metadata);
+    this.start(metadata);
     fn.run();
-    this.stop();
+    Recording recording = this.stop();
+    recording.moveTo(fileName + ".appmap.json");
   }
 }

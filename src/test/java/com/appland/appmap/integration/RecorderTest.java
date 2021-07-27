@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
+import com.appland.appmap.record.Recording;
 import com.appland.appmap.test.util.MyClass;
 
 import java.io.File;
@@ -21,12 +22,12 @@ public class RecorderTest {
   @Test
   public void testRecordBlock() {
     final MyClass myClass = new MyClass();
-    final String scenario = recorder.record(() -> {
+    final Recording recording = recorder.record(() -> {
       for (int i = 0; i < 10; i++) {
         myClass.myMethod();
       }
     });
-    assertNotNull(scenario);
+    assertNotNull(recording);
   }
 
   @Test
