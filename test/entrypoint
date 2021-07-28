@@ -27,7 +27,7 @@ ${@:-run_bats}
 bats_ret=$?
 
 kill ${JVM_PID}
-wait -f ${JVM_PID}
+wait ${JVM_PID}
 cat $LOG
 cat bats.log
 exit $bats_ret
