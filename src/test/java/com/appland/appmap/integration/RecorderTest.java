@@ -1,15 +1,15 @@
 package com.appland.appmap.integration;
 
-import com.appland.appmap.config.Properties;
+import com.alibaba.fastjson.JSON;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.test.util.MyClass;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.io.StringWriter;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -30,23 +30,22 @@ public class RecorderTest {
   @Test
   public void testRecordBlockToFile() throws IOException {
     final MyClass myClass = new MyClass();
-    final File output = new File(Paths.get(Properties.OutputDirectory, "Recording_a_block_to_a_file.appmap.json").toString());
 
-    if (output.exists()) {
-      output.delete();
-    }
-
-    recorder.record("Recording a block to a file", () -> {
+    Recording recording = recorder.record(() -> {
       for (int i = 0; i < 10; i++) {
         myClass.myMethod();
       }
     });
 
-    assertTrue(output.exists());
+    assertNotNull(recording);
+    StringWriter sw = new StringWriter();
+    recording.readFully(true, sw);
+    Map obj = (Map)JSON.parse(sw.toString());
+    assertEquals(obj.keySet().toString(), "[classMap, metadata, version]");
   }
 
   @Test(timeout = 5000)
-  public void testMultiThreadedRecordBlock() throws IOException, InterruptedException {
+  public void testMultiThreadedRecordBlock() throws InterruptedException {
     final int iterations = 1000;
     final MyClass myClass = new MyClass();
     Thread t = new Thread(() -> {

@@ -13,9 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Vector;
-import java.util.stream.Collectors;
 
 public class RecordingSession {
   public static class Metadata {
@@ -59,11 +56,17 @@ public class RecordingSession {
   }
 
   public synchronized void add(Event event) {
-    String key = event.definedClass +
-        ":" + event.methodId +
-        ":" + event.isStatic +
-        ":" + event.lineNumber;
-    this.classReferences.add(key);
+    if ( event.event.equals("call") ) {
+      // Events may refer to non-code objects such as SQL queries, in that case we don't
+      // need to worry about tracking class references.
+      if ( event.definedClass != null && event.methodId != null ) {
+        String key = event.definedClass +
+            ":" + event.methodId +
+            ":" + event.isStatic +
+            ":" + event.lineNumber;
+        this.classReferences.add(key);
+      }
+    }
 
     try {
       this.serializer.writeEvents(Collections.singletonList(event));

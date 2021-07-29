@@ -27,11 +27,11 @@ public class Hook {
           add(ArgumentArraySystem::from);
       }};
 
-  private SourceMethodSystem sourceSystem;
-  private List<ISystem> optionalSystems;
-  private Parameters staticParameters = new Parameters();
-  private Parameters hookParameters;
-  private CtBehavior hookBehavior;
+  private final SourceMethodSystem sourceSystem;
+  private final List<ISystem> optionalSystems;
+  private final Parameters staticParameters = new Parameters();
+  private final Parameters hookParameters;
+  private final CtBehavior hookBehavior;
   private String uniqueKey = "";
 
   private Hook( SourceMethodSystem sourceSystem,
@@ -145,21 +145,21 @@ public class Hook {
       }
     }
 
-      final String uniqueLocks = hookSites
-          .stream()
-          .filter(hs -> !hs.getUniqueKey().isEmpty())
-          .map(hs -> hs.getUniqueKey())
-          .distinct()
-          .map(uniqueKey -> (""
+    final String uniqueLocks = hookSites
+        .stream()
+        .map(HookSite::getUniqueKey)
+        .filter(uk -> !uk.isEmpty())
+        .distinct()
+        .map(uniqueKey -> (""
             + "com.appland.appmap.process.ThreadLock.current().lockUnique(\""
             + uniqueKey
             + "\");"))
-          .collect(Collectors.joining("\n"));
+        .collect(Collectors.joining("\n"));
 
     try {
       targetBehavior.insertBefore(
-          beforeSrcBlock(uniqueLocks,
-            invocations[MethodEvent.METHOD_INVOCATION.getIndex()]));
+          beforeSrcBlock(uniqueLocks, invocations[MethodEvent.METHOD_INVOCATION.getIndex()])
+      );
 
       targetBehavior.insertAfter(
           afterSrcBlock(invocations[MethodEvent.METHOD_RETURN.getIndex()]));

@@ -40,6 +40,7 @@ public class RecorderTest {
     for (int i = 0; i < events.length; i++) {
       final Event event = events[i];
       event
+          .setEvent("call")
           .setDefinedClass("SomeClass")
           .setMethodId("SomeMethod")
           .setStatic(false)
@@ -75,7 +76,7 @@ public class RecorderTest {
     StringWriter sw = new StringWriter();
     recording.readFully(true, sw);
     String appmapJson = sw.toString();
-    final String expectedJson = "\"thread_id\":" + threadId.toString();
+    final String expectedJson = "\"thread_id\":" + threadId;
     final int numMatches = StringUtils.countMatches(appmapJson, expectedJson);
     assertEquals(numMatches, EVENT_COUNT);
   }

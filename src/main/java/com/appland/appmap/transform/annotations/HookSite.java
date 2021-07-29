@@ -27,18 +27,21 @@ public class HookSite {
       ContinueHooking.class,
       false);
 
-    final String event = String.format("%s.get().cloneEventTemplate(%d, \"%s\")",
-        "com.appland.appmap.record.EventTemplateRegistry",
-        behaviorOrdinal,
-        this.methodEvent.getEventString());
+    final String event;
+    if ( methodEvent.getEventString().equals("call") ) {
+      event = String.format("%s.get().buildCallEvent(%d)",
+          "com.appland.appmap.record.EventTemplateRegistry",
+          behaviorOrdinal);
+    } else {
+      event = String.format("%s.get().buildReturnEvent()",
+          "com.appland.appmap.record.EventTemplateRegistry");
+    }
 
     final String args = parameters
         .stream()
-        .map(param -> {
-          return (param.classType == null || param.classType.isEmpty())
-              ? param.name
-              : String.format(("(%s) %s"), param.classType, param.name);
-        })
+        .map(param -> (param.classType == null || param.classType.isEmpty())
+            ? param.name
+            : String.format(("(%s) %s"), param.classType, param.name))
         .collect(Collectors.joining(", "))
         .replace(SourceMethodSystem.EVENT_TOKEN, event);
 
@@ -56,9 +59,9 @@ public class HookSite {
       this.hookInvocation = invocation;
     } else {
       this.hookInvocation = "if (com.appland.appmap.process.ThreadLock.current().lock()) {"
-        + invocation
-        + "com.appland.appmap.process.ThreadLock.current().unlock();"
-        + "}";
+          + invocation
+          + "com.appland.appmap.process.ThreadLock.current().unlock();"
+          + "}";
     }
   }
 

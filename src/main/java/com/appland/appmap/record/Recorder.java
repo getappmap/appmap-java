@@ -6,6 +6,7 @@ import com.appland.appmap.record.RecordingSession.Metadata;
 import com.appland.appmap.util.Logger;
 
 import java.io.IOException;
+import java.util.Stack;
 
 /**
  * Recorder is a singleton responsible for managing recording sessions and routing events to any
@@ -19,7 +20,7 @@ public class Recorder {
 
   private final ActiveSession activeSession = new ActiveSession();
   private final CodeObjectTree globalCodeObjects = new CodeObjectTree();
-  private final ThreadLocal<ThreadState> threadState = new ThreadLocal<>();
+  private final ThreadLocal<ThreadState> threadState = ThreadLocal.withInitial(ThreadState::new);
 
   /**
    * Keep track of what's going on in the current thread.
@@ -30,6 +31,7 @@ public class Recorder {
     Event lastEvent;
     // Avoid accepting new events on a thread that's already processing an event.
     boolean isProcessing;
+    Stack<Event> callStack = new Stack<>();
   }
 
   static class ActiveSession {
@@ -119,24 +121,45 @@ public class Recorder {
       return;
     }
 
-    if ( threadState.get() == null ) {
-      threadState.set(new ThreadState());
-    }
+    ThreadState ts = threadState.get();
 
     // We don't want re-entrant events on the same thread.
-    if ( threadState.get().isProcessing ) {
+    if ( ts.isProcessing ) {
       return;
     }
 
-    threadState.get().isProcessing = true;
+    ts.isProcessing = true;
     try {
+      if ( event.event.equals("call") ) {
+        ts.callStack.push(event);
+      } else if ( event.event.equals("return") ) {
+        if ( ts.callStack.isEmpty() ) {
+          Logger.println("Discarding 'return' event because the call stack is empty for this thread");
+          return;
+        }
+
+        // To whom it may concern:
+        //
+        // You may be tempted to try and track the caller Event using a local variable in the
+        // generated code for each hooked function. It would be cleaner and more reliable than
+        // tracking a call stack here. However, due to issues with Javassist and the JVM,
+        // I (KEG) was not able to find a way to declare, initialize, set, and pass an Event that would
+        // work with exception handling and finally clauses.
+        Event caller = ts.callStack.pop();
+        event.parentId = caller.id;
+        event.threadId = caller.threadId;
+      } else {
+        throw new IllegalArgumentException("Event should be 'call' or 'return', got " + event.event);
+      }
+
       // This is the line that can generate re-entrant events, apparently.
       event.freeze();
 
+      ts.lastEvent = event;
+
       activeSession.get().add(event);
-      threadState.get().lastEvent = event;
     } finally {
-      threadState.get().isProcessing = false;
+      ts.isProcessing = false;
     }
   }
 
@@ -157,15 +180,22 @@ public class Recorder {
   }
 
   /**
-   * Retrieve the last event recorded.
+   * Gets the last call event for this thread.
+   */
+  public Event getLastCallEvent() {
+    ThreadState ts = threadState.get();
+    return ts.callStack.isEmpty() ? null : ts.callStack.peek();
+  }
+
+  /**
+   * Retrieve the last event (of any kind) recorded for this thread.
    */
   public Event getLastEvent() {
-    return threadState.get() != null ? threadState.get().lastEvent : null;
+    return threadState.get().lastEvent;
   }
 
   /**
    * Record the execution of a Runnable and return the scenario data as a String
-   * @return
    */
   public Recording record(Runnable fn) throws ActiveSessionException {
     this.start(new Metadata());
