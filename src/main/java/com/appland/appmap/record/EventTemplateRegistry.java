@@ -16,10 +16,10 @@ import java.util.ArrayList;
  * for performance.
  */
 public class EventTemplateRegistry {
-  private static EventTemplateRegistry instance = new EventTemplateRegistry();
+  private static final EventTemplateRegistry instance = new EventTemplateRegistry();
   private static final Recorder recorder = Recorder.getInstance();
 
-  private ArrayList<Event> eventTemplates = new ArrayList<Event>();
+  private final ArrayList<Event> eventTemplates = new ArrayList<>();
 
   private EventTemplateRegistry() { }
 
@@ -43,7 +43,7 @@ public class EventTemplateRegistry {
    * have a {@link CodeObject} registered with the global {@link Recorder} instance.
    * @param event The {@link Event} template to be registered
    * @param behavior The behavior used to create the {@link Event} template
-   * @returns The behavior ordinal (an index to the {@link Event} template)
+   * @return The behavior ordinal (an index to the {@link Event} template)
    */
   public synchronized Integer register(Event event, CtBehavior behavior) {
     recorder.registerCodeObject(CodeObject.createTree(behavior));
@@ -68,25 +68,28 @@ public class EventTemplateRegistry {
   /**
    * Clones an {@link Event} template and sets the {@code event} field.
    * @param templateId The behavior ordinal
-   * @param eventAction The value of the {@code event} field ({@code call}, {@code return}, etc.)
    * @return A copy of the event template with the {@code event} field set
    * @throws UnknownEventException If no template exists for the behavior ordinal given
    */
-  public Event cloneEventTemplate(int templateId, String eventAction)
-      throws UnknownEventException {
-    Event event = null;
+  public Event buildCallEvent(int templateId) {
+    Event eventTemplate = lookupEventTemplate(templateId);
+    Event event = Event.functionCallEvent(eventTemplate);
+    for (Value param : eventTemplate.parameters) {
+      event.addParameter(param);
+    }
+    return event;
+  }
 
+  /**
+   * Prepares a return event.
+   */
+  public Event buildReturnEvent() {
+    return Event.functionReturnEvent();
+  }
+
+  Event lookupEventTemplate(int templateId) {
     try {
-      Event eventTemplate = eventTemplates.get(templateId);
-      event = new Event(eventTemplate)
-          .setThreadId(Thread.currentThread().getId())
-          .setEvent(eventAction);
-
-      if (eventAction.equals("call")) {
-        for (Value param : eventTemplate.parameters) {
-          event.addParameter(param);
-        }
-      }
+      return eventTemplates.get(templateId);
     } catch (IndexOutOfBoundsException e) {
       final String msg = String.format("unknown template for ordinal %d - have we been loaded by a non-system class loader?", templateId);
 
@@ -97,7 +100,5 @@ public class EventTemplateRegistry {
 
       throw new UnknownEventException(msg);
     }
-    
-    return event;
   }
 }

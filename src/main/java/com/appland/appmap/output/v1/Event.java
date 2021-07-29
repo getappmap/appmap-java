@@ -3,7 +3,6 @@ package com.appland.appmap.output.v1;
 import com.alibaba.fastjson.annotation.JSONField;
 import javassist.CtBehavior;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 
@@ -66,37 +65,38 @@ public class Event {
   }
 
   /**
+   * Creates a copy of an existing call event. Does not copy runtime information such as
+   * {@link Parameters} or return value.
+   *
+   * @param master The event to copy information from
+   */
+  public static Event functionCallEvent(Event master) {
+    Event event = new Event();
+    event.setEvent("call");
+    event.setThreadId(Thread.currentThread().getId());
+    event.setMethodId(master.methodId);
+    event.setDefinedClass(master.definedClass);
+    event.setPath(master.path);
+    event.setLineNumber(master.lineNumber);
+    event.setStatic(master.isStatic);
+    return event;
+  }
+
+  /**
+   * Creates a return event. All the event properties except for the id are
+   * left to be filled in later.
+   */
+  public static Event functionReturnEvent() {
+    Event event = new Event();
+    event.setEvent("return");
+    return event;
+  }
+
+  /**
    * Constructs a blank event and issues a unique ID.
    */
   public Event() {
     this.setId(issueId());
-  }
-
-  /**
-   * Creates a copy of an existing event. Does not copy runtime information such as
-   * {@link Parameters} or return value.
-   * @param master The event to copy information from
-   */
-  public Event(Event master) {
-    this.setId(issueId())
-        .setMethodId(master.methodId)
-        .setDefinedClass(master.definedClass)
-        .setPath(master.path)
-        .setLineNumber(master.lineNumber)
-        .setStatic(master.isStatic);
-  }
-
-  /**
-   * Creates an event from a reflective Method.
-   * @param method Method to gather information from
-   * @param eventType The type of this event ("call", "return", etc.)
-   */
-  public Event(Method method, String eventType) {
-    this.setId(issueId())
-        .setMethodId(method.getName())
-        .setDefinedClass(method.getDeclaringClass().getName())
-        .setEvent(eventType)
-        .setThreadId(Thread.currentThread().getId());
   }
 
   /**
@@ -303,6 +303,7 @@ public class Event {
    * @see <a href="https://github.com/applandinc/appmap#http-server-request-attributes">GitHub: AppMap - HTTP server request attributes</a>
    */
   public Event setHttpServerRequest(String method, String path, String protocol) {
+    clearFunctionFields();
     this.httpServerRequest = new HttpServerRequest()
         .setMethod(method)
         .setPath(path)
@@ -345,6 +346,7 @@ public class Event {
    * @see <a href="https://github.com/applandinc/appmap#http-client-request-attributes">GitHub: AppMap - HTTP client request attributes</a>
    */
   public Event setHttpClientRequest(String method, String path, String protocol) {
+    clearFunctionFields();
     this.httpClientRequest = new HttpClientRequest()
             .setMethod(method)
             .setPath(path)
@@ -374,7 +376,7 @@ public class Event {
    */
   public Event addMessageParam(Value val) {
     if (this.message == null) {
-      this.message = new ArrayList<Value>();
+      this.message = new ArrayList<>();
     }
 
     this.message.add(val);
@@ -401,6 +403,7 @@ public class Event {
    * @see <a href="https://github.com/applandinc/appmap#sql-query-attributes">GitHub: AppMap - SQL query attributes</a>
    */
   public Event setSqlQuery(String databaseType, String sql) {
+    clearFunctionFields();
     this.sqlQuery = new SqlQuery(databaseType, sql);
     return this;
   }
@@ -409,7 +412,6 @@ public class Event {
    * Convert all referenced Objects to Strings. This mitigates the risk of null pointer exceptions
    * or reading otherwise invalid state when later serializing this event. This should always be
    * called once an event has been finalized.
-   * @return
    */
   public Event freeze() {
     if (this.parameters != null) {
@@ -433,5 +435,13 @@ public class Event {
     }
 
     return this;
+  }
+
+  void clearFunctionFields() {
+    methodId = null;
+    definedClass = null;
+    path = null;
+    lineNumber = null;
+    isStatic = null;
   }
 }
