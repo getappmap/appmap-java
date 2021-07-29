@@ -9,9 +9,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 public class RecorderTest {
   private static final Recorder recorder = Recorder.getInstance();
@@ -40,8 +40,8 @@ public class RecorderTest {
     assertNotNull(recording);
     StringWriter sw = new StringWriter();
     recording.readFully(true, sw);
-    Map obj = (Map)JSON.parse(sw.toString());
-    assertEquals(obj.keySet().toString(), "[classMap, metadata, version]");
+    // Verify that the JSON parses properly.
+    JSON.parse(sw.toString());
   }
 
   @Test(timeout = 5000)

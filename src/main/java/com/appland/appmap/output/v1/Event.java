@@ -64,6 +64,8 @@ public class Event {
     return ++globalEventId;
   }
 
+  private boolean frozen = false;
+
   /**
    * Creates a copy of an existing call event. Does not copy runtime information such as
    * {@link Parameters} or return value.
@@ -74,8 +76,8 @@ public class Event {
     Event event = new Event();
     event.setEvent("call");
     event.setThreadId(Thread.currentThread().getId());
-    event.setMethodId(master.methodId);
     event.setDefinedClass(master.definedClass);
+    event.setMethodId(master.methodId);
     event.setPath(master.path);
     event.setLineNumber(master.lineNumber);
     event.setStatic(master.isStatic);
@@ -86,9 +88,15 @@ public class Event {
    * Creates a return event. All the event properties except for the id are
    * left to be filled in later.
    */
-  public static Event functionReturnEvent() {
+  public static Event functionReturnEvent(Event master) {
     Event event = new Event();
     event.setEvent("return");
+    // In some cases, such as naming the file output, this information is relied upon.
+    // It will be stripped before the event is written.
+    // Consider this technical debt...
+    event.setDefinedClass(master.definedClass);
+    event.setStatic(master.isStatic);
+    event.setMethodId(master.methodId);
     return event;
   }
 
@@ -115,6 +123,14 @@ public class Event {
   private Event setId(Integer id) {
     this.id = id;
     return this;
+  }
+
+  /**
+   * @return true if the event fields have been frozen. If so, it's too late to change
+   * event properties because it's probably already been serialized.
+   */
+  public boolean isFrozen() {
+    return frozen;
   }
 
   /**
@@ -414,6 +430,10 @@ public class Event {
    * called once an event has been finalized.
    */
   public Event freeze() {
+    if ( this.frozen ) {
+      return this;
+    }
+
     if (this.parameters != null) {
       for (Value value : this.parameters) {
         value.freeze();
@@ -434,6 +454,7 @@ public class Event {
       }
     }
 
+    this.frozen = true;
     return this;
   }
 

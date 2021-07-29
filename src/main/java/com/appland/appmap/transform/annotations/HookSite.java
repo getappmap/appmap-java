@@ -33,8 +33,9 @@ public class HookSite {
           "com.appland.appmap.record.EventTemplateRegistry",
           behaviorOrdinal);
     } else {
-      event = String.format("%s.get().buildReturnEvent()",
-          "com.appland.appmap.record.EventTemplateRegistry");
+      event = String.format("%s.get().buildReturnEvent(%d)",
+          "com.appland.appmap.record.EventTemplateRegistry",
+          behaviorOrdinal);
     }
 
     final String args = parameters

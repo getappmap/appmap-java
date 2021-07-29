@@ -52,6 +52,7 @@ load 'helper'
 @test "successfully stop the current recording" {
   start_recording
   
+  _curl -XGET "${WS_URL}"
   run _curl -sXDELETE "${WS_URL}/_appmap/record"
 
   assert_success
@@ -121,9 +122,8 @@ load 'helper'
   # Sanity check the events and classmap
   assert_json_eq '.events | length' 6
 
-  assert_json_eq '.classMap | length' 2
-  assert_json_eq '[.classMap[0] | recurse | .name?] | join(".")' javax.servlet.http.HttpServlet.service
-  assert_json_eq '[.classMap[1] | recurse | .name?] | join(".")' org.springframework.samples.petclinic.system.CrashController.triggerException
+  assert_json_eq '.classMap | length' 1
+  assert_json_eq '[.classMap[0] | recurse | .name?] | join(".")' org.springframework.samples.petclinic.system.CrashController.triggerException
 }
 
 @test "expected number of http client events captured" {

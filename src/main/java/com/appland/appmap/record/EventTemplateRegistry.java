@@ -83,8 +83,9 @@ public class EventTemplateRegistry {
   /**
    * Prepares a return event.
    */
-  public Event buildReturnEvent() {
-    return Event.functionReturnEvent();
+  public Event buildReturnEvent(int templateId) {
+    Event eventTemplate = lookupEventTemplate(templateId);
+    return Event.functionReturnEvent(eventTemplate);
   }
 
   Event lookupEventTemplate(int templateId) {

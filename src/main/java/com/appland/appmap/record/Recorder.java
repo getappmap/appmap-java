@@ -6,6 +6,8 @@ import com.appland.appmap.record.RecordingSession.Metadata;
 import com.appland.appmap.util.Logger;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 /**
@@ -20,7 +22,7 @@ public class Recorder {
 
   private final ActiveSession activeSession = new ActiveSession();
   private final CodeObjectTree globalCodeObjects = new CodeObjectTree();
-  private final ThreadLocal<ThreadState> threadState = ThreadLocal.withInitial(ThreadState::new);
+  private final Map<Long, ThreadState> threadState = new HashMap<>();
 
   /**
    * Keep track of what's going on in the current thread.
@@ -97,6 +99,7 @@ public class Recorder {
   }
 
   public Recording checkpoint() {
+    this.flush();
     return activeSession.get().checkpoint();
   }
 
@@ -108,6 +111,7 @@ public class Recorder {
    *                                stopped.
    */
   public Recording stop() throws ActiveSessionException {
+    this.flush();
     return activeSession.release().stop();
   }
 
@@ -121,7 +125,7 @@ public class Recorder {
       return;
     }
 
-    ThreadState ts = threadState.get();
+    ThreadState ts = threadState();
 
     // We don't want re-entrant events on the same thread.
     if ( ts.isProcessing ) {
@@ -148,16 +152,23 @@ public class Recorder {
         Event caller = ts.callStack.pop();
         event.parentId = caller.id;
         event.threadId = caller.threadId;
+        // Erase these fields - see comment in Event#functionReturnEvent
+        event.definedClass = null;
+        event.methodId = null;
+        event.isStatic = null;
       } else {
         throw new IllegalArgumentException("Event should be 'call' or 'return', got " + event.event);
       }
 
-      // This is the line that can generate re-entrant events, apparently.
-      event.freeze();
-
+      Event previousEvent = ts.lastEvent;
       ts.lastEvent = event;
 
-      activeSession.get().add(event);
+      // The previous event is given until now to get all its properties.
+      if ( previousEvent != null ) {
+        // This is the line that can generate re-entrant events, apparently.
+        previousEvent.freeze();
+        activeSession.get().add(previousEvent);
+      }
     } finally {
       ts.isProcessing = false;
     }
@@ -180,18 +191,10 @@ public class Recorder {
   }
 
   /**
-   * Gets the last call event for this thread.
-   */
-  public Event getLastCallEvent() {
-    ThreadState ts = threadState.get();
-    return ts.callStack.isEmpty() ? null : ts.callStack.peek();
-  }
-
-  /**
    * Retrieve the last event (of any kind) recorded for this thread.
    */
   public Event getLastEvent() {
-    return threadState.get().lastEvent;
+    return threadState().lastEvent;
   }
 
   /**
@@ -215,5 +218,34 @@ public class Recorder {
     fn.run();
     Recording recording = this.stop();
     recording.moveTo(fileName + ".appmap.json");
+  }
+
+  ThreadState threadState() {
+    ThreadState ts = threadState.get(Thread.currentThread().getId());
+    if ( ts == null ) {
+      threadState.put(Thread.currentThread().getId(), (ts = new ThreadState()));
+    }
+    return ts;
+  }
+
+  // Finish serializing any remaining events. This is necessary because each event is "open"
+  // until the next event on the same thread is received.
+  void flush() {
+    threadState.values().forEach((ts) -> {
+      if ( ts.lastEvent == null ) {
+        return;
+      }
+
+      ts.isProcessing = true;
+      try {
+        Event event = ts.lastEvent;
+        ts.lastEvent = null;
+
+        event.freeze();
+        activeSession.get().add(event);
+      } finally {
+        ts.isProcessing = false;
+      }
+    });
   }
 }
