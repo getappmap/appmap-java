@@ -9,7 +9,6 @@ import com.appland.appmap.transform.annotations.MethodEvent;
 
 import java.util.Map;
 
-
 /**
  * Hooks to capture @{code message} data.
  */

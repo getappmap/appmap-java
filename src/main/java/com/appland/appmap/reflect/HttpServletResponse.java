@@ -1,6 +1,5 @@
 package com.appland.appmap.reflect;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 
@@ -9,12 +8,12 @@ public class HttpServletResponse extends ReflectiveType {
   public static final int SC_NOT_FOUND = 404;
   public static final int SC_OK = 200;
 
-  private Method fnSetContentType;
-  private Method fnSetContentLength;
-  private Method fnSetStatus;
-  private Method fnGetWriter;
-  private Method fnGetStatus;
-  private Method fnGetContentType;
+  private final Method fnSetContentType;
+  private final Method fnSetContentLength;
+  private final Method fnSetStatus;
+  private final Method fnGetWriter;
+  private final Method fnGetStatus;
+  private final Method fnGetContentType;
 
   public HttpServletResponse(Object self) {
     super(self);
@@ -29,37 +28,37 @@ public class HttpServletResponse extends ReflectiveType {
 
   public void setContentType(String type) {
     if (fnSetContentType != null) {
-      invoke(fnSetContentType, type);
+      invokeWrappedMethod(fnSetContentType, type);
     }
   }
 
   public void setContentLength(int len) {
     if (fnSetContentLength != null) {
-      invoke(fnSetContentLength, len);
+      invokeWrappedMethod(fnSetContentLength, len);
     }
   }
 
   public void setStatus(int sc) {
     if (fnSetStatus != null) {
-      invoke(fnSetStatus, sc);
+      invokeWrappedMethod(fnSetStatus, sc);
     }
   }
 
-  public PrintWriter getWriter() throws IOException {
+  public PrintWriter getWriter() {
     return fnGetWriter != null?
-      (PrintWriter)invoke(fnGetWriter)
+      (PrintWriter) invokeWrappedMethod(fnGetWriter)
       : null;
   }
 
   public int getStatus() {
     return fnGetStatus != null?
-      (int)invoke(fnGetStatus)
+      (int) invokeWrappedMethod(fnGetStatus)
       : -1;
   }
 
   public String getContentType() {
     return fnGetContentType != null?
-      (String)invoke(fnGetContentType)
+      (String) invokeWrappedMethod(fnGetContentType)
       : "";
   }
 }
