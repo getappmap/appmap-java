@@ -3,9 +3,10 @@ package com.appland.appmap.record;
 import com.alibaba.fastjson.JSONWriter;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.record.RecordingSession.Metadata;
+import com.appland.appmap.record.Recorder.Metadata;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.io.Writer;
 import java.util.HashSet;
 import java.util.List;
@@ -37,20 +38,27 @@ public class AppMapSerializer {
   private SectionInfo currentSection = null;
   private final HashSet<String> sectionsWritten = new HashSet<String>();
 
-  private AppMapSerializer(Writer writer, boolean startObject) {
+  private AppMapSerializer(Writer writer) {
     this.writer = writer;
     this.json = new JSONWriter(writer);
-    if ( startObject ) {
-      this.json.startObject();
-    }
+    this.json.startObject();
   }
 
   public static AppMapSerializer open(Writer writer) {
-    return new AppMapSerializer(writer, true);
+    return new AppMapSerializer(writer);
   }
 
-  public static AppMapSerializer reopen(Writer writer) {
-    return new AppMapSerializer(writer, false);
+  public static AppMapSerializer reopen(Writer writer, RandomAccessFile raf) throws IOException {
+    // To get the JSON in the proper state, we have to let JSONWriter write
+    // the startObject character '{'. But since we are re-opening the file,
+    // we don't actually want that character there. So we back up by one character
+    // so that the next operation will overwrite it.
+    long position = raf.getFilePointer();
+    AppMapSerializer serializer = new AppMapSerializer(writer);
+    serializer.flush();
+    // Rolls back anything written to the file by the constructor.
+    raf.seek(position);
+    return serializer;
   }
 
   private void setCurrentSection(String section, String type) throws IOException {
@@ -153,6 +161,11 @@ public class AppMapSerializer {
       }
       this.json.endObject();
 
+      if ( metadata.sourceLocation != null ) {
+        this.json.writeKey("source_location");
+        this.json.writeValue(metadata.sourceLocation);
+      }
+
       this.json.writeKey("framework");
       this.json.startObject();
       {
@@ -167,6 +180,22 @@ public class AppMapSerializer {
         }
       }
       this.json.endObject();
+
+      if ( metadata.testSucceeded != null ) {
+        this.json.writeKey("test_status");
+        this.json.writeValue(metadata.testSucceeded ? "succeeded" : "failed");
+      }
+      if ( metadata.exception != null ) {
+        this.json.writeKey("exception");
+        this.json.startObject();
+        {
+          this.json.writeKey("class");
+          this.json.writeValue(metadata.exception.getClass().getName());
+          this.json.writeKey("message");
+          this.json.writeValue(metadata.exception.getMessage());
+        }
+        this.json.endObject();
+      }
     }
     this.json.endObject();
   }
@@ -200,7 +229,7 @@ public class AppMapSerializer {
   }
 
   public void flush() throws IOException {
-    this.writer.flush();
+    this.json.flush();
   }
 
   /**

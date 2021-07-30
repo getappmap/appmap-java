@@ -107,7 +107,7 @@ public class Parameters implements Iterable<Value> {
     for (int i = 0; i < paramTypes.length; ++i) {
       // Use a real parameter name if we have it, a fake one if we
       // don't.
-      String paramName = paramNames != null? paramNames[i] : "p" + i;
+      String paramName = paramNames != null ? paramNames[i] : "p" + i;
       Value param = new Value()
           .setClassType(paramTypes[i].getName())
           .setName(paramName)

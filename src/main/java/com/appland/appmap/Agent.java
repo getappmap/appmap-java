@@ -3,8 +3,8 @@ package com.appland.appmap;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.record.Recorder;
+import com.appland.appmap.record.Recorder.Metadata;
 import com.appland.appmap.record.Recording;
-import com.appland.appmap.record.RecordingSession.Metadata;
 import com.appland.appmap.transform.ClassFileTransformer;
 import com.appland.appmap.util.Logger;
 

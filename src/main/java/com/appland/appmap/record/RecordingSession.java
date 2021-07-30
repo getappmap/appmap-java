@@ -1,13 +1,10 @@
 package com.appland.appmap.record;
 
-import com.alibaba.fastjson.JSONWriter;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.util.Logger;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -15,32 +12,27 @@ import java.util.Collections;
 import java.util.HashSet;
 
 public class RecordingSession {
-  public static class Metadata {
-    public String scenarioName;
-    public String recorderName;
-    public String framework;
-    public String frameworkVersion;
-    public String recordedClassName;
-    public String recordedMethodName;
-  }
 
   private final HashSet<String> classReferences = new HashSet<>();
+  private boolean eventReceived = false;
   private Path tmpPath;
   private AppMapSerializer serializer;
+  private Recorder.Metadata metadata;
 
   RecordingSession() {
     this.tmpPath = null;
   }
 
-  void start(Metadata metadata) {
+  void start(Recorder.Metadata metadata) {
     if (this.serializer != null) {
       throw new IllegalStateException("AppMap: Unable to start a recording, because a recording is already in progress");
     }
 
+    this.metadata = metadata;
+
     try {
       this.tmpPath = Files.createTempFile(null, ".appmap.json");
       this.serializer = AppMapSerializer.open(new FileWriter(this.tmpPath.toFile()));
-      this.serializer.writeMetadata(metadata);
     } catch (IOException e) {
       this.tmpPath = null;
       this.serializer = null;
@@ -55,7 +47,12 @@ public class RecordingSession {
     }));
   }
 
+  public Recorder.Metadata getMetadata() {
+    return this.metadata;
+  }
+
   public synchronized void add(Event event) {
+    this.eventReceived = true;
     if ( event.event.equals("call") ) {
       // Events may refer to non-code objects such as SQL queries, in that case we don't
       // need to worry about tracking class references.
@@ -87,13 +84,28 @@ public class RecordingSession {
       targetPath = Files.createTempFile(null, ".appmap.json");
       Files.copy(this.tmpPath, targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-      FileWriter fw = new FileWriter(targetPath.toFile(), true);
-      fw.write("],\"classMap\":");
-      JSONWriter jw = new JSONWriter(fw);
-      jw.writeObject(this.getClassMap().toArray());
-      jw.flush();
-      fw.write('}');
+      // Creating AppMapSerializer will re-write the "begin object" token: '{'.
+      // By using RandomAccessFile we can erase that character.
+      // If we don't let the JSON writer write the "begin object" token, it refuses
+      // to do anything else properly either.
+      RandomAccessFile raf = new RandomAccessFile(targetPath.toFile(), "rw");
+      Writer fw = new OutputStreamWriter(new OutputStream() {
+        @Override
+        public void write(int b) throws IOException {
+          raf.write(b);
+        }
+      });
+      raf.seek(targetPath.toFile().length());
+
+      if (  eventReceived ) {
+        fw.write("],");
+      }
       fw.flush();
+
+      AppMapSerializer serializer = AppMapSerializer.reopen(fw, raf);
+      serializer.writeClassMap(this.getClassMap());
+      serializer.writeMetadata(this.metadata);
+      serializer.finish();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -111,6 +123,7 @@ public class RecordingSession {
 
     try {
       this.serializer.writeClassMap(this.getClassMap());
+      this.serializer.writeMetadata(this.metadata);
       this.serializer.finish();
     } catch (IOException e) {
       throw new RuntimeException(e);

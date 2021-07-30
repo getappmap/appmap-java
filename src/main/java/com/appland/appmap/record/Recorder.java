@@ -2,7 +2,6 @@ package com.appland.appmap.record;
 
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.record.RecordingSession.Metadata;
 import com.appland.appmap.util.Logger;
 
 import java.io.IOException;
@@ -23,6 +22,22 @@ public class Recorder {
   private final ActiveSession activeSession = new ActiveSession();
   private final CodeObjectTree globalCodeObjects = new CodeObjectTree();
   private final Map<Long, ThreadState> threadState = new HashMap<>();
+
+  /**
+   * Data structure for reporting AppMap metadata.
+   * These fields map to the 'metadata' section of the AppMap JSON.
+   */
+  public static class Metadata {
+    public String scenarioName;
+    public String recorderName;
+    public String framework;
+    public String frameworkVersion;
+    public String recordedClassName;
+    public String recordedMethodName;
+    public String sourceLocation;
+    public Boolean testSucceeded;
+    public Throwable exception;
+  }
 
   /**
    * Keep track of what's going on in the current thread.
@@ -96,6 +111,10 @@ public class Recorder {
 
   public boolean hasActiveSession() {
     return activeSession.exists();
+  }
+
+  public Metadata getMetadata() throws ActiveSessionException {
+    return activeSession.get().getMetadata();
   }
 
   public Recording checkpoint() {
