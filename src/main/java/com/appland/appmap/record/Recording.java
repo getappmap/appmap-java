@@ -1,5 +1,7 @@
 package com.appland.appmap.record;
 
+import com.appland.appmap.util.Logger;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -17,7 +19,7 @@ public class Recording {
   }
 
   public void moveTo(String filePath) {
-    System.out.println("Moving " + this.file.getPath() + " to " + filePath);
+    Logger.printf("Moving %s to %s\n", this.file.getPath(), filePath);
 
     try {
       Files.move(Paths.get(this.file.getPath()), Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);

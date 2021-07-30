@@ -49,6 +49,31 @@ load 'helper'
   assert_json_eq '.enabled' 'true'
 }
 
+@test "grab a checkpoint during remote recording" {
+  start_recording
+
+  _curl -XGET "${WS_URL}"
+
+  run _curl -sXGET "${WS_URL}/_appmap/record/checkpoint"
+
+  assert_json '.classMap'
+  assert_json '.events'
+  assert_json '.version'
+
+  run _curl -sXGET "${WS_URL}/_appmap/record"
+
+  assert_success
+  assert_json_eq '.enabled' 'true'
+
+  run _curl -sXDELETE "${WS_URL}/_appmap/record"
+
+  assert_success
+
+  assert_json '.classMap'
+  assert_json '.events'
+  assert_json '.version'
+}
+
 @test "successfully stop the current recording" {
   start_recording
   

@@ -8,6 +8,7 @@ import com.appland.appmap.util.Logger;
 import javassist.CtBehavior;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Stores events as templates built from behaviors intended to be hooked. Hooks can then access and
@@ -19,7 +20,7 @@ public class EventTemplateRegistry {
   private static final EventTemplateRegistry instance = new EventTemplateRegistry();
   private static final Recorder recorder = Recorder.getInstance();
 
-  private final ArrayList<Event> eventTemplates = new ArrayList<>();
+  private final List<Event> eventTemplates = new ArrayList<>();
 
   private EventTemplateRegistry() { }
 
