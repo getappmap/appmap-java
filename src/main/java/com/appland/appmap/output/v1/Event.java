@@ -129,6 +129,7 @@ public class Event {
    * @return true if the event fields have been frozen. If so, it's too late to change
    * event properties because it's probably already been serialized.
    */
+  @JSONField(serialize = false, deserialize = false)
   public boolean isFrozen() {
     return frozen;
   }

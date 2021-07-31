@@ -1,16 +1,16 @@
 #!/usr/bin/env bats
 #
-# Runs a smoke test against a Spring sample application available here:
+# Runs smoke tests against a Spring sample application available here:
 # https://github.com/spring-projects/spring-petclinic
 #
 # If running locally, keep in mind that this application will cache SQL results,
 # likely causing subsequent test runs to fail.
 
-: ${WS_URL?}
+WS_URL=${WS_URL:-http://localhost:8080}
 
-load 'test_helper/bats-support/load'
-load 'test_helper/bats-assert/load'
-load 'helper'
+load '../../build/bats/bats-support/load'
+load '../../build/bats/bats-assert/load'
+load '../helper'
 
 @test "the recording status reports disabled when not recording" {
   run _curl -sXGET "${WS_URL}/_appmap/record"
@@ -119,8 +119,7 @@ load 'helper'
   _curl -XGET "${WS_URL}"
   stop_recording
 
-  javac test/Props.java
-  eval $(java test.Props java.vm.version java.vm.name)
+  eval $(java -cp test/petclinic/classes petclinic.Props java.vm.version java.vm.name)
   assert_json_eq '.metadata.language.name' 'java'
   assert_json_eq '.metadata.language.version' "${JAVA_VM_VERSION}"
   assert_json_eq '.metadata.language.engine' "${JAVA_VM_NAME}"
@@ -149,38 +148,4 @@ load 'helper'
 
   assert_json_eq '.classMap | length' 1
   assert_json_eq '[.classMap[0] | recurse | .name?] | join(".")' org.springframework.samples.petclinic.system.CrashController.triggerException
-}
-
-@test "expected number of http client events captured" {
-  skip
-
-  java_version=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | sed 's/^1\.//'| cut -d'.' -f1 | cut -d'-' -f1)
-  if [ $java_version -gt "8" ]; then
-    skip "java version higher than 8."
-  fi
-  javac -g test/HttpClientTest.java
-  java -Xbootclasspath/a:/appmap.jar -javaagent:/appmap.jar -Dappmap.debug -Dappmap.config.file=/appmap.yml \
-   -Dappmap.output.directory=/tmp/appmap -Dappmap.record=test.HttpClientTest.main test.HttpClientTest ${WS_URL}
-  output=$(</tmp/appmap/*.appmap.json)
-  assert_json_eq '[.events[] | select(.http_client_request)] | length' 3
-  assert_json_eq '[.events[] | select(.http_client_response)] | length' 3
-}
-
-# bats captures stdout and stderr to the same variable ($output). We
-# need to hide the informational message from the agent commands so
-# json assertions don't get confused.
-@test "appmap agent init" {
-  run bash -c 'java -jar /appmap.jar -d /spring-petclinic init 2>/dev/null'
-  assert_success
-
-  assert_json_contains '.configuration.contents' 'path: org.springframework.samples.petclinic'
-}
-
-@test "appmap agent status" {
-  run bash -c 'java -jar /appmap.jar -d /spring-petclinic status 2>/dev/null'
-  assert_success
-
-  assert_json_eq '.properties.config.app' 'spring-petclinic'
-  assert_json_eq '.properties.frameworks[0].name' 'gradle'
-  assert_json_eq '.properties.frameworks[1].name' 'maven'
 }
