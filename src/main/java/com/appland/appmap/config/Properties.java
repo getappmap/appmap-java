@@ -6,10 +6,10 @@ import java.util.function.Function;
 
 public class Properties {
   public static final Boolean Debug = (System.getProperty("appmap.debug") != null);
-  public static final Boolean DebugHooks = (System.getProperty("appmap.debug.hooks") != null);
+  public static final Boolean DebugHooks = Debug || (System.getProperty("appmap.debug.hooks") != null);
   public static final Boolean DebugLocals = (System.getProperty("appmap.debug.locals") != null);
+  public static final Boolean DebugHttp = Debug || System.getProperty("appmap.debug.http") != null;
   public static final String DebugFile = resolveProperty("appmap.debug.file", (String)null);
-  public static final Boolean DebugHttp = System.getProperty("appmap.debug.http") != null;
 
   public static final Boolean RecordingAuto = resolveProperty(
       "appmap.recording.auto", Boolean::valueOf, false);

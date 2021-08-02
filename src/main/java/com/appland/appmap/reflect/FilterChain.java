@@ -2,10 +2,8 @@ package com.appland.appmap.reflect;
 
 import java.lang.reflect.Method;
 
-import com.appland.appmap.util.Logger;
-
 public class FilterChain extends ReflectiveType {
-  private Method fnDoFilter;
+  private final Method fnDoFilter;
 
   public FilterChain(Object self) {
     super(self);
@@ -17,7 +15,7 @@ public class FilterChain extends ReflectiveType {
 
   public void doFilter(Object request, Object response) {
     if (fnDoFilter != null) {
-      invoke(fnDoFilter, request, response);
+      invokeWrappedMethod(fnDoFilter, request, response);
     }
   }
 }

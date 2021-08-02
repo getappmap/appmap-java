@@ -3,17 +3,12 @@
  */
 package com.appland.appmap.record;
 
-import com.appland.appmap.record.EventTemplateRegistry;
-import com.appland.appmap.record.UnknownEventException;
 import com.appland.appmap.test.util.ClassBuilder;
-
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
-import javassist.NotFoundException;
-
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
@@ -42,18 +37,23 @@ public class EventTemplateRegistryTest {
     }
   }
 
-  @Test
-  public void testCloneEventTemplate() throws UnknownEventException, Exception {
-    CtClass myClass = new ClassBuilder("testCloneEventTemplateClass")
+  CtClass buildCloneableEventTemplate() throws Exception {
+    return new ClassBuilder("testCloneEventTemplateClass")
         .beginMethod()
-          .setName("registeredMethod")
+        .setName("registeredMethod")
         .endMethod()
         .ctClass();
+  }
 
-    Integer index = registry.register(myClass.getDeclaredMethod("registeredMethod"));
-    assertTrue(registry.cloneEventTemplate(index, "") != null);
+  @Test
+  public void testCloneEventTemplate() throws Exception {
+    Integer index = registry.register(buildCloneableEventTemplate().getDeclaredMethod("registeredMethod"));
+    assertTrue(registry.buildCallEvent(index) != null);
+  }
 
+  @Test
+  public void testUnknownEventTemplate() throws Exception {
     thrown.expect(UnknownEventException.class);
-    registry.cloneEventTemplate(Integer.MAX_VALUE, "");
+    registry.buildCallEvent(Integer.MAX_VALUE);
   }
 }

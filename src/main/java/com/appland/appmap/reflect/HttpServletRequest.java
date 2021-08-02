@@ -1,14 +1,14 @@
 package com.appland.appmap.reflect;
 
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 public class HttpServletRequest extends ReflectiveType {
-  private Method fnGetMethod;
-  private Method fnGetRequestURI;
-  private Method fnGetProtocol;
-  private Method fnGetParameterMap;
+  private final Method fnGetMethod;
+  private final Method fnGetRequestURI;
+  private final Method fnGetProtocol;
+  private final Method fnGetParameterMap;
 
   public HttpServletRequest(Object self) {
     super(self);
@@ -21,25 +21,25 @@ public class HttpServletRequest extends ReflectiveType {
 
   public String getMethod() {
     return fnGetMethod != null?
-      (String)invoke(fnGetMethod)
+      (String) invokeWrappedMethod(fnGetMethod)
       : "";
   }
 
   public String getRequestURI() {
     return fnGetRequestURI != null?
-      (String)invoke(fnGetRequestURI)
+      (String) invokeWrappedMethod(fnGetRequestURI)
       : "";
   }
 
   public String getProtocol() {
     return fnGetProtocol != null?
-      (String)invoke(fnGetProtocol)
+      (String) invokeWrappedMethod(fnGetProtocol)
       : "";
   }
 
   public Map<String, String[]> getParameterMap() {
     return fnGetProtocol != null?
-      (Map<String, String[]>)invoke(fnGetParameterMap)
+      (Map<String, String[]>) invokeWrappedMethod(fnGetParameterMap)
       : new HashMap<String, String[]>();
   }
 }

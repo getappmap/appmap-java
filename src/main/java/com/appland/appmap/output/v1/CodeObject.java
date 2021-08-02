@@ -4,7 +4,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.appland.appmap.util.Logger;
 import javassist.CtBehavior;
 import javassist.CtClass;
-import javassist.bytecode.SourceFileAttribute;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -289,7 +288,7 @@ public class CodeObject {
 
   /**
    * Create a tree of CodeObjects from the given CtBehavior. For example, given a method
-   * "com.appland.demo.MyClass.myMethod", a heirarchy of five CodeObjects would be created: "com",
+   * "com.appland.demo.MyClass.myMethod", a hierarchy of five CodeObjects will be created: "com",
    * "appland", "demo", "MyClass", "myMethod".
    * @param method The method to create a hierarchy from
    * @return The root of the CodeObject tree

@@ -5,7 +5,6 @@
  * For more details take a look at the Java Libraries chapter in the Gradle
  * User Manual available at https://docs.gradle.org/5.6.2/userguide/java_library_plugin.html
  */
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 
 import com.appland.tasks.ShadowRelocation
 

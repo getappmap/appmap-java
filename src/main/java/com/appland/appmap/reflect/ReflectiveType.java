@@ -1,9 +1,9 @@
 package com.appland.appmap.reflect;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-
 import com.appland.appmap.util.Logger;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class ReflectiveType {
   protected Object self;
@@ -22,7 +22,7 @@ public class ReflectiveType {
     }
   }
 
-  protected Object invoke(Method method, Object... parameters) {
+  protected Object invokeWrappedMethod(Method method, Object... parameters) {
     try {
       method.setAccessible(true);
       return method.invoke(self, parameters);

@@ -4,7 +4,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.util.Logger;
-
 import org.apache.commons.lang3.StringUtils;
 
 /**

@@ -3,7 +3,6 @@ package com.appland.appmap.transform.annotations;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.conditions.ConfigCondition;
-import static com.appland.appmap.util.StringUtil.canonicalName;
 import com.appland.appmap.test.util.ClassBuilder;
 import javassist.CtBehavior;
 import javassist.CtClass;
@@ -15,6 +14,7 @@ import org.mockito.Mockito;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.appland.appmap.util.StringUtil.canonicalName;
 import static org.junit.Assert.*;
 
 public class HookConditionSystemTest {

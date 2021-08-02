@@ -4,12 +4,7 @@ import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.reflect.HttpServletRequest;
 import com.appland.appmap.reflect.HttpServletResponse;
-import com.appland.appmap.transform.annotations.ArgumentArray;
-import com.appland.appmap.transform.annotations.CallbackOn;
-import com.appland.appmap.transform.annotations.ExcludeReceiver;
-import com.appland.appmap.transform.annotations.HookClass;
-import com.appland.appmap.transform.annotations.MethodEvent;
-import com.appland.appmap.transform.annotations.Unique;
+import com.appland.appmap.transform.annotations.*;
 
 import java.util.Map;
 

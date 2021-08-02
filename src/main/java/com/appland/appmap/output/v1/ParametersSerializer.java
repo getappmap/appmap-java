@@ -2,7 +2,6 @@ package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.*;
-
 import com.appland.appmap.util.Logger;
 
 import java.io.IOException;

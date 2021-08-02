@@ -1,18 +1,14 @@
 package com.appland.appmap.record;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.record.IRecordingSession.Metadata;
+import com.appland.appmap.record.RecordingSession.Metadata;
 import com.appland.appmap.util.Logger;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
 
 /**
  * Recorder is a singleton responsible for managing recording sessions and routing events to any
@@ -22,202 +18,189 @@ public class Recorder {
   private static final String ERROR_SESSION_PRESENT = "an active recording session already exists";
   private static final String ERROR_NO_SESSION = "there is no active recording session";
 
-  private IRecordingSession activeSession = null;
-  private CodeObjectTree globalCodeObjects = new CodeObjectTree();
-  private Map<Long, Event> queuedEvents = new HashMap<Long, Event>();
+  private static final Recorder instance = new Recorder();
 
-  private static Recorder instance = new Recorder();
+  private final ActiveSession activeSession = new ActiveSession();
+  private final CodeObjectTree globalCodeObjects = new CodeObjectTree();
+  private final Map<Long, ThreadState> threadState = new HashMap<>();
 
-  private Recorder() {
-
+  /**
+   * Keep track of what's going on in the current thread.
+   */
+  static class ThreadState {
+    // Provides the last event on the current thread, which is used in some cases to
+    // update the event post facto.
+    Event lastEvent;
+    // Avoid accepting new events on a thread that's already processing an event.
+    boolean isProcessing;
+    Stack<Event> callStack = new Stack<>();
   }
 
-  private synchronized void setActiveSession(IRecordingSession activeSession)
-      throws ActiveSessionException {
-    if (this.hasActiveSession()) {
-      throw new ActiveSessionException(ERROR_SESSION_PRESENT);
+  static class ActiveSession {
+    private RecordingSession activeSession = null;
+
+    synchronized RecordingSession get() throws ActiveSessionException {
+      if (activeSession == null) {
+        throw new ActiveSessionException(ERROR_NO_SESSION);
+      }
+
+      return activeSession;
     }
 
-    this.activeSession = activeSession;
+    boolean exists() {
+      return activeSession != null;
+    }
 
-    try {
-      this.activeSession.start();
-    } catch (ActiveSessionException e) {
-      Logger.printf("failed to start recording", e.getMessage());
-      Logger.println(e);
+    synchronized RecordingSession release() throws ActiveSessionException {
+      if (activeSession == null) {
+        throw new ActiveSessionException(ERROR_NO_SESSION);
+      }
 
-      this.stop();
-      throw e;
+      RecordingSession result = activeSession;
+      activeSession = null;
+      return result;
+    }
+
+    synchronized void set(RecordingSession session) throws ActiveSessionException {
+      if (activeSession != null) {
+        throw new ActiveSessionException(ERROR_SESSION_PRESENT);
+      }
+
+      activeSession = session;
     }
   }
 
   /**
    * Get the global Recorder instance.
+   *
    * @return The global recorder instance
    */
   public static Recorder getInstance() {
     return Recorder.instance;
   }
 
-  /**
-   * Checks whether or not the Recorder has an active recording session.
-   * @return {@code true} If a session is in progress. Otherwise, {@code false}.
-   */
-  public synchronized Boolean hasActiveSession() {
-    return this.activeSession != null;
-  }
-
-  public synchronized IRecordingSession getActiveSession()
-      throws ActiveSessionException {
-    if (this.activeSession == null) {
-      throw new ActiveSessionException(ERROR_NO_SESSION);
-    }
-
-    return this.activeSession;
+  private Recorder() {
   }
 
   /**
-   * Start a recording session, writing the output to a file.
-   * @param fileName Destination file
+   * Start a recording session.
+   *
    * @param metadata Recording metadata to be written
    * @throws ActiveSessionException If a session is already in progress
    */
-  public synchronized void start(String fileName, Metadata metadata)
-      throws ActiveSessionException {
-    this.setActiveSession(new RecordingSessionFileStream(fileName, metadata));
+  public void start(Metadata metadata) throws ActiveSessionException {
+    RecordingSession session = new RecordingSession();
+    activeSession.set(session);
+    session.start(metadata);
+  }
+
+  public boolean hasActiveSession() {
+    return activeSession.exists();
+  }
+
+  public Recording checkpoint() {
+    this.flush();
+    return activeSession.get().checkpoint();
   }
 
   /**
-   * Start a recording session, storing recording data in memory.
-   * @param metadata Recording metadata to be written
-   * @throws ActiveSessionException If a recording session is already in progress
-   */
-  public synchronized void start(Metadata metadata)
-      throws ActiveSessionException {
-    this.setActiveSession(new RecordingSessionMemory(metadata));
-  }
-
-  /**
-   * Freeze the event and write it to the active session. Do NOT call this
-   * method from within a block locked by `this`. Freezing an event will step
-   * into target application code, potentially accessing a locked resource and
-   * entering a deadlocked state.
-   */
-  private void writeEvent(Event event, IRecordingSession recordingSession)
-      throws ActiveSessionException {
-    event.freeze();
-
-    recordingSession.add(event);
-  }
-
-  /**
-   * Flush all queued events, writing them to the active session and clearing
-   * the queue.
-   */
-  private void flush(IRecordingSession recordingSession) throws ActiveSessionException {
-    Collection<Event> events;
-
-    synchronized (this) {
-      events = new LinkedList<Event>(this.queuedEvents.values());
-      this.queuedEvents.clear();
-    }
-
-    for (Event event : events) {
-      this.writeEvent(event, recordingSession);
-    }
-  }
-
-  private void queueEvent(Event event) throws ActiveSessionException {
-    Event pendingEvent;
-    IRecordingSession recordingSession;
-
-    synchronized (this) {
-      if (this.activeSession == null) {
-        return;
-      }
-
-      recordingSession = this.activeSession;
-      pendingEvent = this.queuedEvents.get(event.threadId);
-      this.queuedEvents.put(event.threadId, event);
-    }
-
-    if (pendingEvent != null) {
-      this.writeEvent(pendingEvent, recordingSession);
-    }
-  }
-
-  private synchronized void forceStop() {
-    if (this.activeSession == null) {
-      return;
-    }
-
-    this.activeSession.stop();
-    this.activeSession = null;
-  }
-
-  /**
-   * Stops the active recording session.
-   * @return Output from the current session. This will be empty unless recording to memory.
+   * Stops the active recording session and obtains the result.
+   *
+   * @return Recording of the current session.
    * @throws ActiveSessionException If no recording session is in progress or the session cannot be
    *                                stopped.
    */
-  public String stop() throws ActiveSessionException {
-    IRecordingSession recordingSession;
-
-    synchronized (this) {
-      recordingSession = this.getActiveSession();
-      this.activeSession = null;
-    }
-
-    try {
-      this.flush(recordingSession);
-      return recordingSession.stop();
-    } catch (ActiveSessionException e) {
-      Logger.printf("failed to stop recording\n%s\n", e.getMessage());
-      this.forceStop();
-      return "";
-    }
+  public Recording stop() throws ActiveSessionException {
+    this.flush();
+    return activeSession.release().stop();
   }
 
   /**
    * Record an {@link Event} to the active session.
+   *
    * @param event The event to be recorded.
    */
   public void add(Event event) {
+    if (!activeSession.exists()) {
+      return;
+    }
+
+    ThreadState ts = threadState();
+
+    // We don't want re-entrant events on the same thread.
+    if ( ts.isProcessing ) {
+      return;
+    }
+
+    ts.isProcessing = true;
     try {
-      this.queueEvent(event);
-    } catch (ActiveSessionException e) {
-      Logger.println("failed to record event");
-      Logger.println(e);
-      this.forceStop();
+      if ( event.event.equals("call") ) {
+        ts.callStack.push(event);
+      } else if ( event.event.equals("return") ) {
+        if ( ts.callStack.isEmpty() ) {
+          Logger.println("Discarding 'return' event because the call stack is empty for this thread");
+          return;
+        }
+
+        // To whom it may concern:
+        //
+        // You may be tempted to try and track the caller Event using a local variable in the
+        // generated code for each hooked function. It would be cleaner and more reliable than
+        // tracking a call stack here. However, due to issues with Javassist and the JVM,
+        // I (KEG) was not able to find a way to declare, initialize, set, and pass an Event that would
+        // work with exception handling and finally clauses.
+        Event caller = ts.callStack.pop();
+        event.parentId = caller.id;
+        event.threadId = caller.threadId;
+        // Erase these fields - see comment in Event#functionReturnEvent
+        event.definedClass = null;
+        event.methodId = null;
+        event.isStatic = null;
+      } else {
+        throw new IllegalArgumentException("Event should be 'call' or 'return', got " + event.event);
+      }
+
+      Event previousEvent = ts.lastEvent;
+      ts.lastEvent = event;
+
+      // The previous event is given until now to get all its properties.
+      if ( previousEvent != null ) {
+        // This is the line that can generate re-entrant events, apparently.
+        previousEvent.freeze();
+        activeSession.get().add(previousEvent);
+      }
+    } finally {
+      ts.isProcessing = false;
     }
   }
 
   /**
    * Register a {@link CodeObject}, allowing it to propagate to an output's Class Map if referenced
    * in an event.
+   *
    * @param codeObject The code object to be registered
    */
-  public synchronized void register(CodeObject codeObject) {
-    this.globalCodeObjects.add(codeObject);
+  public void registerCodeObject(CodeObject codeObject) {
+    synchronized (globalCodeObjects) {
+      globalCodeObjects.add(codeObject);
+    }
   }
 
   public CodeObjectTree getRegisteredObjects() {
     return this.globalCodeObjects;
   }
-  
+
   /**
-   * Retrieve the last event recorded.
+   * Retrieve the last event (of any kind) recorded for this thread.
    */
-  public synchronized Event getLastEvent() {
-    final Long threadId = Thread.currentThread().getId();
-    return this.queuedEvents.get(threadId);
+  public Event getLastEvent() {
+    return threadState().lastEvent;
   }
 
   /**
    * Record the execution of a Runnable and return the scenario data as a String
    */
-  public String record(Runnable fn) throws ActiveSessionException {
+  public Recording record(Runnable fn) throws ActiveSessionException {
     this.start(new Metadata());
     fn.run();
     return this.stop();
@@ -231,8 +214,38 @@ public class Recorder {
     final Metadata metadata = new Metadata();
     metadata.scenarioName = name;
 
-    this.start(fileName + ".appmap.json", metadata);
+    this.start(metadata);
     fn.run();
-    this.stop();
+    Recording recording = this.stop();
+    recording.moveTo(fileName + ".appmap.json");
+  }
+
+  ThreadState threadState() {
+    ThreadState ts = threadState.get(Thread.currentThread().getId());
+    if ( ts == null ) {
+      threadState.put(Thread.currentThread().getId(), (ts = new ThreadState()));
+    }
+    return ts;
+  }
+
+  // Finish serializing any remaining events. This is necessary because each event is "open"
+  // until the next event on the same thread is received.
+  void flush() {
+    threadState.values().forEach((ts) -> {
+      if ( ts.lastEvent == null ) {
+        return;
+      }
+
+      ts.isProcessing = true;
+      try {
+        Event event = ts.lastEvent;
+        ts.lastEvent = null;
+
+        event.freeze();
+        activeSession.get().add(event);
+      } finally {
+        ts.isProcessing = false;
+      }
+    });
   }
 }

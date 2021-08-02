@@ -1,17 +1,14 @@
 package com.appland.appmap.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
+import com.appland.appmap.test.util.MyClass;
+import com.appland.appmap.test.util.MyThread;
+import com.appland.appmap.test.util.UnhandledExceptionCollection;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 
-import com.appland.appmap.test.util.MyClass;
-import com.appland.appmap.test.util.MyThread;
-import com.appland.appmap.test.util.UnhandledExceptionCollection;
-
-import org.junit.Test;
+import static org.junit.Assert.assertFalse;
 
 public class ThreadTest {
   @Test

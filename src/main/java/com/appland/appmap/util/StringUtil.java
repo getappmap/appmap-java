@@ -1,9 +1,10 @@
 package com.appland.appmap.util;
 
-import javassist.CtBehavior;
-import java.lang.reflect.Modifier;
-import org.apache.commons.lang3.StringUtils;
 import com.appland.appmap.output.v1.Event;
+import javassist.CtBehavior;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Modifier;
 
 /**
  * Utility methods to format strings.

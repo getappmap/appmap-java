@@ -1,10 +1,7 @@
 package com.appland.appmap.transform.annotations;
 
-import java.lang.reflect.Modifier;
-
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.util.StringUtil;
-
 import javassist.CtBehavior;
 
 public class HookAnnotatedSystem extends SourceMethodSystem {

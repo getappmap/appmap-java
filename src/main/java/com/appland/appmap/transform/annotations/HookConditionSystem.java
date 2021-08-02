@@ -2,7 +2,6 @@ package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.process.conditions.Condition;
 import com.appland.appmap.util.Logger;
-
 import javassist.CtBehavior;
 
 import java.lang.reflect.Method;

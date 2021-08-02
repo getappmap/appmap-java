@@ -1,7 +1,6 @@
 package com.appland.appmap.integration;
 
 import com.appland.appmap.test.util.LockedResource;
-
 import org.junit.Test;
 
 public class MultithreadedTest {

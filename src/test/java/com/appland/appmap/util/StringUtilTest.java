@@ -1,12 +1,12 @@
 package com.appland.appmap.util;
 
-import static com.appland.appmap.util.StringUtil.identifierToSentence;
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
+import static com.appland.appmap.util.StringUtil.identifierToSentence;
+import static org.junit.Assert.assertEquals;
 
 public class StringUtilTest {
   @Test

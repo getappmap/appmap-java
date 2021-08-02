@@ -1,9 +1,10 @@
 package com.appland.appmap.util;
 
-import java.io.PrintStream;
+import com.appland.appmap.config.Properties;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
-import com.appland.appmap.config.Properties;
+import java.io.PrintStream;
 
 public class Logger {
   private static PrintStream log = ensureLog();

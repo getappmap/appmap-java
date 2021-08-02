@@ -60,10 +60,35 @@ Artifacts will be written to `build/libs`. Use `appmap.jar` as your agent.
 
 ## Testing
 
-Unit tests are run via the `test` task.
 
-Docker is required to run integration tests. Run the following command:
+## Unit tests
+
+Unit tests are run with `./gradlew test`.
+
+## Integration tests
+
+The integration tests use [bats](https://github.com/sstephenson/bats) and Docker.
+
+Run the following command:
 
 ```sh
 ./bin/test
+```
+
+To get an interactive shell to write/debug the tests, try:
+
+```shell
+./bin/test /bin/bash
+```
+
+Once in the shell, run:
+
+```shell
+DEBUG_JSON=true bats --tap /test/*.bats
+```
+
+Or:
+
+```shell
+DEBUG_JSON=true bats --tap /test/*.bats -f 'http'
 ```

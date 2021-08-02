@@ -3,8 +3,6 @@ package com.appland.appmap.record;
 
 import com.appland.appmap.output.v1.CodeObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
