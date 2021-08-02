@@ -1,3 +1,22 @@
+# [1.3.0](https://github.com/applandinc/appmap-java/compare/v1.2.0...v1.3.0) (2021-08-02)
+
+
+### Bug Fixes
+
+* Improve robustness and logging of parent interface and superclass access ([a24f056](https://github.com/applandinc/appmap-java/commit/a24f056f423fb39173e5d47f667c65002d954c49))
+* Keep events 'open' until the next event is received ([9e12099](https://github.com/applandinc/appmap-java/commit/9e12099bf3c602b594c4927f0588db42c75d4711))
+* Remove '-f' option to 'wait' ([637f904](https://github.com/applandinc/appmap-java/commit/637f90478eb1a76a1b0567905b1531a1b238e4b1))
+
+
+### Features
+
+* Add session recording checkpoint ([04d9293](https://github.com/applandinc/appmap-java/commit/04d92936f662f6bf2757cf00e12eab42426291fb))
+* Apply different fields to call, return, sql, etc ([3d8db1f](https://github.com/applandinc/appmap-java/commit/3d8db1fd7491665964269bf03fb2567d78cc7c8e)), closes [#50](https://github.com/applandinc/appmap-java/issues/50) [#44](https://github.com/applandinc/appmap-java/issues/44)
+* appmap.debug enables additional debug info ([67e935e](https://github.com/applandinc/appmap-java/commit/67e935eafc303799ead1dcac4174116e4a2368e8))
+* Expand and modularize the integration test suite ([ad06488](https://github.com/applandinc/appmap-java/commit/ad06488b0c54a364b20ddd657783d3f70d32c165))
+* Record return event parent_id ([40be795](https://github.com/applandinc/appmap-java/commit/40be795a390b0008281ed3456b10e6a017565f45))
+* Write source location and test status metadata ([397e200](https://github.com/applandinc/appmap-java/commit/397e2009901cff391830955ab6db3cfa91418161))
+
 # [1.2.0](https://github.com/applandinc/appmap-java/compare/v1.1.0...v1.2.0) (2021-07-26)
 
 
