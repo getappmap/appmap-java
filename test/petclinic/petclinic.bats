@@ -135,6 +135,22 @@ load '../helper'
   assert_json_contains '.events[] | .message' 'petId'
 }
 
+@test "return events have parent_id and don't have non-essential parameters" {
+  start_recording
+  _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
+  stop_recording
+
+  assert_json_not_contains '.events[] | select(.frozen)'
+  assert_json_contains '.events[] | select(.event == "call" and .defined_class)'
+  assert_json_not_contains '.events[] | select(.event == "return" and .defined_class)'
+  assert_json_contains '.events[] | select(.sql_query)'
+  assert_json_contains '.events[] | select(.http_server_request)'
+  assert_json_contains '.events[] | select(.http_server_response)'
+  assert_json_not_contains '.events[] | select(.sql_query and .defined_class)'
+  assert_json_not_contains '.events[] | select(.http_server_request and .defined_class)'
+  assert_json_not_contains '.events[] | select(.http_server_response and .defined_class)'
+}
+
 @test "expected appmap captured" {
   start_recording
   
