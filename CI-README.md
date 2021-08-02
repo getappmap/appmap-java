@@ -63,15 +63,21 @@ It is recommended to use separate CI robot account for security purposes, as cre
 # CI Configuration
 
 ## Travis 
-Following environment variables need to be configured on a repository level:
-1. `DOCKERHUB_USERNAME` _(visible)_ – any Docker Hub account, preferably CI bot’s.
+Following environment variables should be configured on a repository level:
+1. `DOCKERHUB_USERNAME` _(visible)_ – any Docker Hub account, preferably CI bot’s. Used with password to prevent Docker pulls throttling.
 2. `DOCKERHUB_PASSWORD` _(secret)_
 3. `GH_TOKEN` _(secret)_ -- Github token to be used for pushes done by Semantic Release
 4. `ORG_GRADLE_PROJECT_ossrhUsername` _(visible)_ – Sonatype username for CI bot
 5. `ORG_GRADLE_PROJECT_ossrhPassword` _(secret)_
 6. `ORG_GRADLE_PROJECT_signingKey` _(secret)_ – the exact contents of CI bot’s GPG key in a form suitable for Travis environment ( content of `/tmp/travis_compatible_env_value.txt`, generated above)
 7. `ORG_GRADLE_PROJECT_signingPassword` _(secret)_ -- passphrase for bot's GPG key
-8. `ORG_GRADLE_PROJECT_publishGroupId` _(optional, visible)_ – if releasing to the Maven namespace different from default `com.appland` 
+
+There is also a number of optional, non-secret settings, mostly used for unofficial builds
+
+1. `ORG_GRADLE_PROJECT_publishGroupId`: Maven namespace (default: `com.appland`)
+2. `ORG_GRADLE_PROJECT_publicationArtifactId`: Maven package name (default: `appmap-agent`)
+3. `ORG_GRADLE_PROJECT_mavenRepo`: used to alter OSSRH url if non-default endpoint is used (default: `https://s01.oss.sonatype.org`, legacy: `https://oss.sonatype.org`)
+4. `ORG_GRADLE_PROJECT_artifactDescription`: used to alter the package description for non-official builds, default is defined in [build.gradle](./build.gradle)
 
 ## Developer environment  
 
