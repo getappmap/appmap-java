@@ -1,0 +1,3 @@
+name: HTTP client test
+packages:
+  - path: http_client.HttpClientTest

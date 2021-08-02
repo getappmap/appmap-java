@@ -1,4 +1,4 @@
-package test;
+package petclinic;
 
 public class Props {
   public static void main(String[] argv) {
