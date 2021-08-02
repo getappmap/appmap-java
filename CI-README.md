@@ -33,14 +33,15 @@ After releasing, package becomes available via [Maven Central search](https://se
     * `github`: changes are pushed to Github as a new Github release
 * **Gradle build specifics** (settings file: [build.gradle](./build.gradle)):
     * Gradle targets are configured in [build.gradle](./build.gradle) and/or are provided by Gradle plugins included with directives `import`/`plugins`/`apply plugin`
-    * Gradle command is invoked with the top-level target as parameter (e.g. `publishToSonatype closeAndReleaseSonatypeStagingRepository`)
+    * Gradle command is invoked with the top-level targets as parameters (e.g. `publishToSonatype closeAndReleaseSonatypeStagingRepository`)
     * For the provided target, Gradle evaluates dependency graph (consisting of other targets), executes it in reverse order
 * **Gradle build execution steps** (from the bottom to the top of dependency graph):
     * *parameterization*: build parameters such as maven package names, signing keys are evaluated (some from environment vars)
     * `shadowJar`: main jar file is built
     * `sourcesJar`, `mockJavadocJar`: additional jar files, [required by Maven standards](https://central.sonatype.org/publish/requirements/)
+    * *publishing*: metadata files (with package name, version, description etc.) are generated
     * *signing*: artifacts are signed (*signing key body* is exposed to script via env variable)  
-    * *publishing, closing, releasing, deletion*: artifacts are published to OSS sonatype (see above), then a chain of `close`-`release`-`delete` actions is processed
+    * `publishToSonatype closeAndReleaseSonatypeStagingRepository` (targets provided by Gradle Nexus Publishing plugin): artifacts are published to OSSRH (see above), then a chain of `close`-`release`-`drop` actions is processed. 
 
 
 # CI setup: Prerequisites
