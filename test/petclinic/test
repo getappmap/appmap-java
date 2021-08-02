@@ -24,6 +24,7 @@ done
 printf ' ok\n\n'
 
 mkdir -p build/log
+
 run_bats() {
   bats --tap test/petclinic/petclinic.bats > build/log/bats-petclinic.log 2>&1
 }

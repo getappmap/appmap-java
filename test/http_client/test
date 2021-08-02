@@ -29,6 +29,7 @@ done
 printf ' ok\n\n'
 
 mkdir -p build/log
+
 run_bats() {
   bats --tap test/http_client/http_client.bats > build/log/bats-http_client.log 2>&1
 }

@@ -1,8 +1,10 @@
 #!/bin/bash
 set -x
 
-cp -r build/fixtures/spring-petclinic test/agent_cli
+rsync -au --delete build/fixtures/spring-petclinic test/agent-cli
 cp test/petclinic/appmap.yml test/agent_cli/spring-petclinic
+
+mkdir -p build/log
 
 run_bats() {
   bats --tap test/agent_cli/agent_cli.bats > build/log/bats-agent_cli.log 2>&1
