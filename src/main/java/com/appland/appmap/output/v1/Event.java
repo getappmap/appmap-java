@@ -60,11 +60,11 @@ public class Event {
   @JSONField(name = "sql_query")
   public SqlQuery sqlQuery;
 
+  private boolean frozen = false;
+
   private synchronized Integer issueId() {
     return ++globalEventId;
   }
-
-  private boolean frozen = false;
 
   /**
    * Creates a copy of an existing call event. Does not copy runtime information such as
@@ -129,7 +129,7 @@ public class Event {
    * @return true if the event fields have been frozen. If so, it's too late to change
    * event properties because it's probably already been serialized.
    */
-  public boolean isFrozen() {
+  public boolean frozen() {
     return frozen;
   }
 

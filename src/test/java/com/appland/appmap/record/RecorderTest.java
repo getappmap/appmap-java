@@ -3,6 +3,7 @@ package com.appland.appmap.record;
 import com.alibaba.fastjson.JSON;
 import com.appland.appmap.output.v1.Event;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,10 +21,17 @@ public class RecorderTest {
 
   @Before
   public void before() throws Exception {
-    final RecordingSession.Metadata metadata =
-        new RecordingSession.Metadata();
+    final Recorder.Metadata metadata =
+        new Recorder.Metadata();
 
     Recorder.getInstance().start(metadata);
+  }
+
+  @After
+  public void after() throws Exception {
+    if ( Recorder.getInstance().hasActiveSession()) {
+      Recorder.getInstance().stop();
+    }
   }
 
   private static final int EVENT_COUNT = 3;
@@ -54,7 +62,7 @@ public class RecorderTest {
   }
 
   @Test
-  public void testSnapshot() throws IOException {
+  public void testCheckpoint() throws IOException {
     Recorder recorder = recordEvents();
 
     final Recording recording = recorder.checkpoint();

@@ -35,7 +35,7 @@ public class Message {
       return;
     }
 
-    if (lastEvent.isFrozen()) {
+    if (lastEvent.frozen()) {
       Logger.printf("Won't set message params or normalized path on event %d because it's already frozen\n", lastEvent.id);
       return;
     }

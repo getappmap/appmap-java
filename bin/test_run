@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+export PATH="bats_dir"/bin:$PATH
+
+./test/petclinic/test
+./test/http_client/test
+./test/agent_cli/test

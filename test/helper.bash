@@ -72,3 +72,11 @@ assert_json_contains() {
   print_debug "${query}" "${result}"
   assert grep -q "${match}" <<< "${result}"
 }
+
+assert_json_not_contains() {
+  : "${output?}"
+
+  local query="${1?}"
+
+  refute jq -er "${query}" <<< "${output}"
+}

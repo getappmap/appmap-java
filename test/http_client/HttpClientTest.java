@@ -1,4 +1,4 @@
-package test;
+package http_client;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -6,11 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class HttpClientTest {
-
-
-
   public static void main(String[] argv) throws IOException {
-
     final String WS_URL = argv[0];
 
     URL url;

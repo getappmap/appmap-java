@@ -13,9 +13,11 @@ cache:
   directories:
     - '$HOME/.gradle/caches/'
     - '$HOME/.gradle/wrapper/'
+    - '$HOME/.m2/'
 
 script:
   - ./gradlew -is check
+  - ./gradlew -is test
   - ./gradlew -is integrationTest
   - ./bin/test
 
