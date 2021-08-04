@@ -3,6 +3,7 @@ package com.appland.appmap.config;
 public class AppMapPackage {
   public String path;
   public String[] exclude = new String[] {};
+  public boolean shallow = false;
 
   /**
    * Check if a class/method is included in the configuration.

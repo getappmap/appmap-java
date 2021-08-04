@@ -61,6 +61,7 @@ public class Event {
   public SqlQuery sqlQuery;
 
   private boolean frozen = false;
+  private boolean ignored = false;
 
   private synchronized Integer issueId() {
     return ++globalEventId;
@@ -132,6 +133,13 @@ public class Event {
   public boolean frozen() {
     return frozen;
   }
+
+  public void ignore() { ignored = true; }
+
+  /**
+   * @return true if the event should not be emitted to the AppMap file.
+   */
+  public boolean ignored() { return ignored; }
 
   /**
    * Set the "event" string.

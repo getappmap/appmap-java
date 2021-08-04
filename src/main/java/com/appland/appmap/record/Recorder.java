@@ -1,10 +1,12 @@
 package com.appland.appmap.record;
 
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.util.Logger;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -83,6 +85,12 @@ public class Recorder {
 
       activeSession = session;
     }
+
+    synchronized void addEvent(Event event) {
+      if (activeSession != null) {
+        activeSession.add(event);
+      }
+    }
   }
 
   /**
@@ -104,9 +112,8 @@ public class Recorder {
    * @throws ActiveSessionException If a session is already in progress
    */
   public void start(Metadata metadata) throws ActiveSessionException {
-    RecordingSession session = new RecordingSession();
+    RecordingSession session = new RecordingSession(metadata);
     activeSession.set(session);
-    session.start(metadata);
   }
 
   public boolean hasActiveSession() {
@@ -154,6 +161,13 @@ public class Recorder {
     ts.isProcessing = true;
     try {
       if ( event.event.equals("call") ) {
+        if ( !ts.callStack.empty() && event.definedClass != null && AppMapConfig.get().isShallow(event.definedClass) ) {
+          Event parent = ts.callStack.peek();
+          if ( parent.definedClass != null && packageName(event.definedClass).equals(packageName(parent.definedClass)) ) {
+            event.ignore();
+          }
+        }
+
         ts.callStack.push(event);
       } else if ( event.event.equals("return") ) {
         if ( ts.callStack.isEmpty() ) {
@@ -175,6 +189,9 @@ public class Recorder {
         event.definedClass = null;
         event.methodId = null;
         event.isStatic = null;
+        if ( caller.ignored() ) {
+          event.ignore();
+        }
       } else {
         throw new IllegalArgumentException("Event should be 'call' or 'return', got " + event.event);
       }
@@ -183,14 +200,19 @@ public class Recorder {
       ts.lastEvent = event;
 
       // The previous event is given until now to get all its properties.
-      if ( previousEvent != null ) {
+      if ( previousEvent != null && !previousEvent.ignored() ) {
         // This is the line that can generate re-entrant events, apparently.
         previousEvent.freeze();
-        activeSession.get().add(previousEvent);
+        activeSession.addEvent(previousEvent);
       }
     } finally {
       ts.isProcessing = false;
     }
+  }
+
+  private String packageName(String className) {
+    String[] tokens = className.split("\\.");
+    return String.join(".", Arrays.copyOf(tokens, tokens.length - 1));
   }
 
   /**
@@ -261,7 +283,7 @@ public class Recorder {
         ts.lastEvent = null;
 
         event.freeze();
-        activeSession.get().add(event);
+        activeSession.addEvent(event);
       } finally {
         ts.isProcessing = false;
       }
