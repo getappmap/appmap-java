@@ -11,7 +11,7 @@ import javassist.NotFoundException;
 public class CallbackOnSystem extends BaseSystem {
   private static final MethodEvent DEFAULT_VALUE = MethodEvent.METHOD_INVOCATION;
 
-  private MethodEvent methodEvent;
+  private final MethodEvent methodEvent;
 
   private CallbackOnSystem(CtBehavior hookBehavior, MethodEvent methodEvent) {
     super(hookBehavior);
@@ -38,7 +38,7 @@ public class CallbackOnSystem extends BaseSystem {
   public void mutateRuntimeParameters(HookBinding binding, Parameters runtimeParameters) {
     if (this.methodEvent == MethodEvent.METHOD_RETURN) {
       final CtBehavior targetBehavior = binding.getTargetBehavior();
-      if (targetBehavior instanceof CtMethod) {
+      if (targetBehavior.getMethodInfo().isMethod()) {
         try {
           CtMethod method = (CtMethod) targetBehavior;
           CtClass returnType = method.getReturnType();
