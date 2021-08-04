@@ -13,6 +13,7 @@ import com.appland.appmap.reflect.HttpServletResponse;
 import com.appland.appmap.transform.annotations.*;
 import com.appland.appmap.util.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -249,7 +250,7 @@ public class ToggleRecord {
       recorder.getMetadata().exception = exception;
     }
     Recording recording = recorder.stop();
-    recording.moveTo(filePath);
+    recording.moveTo(String.join(File.separator, new String[]{ Properties.getOutputDirectory().getPath(), filePath }));
   }
 
   @ArgumentArray

@@ -1,10 +1,12 @@
 package com.appland.appmap.record;
 
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.util.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -258,7 +260,7 @@ public class Recorder {
     this.start(metadata);
     fn.run();
     Recording recording = this.stop();
-    recording.moveTo(fileName + ".appmap.json");
+    recording.moveTo(String.join(File.separator, new String[]{ Properties.getOutputDirectory().getPath(), fileName + ".appmap.json" }));
   }
 
   ThreadState threadState() {

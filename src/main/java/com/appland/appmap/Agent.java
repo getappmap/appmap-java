@@ -31,12 +31,7 @@ public class Agent {
    * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html">Package java.lang.instrument</a>
    */
   public static void premain(String agentArgs, Instrumentation inst) {
-    final File dir = new File(Properties.OutputDirectory);
-    if (!dir.exists()) {
-      if (!dir.mkdirs()) {
-        Logger.println("failed to create directories: " + Properties.OutputDirectory);
-      }
-    }
+    final File dir = Properties.getOutputDirectory();
 
     Logger.printf("agent loaded using config %s\n", Properties.ConfigFile);
 
@@ -72,7 +67,7 @@ public class Agent {
         }
 
         Recording recording = recorder.stop();
-        recording.moveTo(fileName);
+        recording.moveTo(String.join(File.pathSeparator, new String[]{ dir.getPath(), fileName }));
       }));
     }
   }

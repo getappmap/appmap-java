@@ -2,6 +2,7 @@ package com.appland.appmap.config;
 
 import com.appland.appmap.util.Logger;
 
+import java.io.File;
 import java.util.function.Function;
 
 public class Properties {
@@ -46,6 +47,16 @@ public class Properties {
       Logger.println(e);
     }
     return value;
+  }
+
+  public static File getOutputDirectory() {
+    final File dir = new File(OutputDirectory);
+    if (!dir.exists()) {
+      if (!dir.mkdirs()) {
+        Logger.println("failed to create directories: " + Properties.OutputDirectory);
+      }
+    }
+    return dir;
   }
 
   private static <T> T resolveProperty(String propName,
