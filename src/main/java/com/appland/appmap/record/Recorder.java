@@ -163,9 +163,9 @@ public class Recorder {
     ts.isProcessing = true;
     try {
       if ( event.event.equals("call") ) {
-        if ( !ts.callStack.empty() && event.definedClass != null && AppMapConfig.get().isShallow(event.definedClass) ) {
+        if ( !ts.callStack.empty() && event.hasPackageName() && AppMapConfig.get().isShallow(event.definedClass) ) {
           Event parent = ts.callStack.peek();
-          if ( parent.definedClass != null && packageName(event.definedClass).equals(packageName(parent.definedClass)) ) {
+          if ( parent.hasPackageName() && event.packageName().equals(parent.packageName()) ) {
             event.ignore();
           }
         }
@@ -210,11 +210,6 @@ public class Recorder {
     } finally {
       ts.isProcessing = false;
     }
-  }
-
-  private String packageName(String className) {
-    String[] tokens = className.split("\\.");
-    return String.join(".", Arrays.copyOf(tokens, tokens.length - 1));
   }
 
   /**

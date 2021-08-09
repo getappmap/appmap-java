@@ -5,6 +5,7 @@ import javassist.CtBehavior;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Represents a snapshot of a method invocation, return, exception or some other kind of runtime
@@ -62,6 +63,7 @@ public class Event {
 
   private boolean frozen = false;
   private boolean ignored = false;
+  private String packageName;
 
   private synchronized Integer issueId() {
     return ++globalEventId;
@@ -141,6 +143,10 @@ public class Event {
    */
   public boolean ignored() { return ignored; }
 
+  public boolean hasPackageName() { return packageName != null; }
+
+  public String packageName() { return packageName; }
+
   /**
    * Set the "event" string.
    * @param event "call", "return", etc.
@@ -171,6 +177,9 @@ public class Event {
    */
   public Event setDefinedClass(String definedClass) {
     this.definedClass = definedClass;
+    String[] tokens = definedClass.split("\\.");
+    this.packageName = String.join(".", Arrays.copyOf(tokens, tokens.length - 1));
+
     return this;
   }
 
