@@ -7,6 +7,7 @@ import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
 import com.appland.appmap.util.Logger;
 import javassist.*;
+import javassist.bytecode.Descriptor;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
@@ -16,22 +17,19 @@ import org.reflections.util.FilterBuilder;
 import java.io.ByteArrayInputStream;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The ClassFileTransformer is responsible for loading and caching hooks during {@link Agent}
+ * The ClassFileTransformer is responsible for loading and caching hooks during {@link com.appland.appmap.Agent}
  * statup. The {@link ClassFileTransformer#transform} method is used by the Instrumentation API to
  * modify class bytecode at load time. When a class is loaded, this class will attempt to apply
  * hooks to each behavior declared by that class.
  */
 public class ClassFileTransformer implements java.lang.instrument.ClassFileTransformer {
-  private static final List<Hook> unkeyedHooks = new ArrayList<Hook>();
-  private static final HashMap<String, List<Hook>> keyedHooks = new HashMap<String, List<Hook>>();
+  private static final List<Hook> unkeyedHooks = new ArrayList<>();
+  private static final Map<String, List<Hook>> keyedHooks = new HashMap<>();
 
   /**
    * Default constructor. Caches hooks for future class transforms.
@@ -44,7 +42,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         .setScanners(new SubTypesScanner(false))
         .filterInputsBy(new FilterBuilder().includePackage("com.appland.appmap.process")));
     ClassPool classPool = ClassPool.getDefault();
-    for (Class<? extends Object> classType : reflections.getSubTypesOf(Object.class)) {
+    for (Class<?> classType : reflections.getSubTypesOf(Object.class)) {
       try {
         CtClass ctClass = classPool.get(classType.getName());
         processClass(ctClass);
@@ -69,11 +67,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     if (key == null) {
       unkeyedHooks.add(hook);
     } else {
-      List<Hook> matchingKeyedHooks = keyedHooks.get(key);
-      if (matchingKeyedHooks == null) {
-        matchingKeyedHooks = new ArrayList<Hook>();
-        keyedHooks.put(key, matchingKeyedHooks);
-      }
+      List<Hook> matchingKeyedHooks = keyedHooks.computeIfAbsent(key, k -> new ArrayList<>());
       matchingKeyedHooks.add(hook);
     }
   }
@@ -85,7 +79,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
 
     return Stream.of(matchingKeyedHooks, unkeyedHooks)
-        .flatMap(x -> x.stream())
+        .flatMap(Collection::stream)
         .collect(Collectors.toList());
   }
 
@@ -140,7 +134,6 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       }
     } catch (NoSourceAvailableException e) {
       Logger.println(e);
-      return;
     }
   }
 
@@ -154,8 +147,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     classPool.appendClassPath(new LoaderClassPath(loader));
 
     try {
-      CtClass ctClass = null;
-
+      CtClass ctClass;
       try {
         ctClass = classPool.makeClass(new ByteArrayInputStream(bytes));
       } catch (RuntimeException e) {
@@ -177,7 +169,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       }
 
       for (CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
-        if (behavior instanceof CtConstructor) {
+        if (ignoreMethod(behavior)) {
           continue;
         }
 
@@ -194,5 +186,65 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
 
     return bytes;
+  }
+
+  private boolean ignoreMethod(CtBehavior behavior) {
+    if ( !(behavior instanceof CtMethod) ) {
+      return false;
+    }
+    CtMethod method = (CtMethod) behavior;
+    try {
+      return behavior.getMethodInfo2().isConstructor() ||
+          behavior.getMethodInfo2().isStaticInitializer() ||
+          isGetter(method) ||
+          isSetter(method) ||
+          isIgnoredInstanceMethod(method);
+    } catch (NotFoundException e) {
+      Logger.println(e);
+      return true;
+    }
+  }
+
+  private boolean isIgnoredInstanceMethod(CtMethod method) {
+    if ( Modifier.isStatic(method.getModifiers()) || !Modifier.isPublic(method.getModifiers())) {
+      return false;
+    }
+
+    return method.getName().equals("equals") ||
+        method.getName().equals("hashCode") ||
+        method.getName().equals("iterator") ||
+        method.getName().equals("toString");
+  }
+
+  public static boolean isGetter(CtMethod method) throws NotFoundException {
+    // KEG I'm getting exceptions like this when trying to use method.getReturnType():
+    //
+    // com.appland.shade.javassist.NotFoundException: java.lang.String
+    //
+    // The descriptor is used under the hood by javassist, and it provides
+    // what we need, albeit in a cryptic format.
+    String descriptor = method.getMethodInfo().getDescriptor();
+
+    if (Modifier.isPublic(method.getModifiers()) &&
+        Descriptor.numOfParameters(descriptor) == 0) {
+      if (method.getName().matches("^get[A-Z].*") &&
+          !descriptor.matches("\\)V$")) /* void */
+        return true;
+      if (method.getName().matches("^is[A-Z].*") &&
+          descriptor.matches("\\)Z$")) /* boolean */
+        return true;
+      /* boolean */
+      return method.getName().matches("^has[A-Z].*") &&
+          descriptor.matches("\\)Z$");
+    }
+    return false;
+  }
+
+  public static boolean isSetter(CtMethod method) throws NotFoundException {
+    String descriptor = method.getMethodInfo().getDescriptor();
+    return Modifier.isPublic(method.getModifiers()) &&
+        descriptor.matches("\\)V$") /* void */ &&
+        Descriptor.numOfParameters(descriptor) == 1 &&
+        method.getName().matches("^set[A-Z].*");
   }
 }

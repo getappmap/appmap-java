@@ -17,34 +17,13 @@ public class RecordingSession {
   private boolean eventReceived = false;
   private Path tmpPath;
   private AppMapSerializer serializer;
-  private Recorder.Metadata metadata;
+  private final Recorder.Metadata metadata;
 
-  RecordingSession() {
+  RecordingSession(Recorder.Metadata metadata) {
     this.tmpPath = null;
-  }
-
-  void start(Recorder.Metadata metadata) {
-    if (this.serializer != null) {
-      throw new IllegalStateException("AppMap: Unable to start a recording, because a recording is already in progress");
-    }
-
     this.metadata = metadata;
 
-    try {
-      this.tmpPath = Files.createTempFile(null, ".appmap.json");
-      this.serializer = AppMapSerializer.open(new FileWriter(this.tmpPath.toFile()));
-    } catch (IOException e) {
-      this.tmpPath = null;
-      this.serializer = null;
-      throw new RuntimeException(e);
-    }
-
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      if (RecordingSession.this.tmpPath != null) {
-        RecordingSession.this.tmpPath.toFile().delete();
-        RecordingSession.this.tmpPath = null;
-      }
-    }));
+    start();
   }
 
   public Recorder.Metadata getMetadata() {
@@ -151,5 +130,21 @@ public class RecordingSession {
     }
 
     return classMap;
+  }
+
+  void start() {
+    if (this.serializer != null) {
+      throw new IllegalStateException("AppMap: Unable to start a recording, because a recording is already in progress");
+    }
+
+    try {
+      this.tmpPath = Files.createTempFile(null, ".appmap.json");
+      this.tmpPath.toFile().deleteOnExit();
+      this.serializer = AppMapSerializer.open(new FileWriter(this.tmpPath.toFile()));
+    } catch (IOException e) {
+      this.tmpPath = null;
+      this.serializer = null;
+      throw new RuntimeException(e);
+    }
   }
 }
