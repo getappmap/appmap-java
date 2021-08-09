@@ -1,3 +1,17 @@
+# [1.4.0](https://github.com/applandinc/appmap-java/compare/v1.3.0...v1.4.0) (2021-08-09)
+
+
+### Bug Fixes
+
+* Memoize package name ([0a74b37](https://github.com/applandinc/appmap-java/commit/0a74b375d356753619574c3285c98d9235b03282))
+* Record to designated output directory ([5787108](https://github.com/applandinc/appmap-java/commit/57871083ef43472da759c65da25e26ec6bebf0ae))
+
+
+### Features
+
+* Ignore common methods ([53e537d](https://github.com/applandinc/appmap-java/commit/53e537d703bcc4f4995bb6c2a4f5609297f529aa))
+* Implement 'shallow' mode ([ebf10ea](https://github.com/applandinc/appmap-java/commit/ebf10eaf6e95585917ddadc63e1b8422be11d5b6))
+
 # [1.3.0](https://github.com/applandinc/appmap-java/compare/v1.2.0...v1.3.0) (2021-08-02)
 
 
