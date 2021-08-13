@@ -90,6 +90,9 @@ public class AppMapConfig {
   }
 
   public boolean isShallow(String canonicalName) {
+    if (canonicalName == null) {
+      return false;
+    }
     for (AppMapPackage pkg : this.packages) {
       if (pkg.includes(canonicalName)) {
         return pkg.shallow;
