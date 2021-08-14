@@ -15,6 +15,9 @@ public class AppMapPackage {
     if (this.path == null) {
       return false;
     }
+    if (canonicalName == null) {
+      return false;
+    }
 
     if (!canonicalName.startsWith(this.path)) {
       return false;

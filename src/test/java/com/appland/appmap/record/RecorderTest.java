@@ -16,6 +16,8 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 
 public class RecorderTest {
 
@@ -73,6 +75,20 @@ public class RecorderTest {
     InputStream is = new FileInputStream(targetPath.toString());
     Map appmap = JSON.parseObject(is, Map.class);
     assertEquals("[classMap, metadata, version, events]", appmap.keySet().toString());
+  }
+
+  @Test
+  public void testUnwriteableOutputFile() throws IOException {
+    Recorder recorder = recordEvents();
+    final Recording recording = recorder.stop();
+    Exception exception = null;
+    try {
+      recording.moveTo("/no-such-directory");
+    } catch (RuntimeException e) {
+      exception = e;
+    }
+    assertNotNull(exception);
+    assertTrue(exception.toString().indexOf("java.lang.RuntimeException: ") == 0);
   }
 
   @Test
