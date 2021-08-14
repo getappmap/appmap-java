@@ -1,3 +1,11 @@
+## [1.4.1](https://github.com/applandinc/appmap-java/compare/v1.4.0...v1.4.1) (2021-08-14)
+
+
+### Bug Fixes
+
+* Guard NPE when checking the shallow flag on a package ([ff5c418](https://github.com/applandinc/appmap-java/commit/ff5c4184c4878af5826ed2e8126fd8daf907775c))
+* Retry move as copy when the file is locked ([91ea858](https://github.com/applandinc/appmap-java/commit/91ea858badf792ed1129640715010ebd45d8698b))
+
 # [1.4.0](https://github.com/applandinc/appmap-java/compare/v1.3.0...v1.4.0) (2021-08-09)
 
 
