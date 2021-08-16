@@ -3,7 +3,7 @@ package com.appland.appmap.reflect;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 
-public class HttpServletResponse extends ReflectiveType {
+public class HttpServletResponse extends HttpHeaders {
   public static final int SC_CONFLICT = 409;
   public static final int SC_NOT_FOUND = 404;
   public static final int SC_OK = 200;

@@ -20,8 +20,9 @@ public class HttpServerRequest {
       return;
     }
 
-    event.setHttpServerRequest(req.getMethod(), req.getRequestURI(), req.getProtocol());
+    event.setHttpServerRequest(req.getMethod(), req.getRequestURI(), req.getProtocol(), req.getHeaders());
     event.setParameters(null);
+    
 
     for (Map.Entry<String, String[]> param : req.getParameterMap().entrySet()) {
       final String[] values = param.getValue();
@@ -32,7 +33,7 @@ public class HttpServerRequest {
   }
 
   private static void recordHttpServerResponse(Event event, HttpServletResponse res) {
-    event.setHttpServerResponse(res.getStatus(), res.getContentType());
+    event.setHttpServerResponse(res.getStatus(), res.getContentType(), res.getHeaders());
     event.setParameters(null);
     recorder.add(event);
   }

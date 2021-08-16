@@ -1,5 +1,7 @@
 package com.appland.appmap.output.v1;
 
+import java.util.Map;
+
 import com.alibaba.fastjson.annotation.JSONField;
 
 /**
@@ -19,6 +21,9 @@ public class HttpServerRequest {
 
   @JSONField(name = "normalized_path_info")
   public String normalizedPath;
+
+  @JSONField
+  public Map<String, String> headers;
 
   /**
    * Set the protocol of this request.
@@ -58,6 +63,14 @@ public class HttpServerRequest {
    */
   public HttpServerRequest setNormalizedPath(String path) {
     this.normalizedPath = path;
+    return this;
+  }
+
+  /**
+   * Set the headers of this request.
+   */
+  public HttpServerRequest setHeaders(Map<String, String> headers) {
+    this.headers = headers;
     return this;
   }
 }
