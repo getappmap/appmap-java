@@ -1,6 +1,7 @@
 package com.appland.appmap.record;
 
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.config.PackageConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
@@ -163,10 +164,18 @@ public class Recorder {
     ts.isProcessing = true;
     try {
       if ( event.event.equals("call") ) {
-        if ( !ts.callStack.empty() && event.hasPackageName() && AppMapConfig.get().isShallow(event.definedClass) ) {
-          Event parent = ts.callStack.peek();
-          if ( parent.hasPackageName() && event.packageName().equals(parent.packageName()) ) {
-            event.ignore();
+
+        //Ignore events sent between a package configured for shallow recording and its children
+        if ( !ts.callStack.empty() && event.hasPackageName() ) {
+          PackageConfig eventPackageConfig = AppMapConfig.get().getPackageConfig(event.packageName());
+          if ( eventPackageConfig != null  &&  eventPackageConfig.shallow ) {
+            Event parent = ts.callStack.peek();
+            if ( parent.hasPackageName() ) {
+              PackageConfig parentPackageConfig = AppMapConfig.get().getPackageConfig(parent.packageName());
+              if( eventPackageConfig.includedPackageName.equals(parentPackageConfig.includedPackageName) ) {
+                event.ignore();
+              }
+            }
           }
         }
 

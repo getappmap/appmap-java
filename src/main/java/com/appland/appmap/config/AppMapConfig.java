@@ -8,11 +8,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AppMapConfig {
   public String name;
   public AppMapPackage[] packages = new AppMapPackage[0];
   private static AppMapConfig singleton = new AppMapConfig();
+  private final Map<String, PackageConfig> packageConfigMap = new HashMap<>();
 
   /**
    * Populate the configuration from a file.
@@ -89,16 +92,38 @@ public class AppMapConfig {
     return false;
   }
 
-  public boolean isShallow(String canonicalName) {
-    if (canonicalName == null) {
-      return false;
-    }
+  /**
+   * Retrieve configuration of a package from appmap.yml
+   * @param packageName package name
+   * @return configuration found in appmap.yml
+   */
+  public PackageConfig getPackageConfig(String packageName) {
+    if ( packageName == null ) return null;
+
+    if( packageConfigMap.containsKey(packageName) ) return packageConfigMap.get(packageName);
+
+    String pkgName = null;
+    boolean pkgShallow = false;
+
+    //iterate over all configured paths and find the nearest parent package
     for (AppMapPackage pkg : this.packages) {
-      if (pkg.includes(canonicalName)) {
-        return pkg.shallow;
+      if ( pkg.includes(packageName) ) {
+        if( pkgName == null ) {
+          pkgName = pkg.path;
+          pkgShallow = pkg.shallow;
+        } else if( pkg.path.length() > pkgName.length() ) {
+          pkgName = pkg.path;
+          pkgShallow = pkg.shallow;
+        }
       }
     }
 
-    return false;
+    PackageConfig config = null;
+    //return null for packages that were not included in appmap.yml
+    if ( pkgName != null ) {
+      config = new PackageConfig(packageName, pkgName, pkgShallow);
+    }
+    packageConfigMap.put(pkgName, config);
+    return config;
   }
 }

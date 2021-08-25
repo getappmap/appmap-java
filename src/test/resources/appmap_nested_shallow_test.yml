@@ -1,0 +1,12 @@
+name: appmap-nested-shallow-test
+packages:
+  - path: a
+  - path: b
+    shallow: true
+    exclude:
+      - b.a
+  - path: b.b
+    shallow: true
+  - path: b.c
+  - path: b.c.b
+    shallow: true
