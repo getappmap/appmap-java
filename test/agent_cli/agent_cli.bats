@@ -30,8 +30,6 @@ appmap_jar=build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')
 
   assert_json_eq '.properties.config.app' 'spring-petclinic'
 
-  # TODO: This next line is failing in Travis. Troubleshoot.
-  skip
   assert_json_eq '.properties.config.present' 'true'
   assert_json_eq '.properties.config.valid' 'true'
   assert_json_eq '.properties.frameworks[0].name' 'gradle'

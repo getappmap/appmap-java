@@ -2,5 +2,6 @@
 
 set -e
 
-./bin/test_install
+source ./bin/test_install
+
 ./bin/test_run
