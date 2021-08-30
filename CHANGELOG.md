@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/applandinc/appmap-java/compare/v1.4.1...v1.5.0) (2021-08-30)
+
+
+### Features
+
+* Add validate subcommand to the CLI ([a0650b0](https://github.com/applandinc/appmap-java/commit/a0650b0e8391f7ac39c71c83261687e9f5abac02))
+
 ## [1.4.1](https://github.com/applandinc/appmap-java/compare/v1.4.0...v1.4.1) (2021-08-14)
 
 
