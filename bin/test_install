@@ -2,21 +2,29 @@
 
 set -e
 
+fixture_dir=$PWD/build/fixtures
 mkdir -p build/fixtures
-cd build/fixtures
-fixture_dir=$(pwd)
 
+(
+cd build/fixtures
+
+rm -rf spring-petclinic
 git clone --depth 1 https://github.com/spring-projects/spring-petclinic.git \
     && cd spring-petclinic \
     && ./mvnw package -Dmaven.test.skip=true
+)
 
-cd ../../..
+export BATS_DIR=$PWD/build/bats
 mkdir -p build/bats
-cd build/bats
-bats_dir=$(pwd)
 
+(
+cd build/bats
+
+
+rm -rf bats-core bats-support bats-assert
 git clone --depth 1 https://github.com/bats-core/bats-core.git \
     && git clone --depth 1 https://github.com/bats-core/bats-support.git \
     && git clone --depth 1 https://github.com/bats-core/bats-assert.git \
     && cd bats-core \
-    && ./install.sh "$bats_dir"
+    && ./install.sh "$BATS_DIR"
+)

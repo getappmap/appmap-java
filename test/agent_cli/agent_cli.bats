@@ -30,8 +30,6 @@ appmap_jar=build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')
 
   assert_json_eq '.properties.config.app' 'spring-petclinic'
 
-  # TODO: This next line is failing in Travis. Troubleshoot.
-  skip
   assert_json_eq '.properties.config.present' 'true'
   assert_json_eq '.properties.config.valid' 'true'
   assert_json_eq '.properties.frameworks[0].name' 'gradle'
@@ -39,4 +37,10 @@ appmap_jar=build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')
 
   # TODO: Configure the agent in the spring-petclinic pom.xml and verify that it's
   # reported present and valid by the agent status command.
+}
+
+@test "appmap agent validate" {
+  run bash -c "java -jar $appmap_jar -d test/agent_cli/spring-petclinic status 2>/dev/null"
+  assert_success
+
 }

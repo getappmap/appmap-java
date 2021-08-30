@@ -38,8 +38,9 @@ public class CLI {
 
   public static void main(String[] args) {
     int exitCode = new CommandLine(new CLI())
-        .addSubcommand("status", Status.class)
         .addSubcommand("init", Init.class)
+        .addSubcommand("status", Status.class)
+        .addSubcommand("validate", Validate.class)
         .execute(args);
     System.exit(exitCode);
   }
