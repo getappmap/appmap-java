@@ -8,11 +8,30 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class AppMapConfig {
+  public File configFile;  // the configFile used
   public String name;
   public AppMapPackage[] packages = new AppMapPackage[0];
   private static AppMapConfig singleton = new AppMapConfig();
+
+  static File findConfig(File configFile) throws FileNotFoundException {
+    if (configFile.exists()) {
+      return configFile;
+    }
+    Path parent = configFile.toPath().toAbsolutePath().getParent();
+    while (parent != null) {
+      Path c = parent.resolve("appmap.yml");
+      if (Files.exists(c)) {
+        return c.toFile();
+      }
+      parent = parent.getParent();
+    }
+
+    throw new FileNotFoundException(configFile.toString());
+  }
 
   /**
    * Populate the configuration from a file.
@@ -23,6 +42,8 @@ public class AppMapConfig {
     InputStream inputStream = null;
 
     try {
+      configFile = AppMapConfig.findConfig(configFile);
+      Logger.println(String.format("using config file -> %s", configFile.toPath().toAbsolutePath()));
       inputStream = new FileInputStream(configFile);
     } catch (FileNotFoundException e) {
       Logger.println(String.format("error: file not found -> %s", configFile.getPath()));
@@ -38,7 +59,8 @@ public class AppMapConfig {
       Logger.error("AppMap: encountered syntax error in appmap.yml " + e.getMessage());
       System.exit(1);
     }
-    
+    singleton.configFile = configFile;
+
     return singleton;
   }
 
