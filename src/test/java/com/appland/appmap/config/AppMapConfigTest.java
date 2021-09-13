@@ -7,9 +7,10 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class AppMapConfigTest {
 
@@ -32,10 +33,24 @@ public class AppMapConfigTest {
      */
     @Test
     public void load() {
-        AppMapConfig.load(new File("agent_conf.yml"));
+        // Trying to load appmap.yml in /tmp shouldn't work.
+        AppMapConfig.load(Paths.get(System.getProperty("java.io.tmpdir"), "appmap.yml").toFile());
         assertNotNull(errContent.toString());
         assertTrue(errContent.toString().contains("file not found"));
     }
+
+    // If a non-existent config file in a subdirectory is specified, the
+    // config file in the current directory should be used.
+    @Test
+    public void loadParent() {
+        File f = Paths.get("test", "appmap.yml").toFile();
+        assertFalse(f.exists());
+        AppMapConfig.load(f);
+        File expected = Paths.get("appmap.yml").toAbsolutePath().toFile();
+        assertTrue(expected.exists()); // sanity check
+        assertEquals(expected, AppMapConfig.get().configFile);
+    }
+
 }
 
 
