@@ -39,7 +39,7 @@ public class Agent {
 
     if (AppMapConfig.load(new File(Properties.ConfigFile)) == null) {
       Logger.printf("failed to load config %s\n", Properties.ConfigFile);
-      return;
+      System.exit(1);
     }
 
     if (Properties.RecordingAuto) {

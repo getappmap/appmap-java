@@ -43,11 +43,15 @@ public class AppMapConfig {
 
     try {
       configFile = AppMapConfig.findConfig(configFile);
-      Logger.println(String.format("using config file -> %s", configFile.toPath().toAbsolutePath()));
+      Logger.println(String.format("using config file -> %s",
+                                   configFile.getAbsolutePath()));
       inputStream = new FileInputStream(configFile);
     } catch (FileNotFoundException e) {
-      Logger.println(String.format("error: file not found -> %s", configFile.getPath()));
-      Logger.error(String.format("error: file not found -> %s", configFile.getPath()));
+      String expectedConfig = configFile.getAbsolutePath();
+      Logger.println(String.format("error: file not found -> %s",
+                                   expectedConfig));
+      Logger.error(String.format("error: file not found -> %s",
+                                 expectedConfig));
       return null;
     }
 
