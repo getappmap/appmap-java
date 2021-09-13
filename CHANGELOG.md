@@ -1,3 +1,15 @@
+# [1.6.0](https://github.com/applandinc/appmap-java/compare/v1.5.0...v1.6.0) (2021-09-13)
+
+
+### Bug Fixes
+
+* Abort if no config found ([cd57f2f](https://github.com/applandinc/appmap-java/commit/cd57f2f84d687c7c1959fdf0111cc5b8cc33c306))
+
+
+### Features
+
+* Look for config in parent directories ([1be744b](https://github.com/applandinc/appmap-java/commit/1be744b412388b3cc4b273c624e6a986912a2a60))
+
 # [1.5.0](https://github.com/applandinc/appmap-java/compare/v1.4.1...v1.5.0) (2021-08-30)
 
 
