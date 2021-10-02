@@ -9,7 +9,7 @@ import com.appland.appmap.util.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.Stack;
 
@@ -25,7 +25,7 @@ public class Recorder {
 
   private final ActiveSession activeSession = new ActiveSession();
   private final CodeObjectTree globalCodeObjects = new CodeObjectTree();
-  private final Map<Long, ThreadState> threadState = new HashMap<>();
+  private final Map<Long, ThreadState> threadState = new ConcurrentHashMap<>();
 
   /**
    * Data structure for reporting AppMap metadata.
@@ -258,7 +258,7 @@ public class Recorder {
     recording.moveTo(String.join(File.separator, new String[]{ Properties.getOutputDirectory().getPath(), fileName + ".appmap.json" }));
   }
 
-  ThreadState threadState() {
+  private ThreadState threadState() {
     ThreadState ts = threadState.get(Thread.currentThread().getId());
     if ( ts == null ) {
       threadState.put(Thread.currentThread().getId(), (ts = new ThreadState()));
@@ -268,7 +268,7 @@ public class Recorder {
 
   // Finish serializing any remaining events. This is necessary because each event is "open"
   // until the next event on the same thread is received.
-  void flush() {
+  private void flush() {
     threadState.values().forEach((ts) -> {
       if ( ts.lastEvent == null ) {
         return;
