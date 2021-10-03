@@ -24,7 +24,7 @@ repositories {
 // hardcoded -- could be redefined via env variables and project properties (see below)
 def parameterizedVersion = findProperty('appMapAgentVersion')
 def travisVersion = System.getenv("TRAVIS_BRANCH")
-def defaultVersion = '1.6.0'
+def defaultVersion = '1.6.1'
 
 def versionLikeRegexp = /^\d+\.\d+.*/
 def travisVersionValid = travisVersion && (travisVersion ==~ versionLikeRegexp)

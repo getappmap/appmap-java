@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/applandinc/appmap-java/compare/v1.6.0...v1.6.1) (2021-10-03)
+
+
+### Bug Fixes
+
+* Avoid ConcurrentModificationException ([c6d1b7b](https://github.com/applandinc/appmap-java/commit/c6d1b7bcce34aaa7898a678973a4bb6e64ac4abf))
+
 # [1.6.0](https://github.com/applandinc/appmap-java/compare/v1.5.0...v1.6.0) (2021-09-13)
 
 
