@@ -57,7 +57,7 @@ dependencies {
 
   testImplementation 'junit:junit:4.12'
   testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
-  testImplementation "org.mockito:mockito-core:2.28.2"
+  testImplementation "org.mockito:mockito-core:3.+"
 }
 
 jar {

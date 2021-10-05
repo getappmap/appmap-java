@@ -13,11 +13,22 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class RecorderTest {
 
@@ -38,27 +49,25 @@ public class RecorderTest {
 
   private static final int EVENT_COUNT = 3;
 
-  private Recorder recordEvents() {
-    final Recorder recorder = Recorder.getInstance();
+  private Event newEvent() {
     final Long threadId = Thread.currentThread().getId();
-    final Event[] events = new Event[] {
-        new Event(),
-        new Event(),
-        new Event(),
-    };
-
-    for (int i = 0; i < events.length; i++) {
-      final Event event = events[i];
-      event
+    return new Event()
           .setEvent("call")
           .setDefinedClass("SomeClass")
           .setMethodId("SomeMethod")
           .setStatic(false)
           .setLineNumber(315)
           .setThreadId(threadId);
+  }
 
-      recorder.add(event);
-      assertEquals(event, recorder.getLastEvent());
+  private Recorder recordEvents() {
+    final Recorder recorder = Recorder.getInstance();
+    final Event[] events = new Event[3];
+
+    for (int i = 0; i < events.length; i++) {
+      events[i] = newEvent();
+      recorder.add(events[i]);
+      assertEquals(events[i], recorder.getLastEvent());
     }
     return recorder;
   }
@@ -104,4 +113,57 @@ public class RecorderTest {
     final int numMatches = StringUtils.countMatches(appmapJson, expectedJson);
     assertEquals(numMatches, EVENT_COUNT);
   }
+
+  @Test
+  public void testMultithreadCheckpoint() throws InterruptedException {
+    final Recorder recorder = spy(Recorder.getInstance());
+
+    // This puts an entry in recorder.threadState, so there will be a
+    // value to iterate over.
+    recorder.getLastEvent();
+
+
+    // Coordinate two threads to ensure that one modifies the
+    // Recorder.threadState collection after the other has obtained an
+    // iterator on it.
+    final Semaphore eventAddedLock = new Semaphore(1);
+    final Semaphore iterLock = new Semaphore(1);
+    eventAddedLock.acquire();
+    iterLock.acquire();
+
+    final ExecutorService es = Executors.newFixedThreadPool(2);
+    final Future f1 = es.submit(() -> {
+        try {
+          iterLock.acquire();
+          recorder.add(newEvent());
+          eventAddedLock.release();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+    });
+
+    final Future f2 = es.submit(() -> {
+        doAnswer((invocation) -> {
+            final Object ret = (Iterator<?>)invocation.callRealMethod();
+            iterLock.release();
+            eventAddedLock.acquire();
+            return ret;
+          }).when(recorder).getThreadStateIterator();
+
+        recorder.checkpoint();
+      });
+
+    try {
+      f1.get();
+      f2.get();
+    } catch (ExecutionException e) {
+      // Won't happen if concurrent access to Recorder.threadState is
+      // being managed correctly.
+      e.getCause().printStackTrace();
+      fail();
+    }
+
+    es.shutdown();
+  }
+
 }

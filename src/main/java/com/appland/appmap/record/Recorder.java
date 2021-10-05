@@ -9,6 +9,7 @@ import com.appland.appmap.util.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -258,6 +259,15 @@ public class Recorder {
     recording.moveTo(String.join(File.separator, new String[]{ Properties.getOutputDirectory().getPath(), fileName + ".appmap.json" }));
   }
 
+  // Mockito can't stub methods on the Collection<ThreadState>
+  // returned by values(), so return an iterator on it instead.
+  //
+  // And, make this method package-protected, because Mockito won't
+  // stub private methods.
+  /* private */ Iterator<ThreadState> getThreadStateIterator() {
+    return this.threadState.values().iterator();
+  }
+
   private ThreadState threadState() {
     ThreadState ts = threadState.get(Thread.currentThread().getId());
     if ( ts == null ) {
@@ -269,7 +279,7 @@ public class Recorder {
   // Finish serializing any remaining events. This is necessary because each event is "open"
   // until the next event on the same thread is received.
   private void flush() {
-    threadState.values().forEach((ts) -> {
+    getThreadStateIterator().forEachRemaining((ts) -> {
       if ( ts.lastEvent == null ) {
         return;
       }
