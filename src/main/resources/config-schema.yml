@@ -15,9 +15,14 @@ properties:
       properties:
         path:
           type: string
+          # Not too strict, but should eliminate at least some
+          # incorrect names (e.g. filesystem paths instead of
+          # packages)
+          pattern: ^[a-zA-Z0-9_.#]+$
         shallow:
           type: boolean
         exclude:
           type: array
           items:
             type: string
+            pattern: ^[a-zA-Z0-9_.#]+$
