@@ -12,7 +12,6 @@ appmap_jar=build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')
 @test "appmap agent init packages" {
   run bash -c "java -jar $appmap_jar -d test/agent_cli/sampleproj init 2>/dev/null"
   assert_success
-
   assert_json_contains '.configuration.contents' 'path: pkg1'
   assert_json_contains '.configuration.contents' 'path: pkg2'
 }
@@ -40,7 +39,16 @@ appmap_jar=build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')
 }
 
 @test "appmap agent validate" {
-  run bash -c "java -jar $appmap_jar -d test/agent_cli/spring-petclinic status 2>/dev/null"
+  run bash -c "java -jar $appmap_jar -d test/agent_cli/spring-petclinic validate 2>/dev/null"
   assert_success
 
+  # Shouldn't be any errors
+  assert_json '.errors | length == 0'
+
+  # Sanity check a couple of the config schema properties
+  assert_json_eq '.schema.type' 'object'
+  assert_json_eq '.schema.additionalProperties' 'false'
+  assert_json_eq '.schema.required' '[
+  "name"
+]'
 }
