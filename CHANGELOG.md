@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/applandinc/appmap-java/compare/v1.6.1...v1.7.0) (2021-10-26)
+
+
+### Features
+
+* Update output from validate command ([318deab](https://github.com/applandinc/appmap-java/commit/318deab155e7faccc9572071f5ea966d36f9090b))
+
 ## [1.6.1](https://github.com/applandinc/appmap-java/compare/v1.6.0...v1.6.1) (2021-10-03)
 
 
