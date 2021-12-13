@@ -1,16 +1,16 @@
 #!/bin/bash
-set -x
+set -ax
 
 mkdir -p test/petclinic/classes
 javac -d test/petclinic/classes test/petclinic/Props.java
 
 LOG=build/fixtures/spring-petclinic/petclinic.log
+WS_URL="http://localhost:8080"
+
+start_petclinic() {
+printf 'getting set up'
 java -ea -Dappmap.debug -Dappmap.config.file=test/petclinic/appmap.yml -javaagent:build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]') -jar build/fixtures/spring-petclinic/target/$(ls build/fixtures/spring-petclinic/target | grep 'spring-petclinic-[[:digit:]].*\.jar$') &> $LOG &
 JVM_PID=$!
-
-export WS_URL="http://localhost:8080"
-
-printf 'getting set up'
 while [ -z "$(curl -I "${WS_URL}" | grep 'HTTP/1.1 200')" ]; do
   if ! kill -0 "${JVM_PID}" 2> /dev/null; then
     printf '. failed!\n\nprocess exited unexpectedly:\n'
@@ -22,6 +22,8 @@ while [ -z "$(curl -I "${WS_URL}" | grep 'HTTP/1.1 200')" ]; do
   sleep 1
 done
 printf ' ok\n\n'
+}
+start_petclinic
 
 mkdir -p build/log
 

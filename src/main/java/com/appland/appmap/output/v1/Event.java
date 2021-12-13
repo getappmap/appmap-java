@@ -6,6 +6,7 @@ import javassist.CtBehavior;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Represents a snapshot of a method invocation, return, exception or some other kind of runtime
@@ -335,12 +336,13 @@ public class Event {
    * @return {@code this}
    * @see <a href="https://github.com/applandinc/appmap#http-server-request-attributes">GitHub: AppMap - HTTP server request attributes</a>
    */
-  public Event setHttpServerRequest(String method, String path, String protocol) {
+  public Event setHttpServerRequest(String method, String path, String protocol, Map<String, String> headers) {
     clearFunctionFields();
     this.httpServerRequest = new HttpServerRequest()
         .setMethod(method)
         .setPath(path)
-        .setProtocol(protocol);
+        .setProtocol(protocol)
+        .setHeaders(headers);
     return this;
   }
 
@@ -363,10 +365,10 @@ public class Event {
    * @return {@code this}
    * @see <a href="https://github.com/applandinc/appmap#http-server-response-attributes">GitHub: AppMap - HTTP server response attributes</a>
    */
-  public Event setHttpServerResponse(Integer status, String mimeType) {
+  public Event setHttpServerResponse(Integer status, String mimeType, Map<String, String> headers) {
     this.httpServerResponse = new HttpServerResponse()
         .setStatus(status)
-        .setMimeType(mimeType);
+        .setHeaders(headers);
     return this;
   }
 

@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpServletRequest extends ReflectiveType {
+public class HttpServletRequest extends HttpHeaders {
   private final Method fnGetMethod;
   private final Method fnGetRequestURI;
   private final Method fnGetProtocol;
@@ -37,6 +37,7 @@ public class HttpServletRequest extends ReflectiveType {
       : "";
   }
 
+  @SuppressWarnings("unchecked")
   public Map<String, String[]> getParameterMap() {
     return fnGetProtocol != null?
       (Map<String, String[]>) invokeWrappedMethod(fnGetParameterMap)

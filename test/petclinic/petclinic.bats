@@ -165,3 +165,20 @@ load '../helper'
   assert_json_eq '.classMap | length' 1
   assert_json_eq '[.classMap[0] | recurse | .name?] | join(".")' org.springframework.samples.petclinic.system.CrashController.triggerException
 }
+
+@test "recordings capture http request headers" {
+  local basic_auth='Basic YWxhZGRpbjpvcGVuc2VzYW1l'
+  start_recording
+  _curl -H "Authorization: $basic_auth" -XGET "${WS_URL}"
+  stop_recording
+
+  assert_json_eq '.events[] | .http_server_request | .headers.authorization' "$basic_auth"
+}
+
+@test "recordings capture http response headers" {
+  start_recording
+  _curl -XGET "${WS_URL}"
+  stop_recording
+
+  assert_json_eq '.events[] | .http_server_response | .headers["Content-Type"]' "text/html;charset=UTF-8"
+}
