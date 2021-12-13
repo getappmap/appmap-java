@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/applandinc/appmap-java/compare/v1.7.0...v1.8.0) (2021-12-13)
+
+
+### Features
+
+* Record HTTP server request and response headers ([009358a](https://github.com/applandinc/appmap-java/commit/009358a4532afe84d16d6d739178c6b9a4530ac9))
+
 # [1.7.0](https://github.com/applandinc/appmap-java/compare/v1.6.1...v1.7.0) (2021-10-26)
 
 
