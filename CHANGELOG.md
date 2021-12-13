@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/applandinc/appmap-java/compare/v1.8.0...v1.8.1) (2021-12-13)
+
+
+### Bug Fixes
+
+* Fix path and exclude item regexp ([18c028f](https://github.com/applandinc/appmap-java/commit/18c028f603a6f6cf8a9129be87e2b0bd1e0a6bf0))
+
 # [1.8.0](https://github.com/applandinc/appmap-java/compare/v1.7.0...v1.8.0) (2021-12-13)
 
 
