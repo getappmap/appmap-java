@@ -192,6 +192,35 @@ public class ToggleRecord {
     skipFilterChain(args);
   }
 
+  private static void skipFilterChainFilter(Object[] args) throws ExitEarly {
+    if (args.length != 2) {
+      if (debug) {
+        Logger.println("ToggleRecord.skipFilterChainFilter - invalid arg length");
+      }
+      return;
+    }
+
+    final HttpServletRequest req = new HttpServletRequest(args[0]);
+    if (req.getRequestURI().endsWith(RecordRoute)) {
+      Logger.println("ToggleRecord.skipFilterChain - servicing remote recording request");
+      service(args);
+      throw new ExitEarly();
+    }
+  }
+
+  @ContinueHooking
+  @ExcludeReceiver
+  @ArgumentArray
+  @HookClass(value = "javax.servlet.FilterChain", method = "doFilter")
+  public static void doFilterChainFilter(Event event, Object[] args)
+    throws ExitEarly {
+    if (debug) {
+      Logger.println("FilterChain.doFilter");
+    }
+
+    skipFilterChainFilter(args);
+  }
+
   private static Recorder.Metadata getMetadata(Event event) {
     // TODO: Obtain this info in the constructor
     boolean junit = false;
