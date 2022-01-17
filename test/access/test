@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+bats --tap test/access/access.bats

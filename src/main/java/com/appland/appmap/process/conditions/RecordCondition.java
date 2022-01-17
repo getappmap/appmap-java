@@ -2,6 +2,7 @@ package com.appland.appmap.process.conditions;
 
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
+import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.StringUtil;
 import javassist.CtBehavior;
 
@@ -27,7 +28,7 @@ public abstract class RecordCondition implements Condition {
       return false;
     }
 
-    if (!Modifier.isPublic(behavior.getModifiers())) {
+    if (!new AppMapBehavior(behavior).isRecordable()) {
       return false;
     }
 

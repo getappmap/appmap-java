@@ -1,10 +1,10 @@
 package com.appland.appmap.process.conditions;
 
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.StringUtil;
 import javassist.CtBehavior;
 
-import java.lang.reflect.Modifier;
 
 /**
  * ConfigCondition checks if the behavior should be hooked due to its inclusion in the
@@ -30,7 +30,7 @@ public abstract class ConfigCondition implements Condition {
       return false;
     }
 
-    if (!Modifier.isPublic(behavior.getModifiers())) {
+    if (!new AppMapBehavior(behavior).isRecordable()) {
       return false;
     }
 

@@ -5,6 +5,7 @@ import com.appland.appmap.output.v1.NoSourceAvailableException;
 import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
+import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.Logger;
 import javassist.*;
 import javassist.bytecode.Descriptor;
@@ -206,14 +207,17 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
   }
 
   private boolean isIgnoredInstanceMethod(CtMethod method) {
-    if ( Modifier.isStatic(method.getModifiers()) || !Modifier.isPublic(method.getModifiers())) {
+    final int mods = method.getModifiers();
+    if ( Modifier.isStatic(mods) || !new AppMapBehavior(method).isRecordable()) {
       return false;
     }
 
-    return method.getName().equals("equals") ||
-        method.getName().equals("hashCode") ||
-        method.getName().equals("iterator") ||
-        method.getName().equals("toString");
+    final String methodName = method.getName();
+    return 
+        methodName.equals("equals") ||
+        methodName.equals("hashCode") ||
+        methodName.equals("iterator") ||
+        methodName.equals("toString");
   }
 
   public static boolean isGetter(CtMethod method) throws NotFoundException {
@@ -224,17 +228,17 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     // The descriptor is used under the hood by javassist, and it provides
     // what we need, albeit in a cryptic format.
     String descriptor = method.getMethodInfo().getDescriptor();
-
-    if (Modifier.isPublic(method.getModifiers()) &&
+    String methodName = method.getName();
+    if (new AppMapBehavior(method).isRecordable() &&
         Descriptor.numOfParameters(descriptor) == 0) {
-      if (method.getName().matches("^get[A-Z].*") &&
+      if (methodName.matches("^get[A-Z].*") &&
           !descriptor.matches("\\)V$")) /* void */
         return true;
-      if (method.getName().matches("^is[A-Z].*") &&
+      if (methodName.matches("^is[A-Z].*") &&
           descriptor.matches("\\)Z$")) /* boolean */
         return true;
       /* boolean */
-      return method.getName().matches("^has[A-Z].*") &&
+      return methodName.matches("^has[A-Z].*") &&
           descriptor.matches("\\)Z$");
     }
     return false;
@@ -242,7 +246,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
   public static boolean isSetter(CtMethod method) throws NotFoundException {
     String descriptor = method.getMethodInfo().getDescriptor();
-    return Modifier.isPublic(method.getModifiers()) &&
+    return new AppMapBehavior(method).isRecordable() &&
         descriptor.matches("\\)V$") /* void */ &&
         Descriptor.numOfParameters(descriptor) == 1 &&
         method.getName().matches("^set[A-Z].*");
