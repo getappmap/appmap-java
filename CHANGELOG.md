@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/applandinc/appmap-java/compare/v1.8.1...v1.9.0) (2022-01-18)
+
+
+### Features
+
+* Record non-public methods ([28a8fe9](https://github.com/applandinc/appmap-java/commit/28a8fe9a98dced02aace75d93741244b50800c69))
+
 ## [1.8.1](https://github.com/applandinc/appmap-java/compare/v1.8.0...v1.8.1) (2021-12-13)
 
 
