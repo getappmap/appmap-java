@@ -33,8 +33,11 @@ public class Properties {
 
   public static final String[] DefaultRecords = new String[0];
   public static final String[] Records = resolveProperty(
-       "appmap.record", DefaultRecords);
+      "appmap.record", DefaultRecords);
 
+  public static final Boolean RecordPrivate = resolveProperty(
+      "appmap.record.private", Boolean::valueOf, false);
+      
   private static String resolveProperty(String propName, String defaultValue) {
     String value = defaultValue;
     try {
