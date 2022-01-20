@@ -1,4 +1,4 @@
-package com.appland.appmap.process.hooks;
+package com.appland.appmap.process.hooks.remoterecording;
 
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.Event;
@@ -19,98 +19,10 @@ import java.io.PrintWriter;
 
 import static com.appland.appmap.util.StringUtil.*;
 
-interface HandlerFunction {
-  void call(HttpServletRequest req, HttpServletResponse res) throws IOException;
-}
 
-/**
- * Hooks to toggle event recording. This could be either via HTTP or by entering a unit test method.
- */
-public class ToggleRecord {
+public class ServletHooks {
   private static final boolean debug = Properties.DebugHttp;
   private static final Recorder recorder = Recorder.getInstance();
-  public static final String RecordRoute = "/_appmap/record";
-  public static final String CheckpointRoute = "/_appmap/record/checkpoint";
-
-  private static void doDelete(HttpServletRequest req, HttpServletResponse res) throws IOException {
-    if (debug) {
-      Logger.println("ToggleRecord.doDelete");
-    }
-
-    if (!recorder.hasActiveSession()) {
-      res.setStatus(HttpServletResponse.SC_NOT_FOUND);
-      return;
-    }
-
-    Recording recording = recorder.stop();
-    res.setContentType("application/json");
-    res.setContentLength(recording.size());
-    recording.readFully(true, res.getWriter());
-  }
-
-  private static void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-    if (debug) {
-      Logger.println("ToggleRecord.doGet");
-    }
-
-    String responseJson = String.format("{\"enabled\":%b}", recorder.hasActiveSession());
-    res.setContentType("application/json");
-    res.setContentLength(responseJson.length());
-    res.setStatus(HttpServletResponse.SC_OK);
-
-    PrintWriter writer = res.getWriter();
-    writer.write(responseJson);
-    writer.flush();
-  }
-
-  private static void doPost(HttpServletRequest req, HttpServletResponse res) {
-    if (debug) {
-      Logger.println("ToggleRecord.doPost");
-    }
-
-    if (recorder.hasActiveSession()) {
-      res.setStatus(HttpServletResponse.SC_CONFLICT);
-      return;
-    }
-
-    Recorder.Metadata metadata = new Recorder.Metadata();
-    metadata.recorderName = "remote_recording";
-    recorder.start(metadata);
-  }
-
-  private static void doCheckpoint(HttpServletRequest req, HttpServletResponse res) throws IOException {
-    if (debug) {
-      Logger.println("ToggleRecord.doCheckpoint");
-    }
-
-    if (!recorder.hasActiveSession()) {
-      res.setStatus(HttpServletResponse.SC_NOT_FOUND);
-      return;
-    }
-
-    Recording recording = recorder.checkpoint();
-    res.setContentType("application/json");
-    res.setContentLength(recording.size());
-    recording.readFully(true, res.getWriter());
-  }
-
-  private static void handleRecordRequest(HttpServletRequest req, HttpServletResponse res, HandlerFunction fn) throws ExitEarly {
-    if (debug) {
-      Logger.printf("ToggleRecord.service - handling appmap request for %s\n", req.getRequestURI());
-    }
-
-    try {
-      fn.call(req, res);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    if (debug) {
-      Logger.println("ToggleRecord.service - successfully handled appmap request, exiting early");
-    }
-
-    throw new ExitEarly();
-  }
 
   private static void service(Object[] args) throws ExitEarly {
     if (args.length != 2) {
@@ -120,18 +32,8 @@ public class ToggleRecord {
     final HttpServletRequest req = new HttpServletRequest(args[0]);
     final HttpServletResponse res = new HttpServletResponse(args[1]);
 
-    if (req.getRequestURI().endsWith(CheckpointRoute)) {
-      if (req.getMethod().equals("GET")) {
-        handleRecordRequest(req, res, ToggleRecord::doCheckpoint);
-      }
-    } else if (req.getRequestURI().endsWith(RecordRoute)) {
-      if (req.getMethod().equals("GET")) {
-        handleRecordRequest(req, res, ToggleRecord::doGet);
-      } else if (req.getMethod().equals("POST")) {
-        handleRecordRequest(req, res, ToggleRecord::doPost);
-      } else if (req.getMethod().equals("DELETE")) {
-        handleRecordRequest(req, res, ToggleRecord::doDelete);
-      }
+    if (RemoteRecordingManager.service(new ServletRequest(req, res))) {
+      throw new ExitEarly();
     }
   }
 
@@ -144,7 +46,7 @@ public class ToggleRecord {
     }
 
     final HttpServletRequest req = new HttpServletRequest(args[0]);
-    if (!req.getRequestURI().endsWith(RecordRoute)) {
+    if (!req.getRequestURI().endsWith(RemoteRecordingManager.RecordRoute)) {
       return;
     }
 

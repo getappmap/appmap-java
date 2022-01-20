@@ -1,6 +1,7 @@
 package com.appland.appmap.process.hooks;
 
 import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.process.hooks.remoterecording.RemoteRecordingManager;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.reflect.HttpServletRequest;
 import com.appland.appmap.reflect.HttpServletResponse;
@@ -16,7 +17,7 @@ public class HttpServerRequest {
   private static final Recorder recorder = Recorder.getInstance();
 
   private static void recordHttpServerRequest(Event event, HttpServletRequest req) {
-    if (req.getRequestURI().endsWith(ToggleRecord.RecordRoute)) {
+    if (req.getRequestURI().endsWith(RemoteRecordingManager.RecordRoute)) {
       return;
     }
 
