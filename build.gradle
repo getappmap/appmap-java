@@ -54,6 +54,8 @@ dependencies {
   implementation 'org.yaml:snakeyaml:1.29'
   implementation 'org.slf4j:slf4j-nop:1.7.30'
   implementation 'info.picocli:picocli:4.6.1'
+  implementation 'org.apache.httpcomponents:httpcore-nio:4.4.15'
+
 
   testImplementation 'junit:junit:4.12'
   testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
@@ -81,6 +83,7 @@ shadowJar {
   minimize()
   dependencies {
     exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
+    exclude(dependency('org.apache.httpcomponents:.*:.*'))
   }
 }
 
@@ -131,11 +134,13 @@ test {
 }
 
 task relocateShadowJar(type: ShadowRelocation) {
+
   target = tasks.shadowJar
   prefix = "com.appland.shade"
   excludes = [
     "javax.",
-    "java."
+    "java.",
+    "org.apache.http",
   ]
 }
 

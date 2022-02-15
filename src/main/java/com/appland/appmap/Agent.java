@@ -9,8 +9,11 @@ import com.appland.appmap.transform.ClassFileTransformer;
 import com.appland.appmap.util.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.text.SimpleDateFormat;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Date;
 
 /**
@@ -31,10 +34,13 @@ public class Agent {
    * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html">Package java.lang.instrument</a>
    */
   public static void premain(String agentArgs, Instrumentation inst) {
+
     final File dir = Properties.getOutputDirectory();
 
-    Logger.printf("agent loaded using config %s\n", Properties.ConfigFile);
-
+    Logger.println("Agent version " + Agent.class.getPackage().getImplementationVersion());
+    Logger.println("System properties: " + System.getProperties().toString());
+    Logger.whereAmI();
+    
     inst.addTransformer(new ClassFileTransformer());
 
     if (AppMapConfig.load(new File(Properties.ConfigFile)) == null) {
