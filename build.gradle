@@ -60,6 +60,11 @@ dependencies {
   testImplementation "org.mockito:mockito-core:3.+"
 }
 
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
 jar {
   manifest {
     attributes 'Premain-Class': 'com.appland.appmap.Agent'
