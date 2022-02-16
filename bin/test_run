@@ -3,6 +3,7 @@
 export PATH="$BATS_DIR"/bin:$PATH
 
 ./test/petclinic/test
+./test/httpcore/test
 ./test/http_client/test
 ./test/agent_cli/test
 ./test/access/test

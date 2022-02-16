@@ -8,9 +8,14 @@ mkdir -p build/fixtures
 (
 cd build/fixtures
 
+# As of spring-petclinic's upgrade to spring javaformat 0.0.31 (commit
+# d90ecb6a0fcc9063d56eb2c893603f0c28271f60 on 20220209), packaging now fails for
+# jdk 1.8. Pin to an older commit (they don't tag releases) until it gets sorted
+# out.
 rm -rf spring-petclinic
-git clone --depth 1 https://github.com/spring-projects/spring-petclinic.git \
+git clone https://github.com/spring-projects/spring-petclinic.git \
     && cd spring-petclinic \
+    && git checkout 9cb8dde9b8b70218cb666447cbf1342bce7a473c \
     && ./mvnw package -Dmaven.test.skip=true
 )
 

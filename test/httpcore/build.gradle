@@ -1,0 +1,37 @@
+plugins {
+  id 'application'
+  id 'java'
+}
+
+repositories {
+  mavenCentral()
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs = ['src/test/java']
+    }
+  }
+}
+
+def appmapJar = fileTree('../../build/libs').matching {
+      include {
+        it.file.name ==~ /.*appmap-[0-9.]*.jar$/
+      }
+    }.getFiles()[0]
+
+dependencies {
+  implementation 'org.apache.httpcomponents:httpcore-nio:4.4.15'
+  implementation files(appmapJar)
+}
+
+application {
+  mainClass = 'org.apache.http.examples.nio.NHttpReverseProxy'
+  applicationDefaultJvmArgs = [
+    "-javaagent:${appmapJar}", 
+    "-Dappmap.config.file=appmap.yml", 
+    "-Dappmap.debug=true", 
+    "-Dappmap.debug.file=../../build/logs/httpcore-appmap.log"]
+
+}

@@ -83,8 +83,13 @@ public class Recording {
         return (int) this.file.length();
     }
 
+  public InputStream asInputStream() throws IOException {
+    return new FileInputStream(this.file);
+  }
+
     interface FileMover {
         class Result {
+
             final IOException exception;
 
             Result(IOException exception) {

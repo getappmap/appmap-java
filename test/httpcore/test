@@ -1,0 +1,65 @@
+#!/bin/bash
+set -ax
+
+mkdir -p build/log
+
+LOG=$PWD/build/log/httpcore.log
+PC_LOG=$PWD/build/log/petclinic.log
+PETCLINIC_URL="http://localhost:8080"
+PROXY_PORT=9090
+WS_URL="http://localhost:${PROXY_PORT}"
+
+start_petclinic() {
+  pushd build/fixtures/spring-petclinic
+
+  ./mvnw spring-boot:run &> $PC_LOG &
+  PC_PID=$!
+
+  while [ -z "$(curl -sI $PETCLINIC_URL | grep 'HTTP/1.1 200')" ] ; do
+    if ! kill -0 "${PC_PID}" 2> /dev/null; then
+      printf '. failed!\n\nprocess exited unexpectedly:\n' 1>&2
+      cat $LOG
+      exit 1
+    fi
+
+    printf '.' 1>&2
+    sleep 1
+  done
+  printf ' ok\n\n' 1>&2
+  popd
+}
+start_petclinic
+
+start_revproxy() {
+  pushd test/httpcore
+    
+  printf 'getting set up' 1>&2
+  gradle run --args "${PETCLINIC_URL} ${PROXY_PORT}"   &> $LOG &
+
+  JVM_PID=$!
+  while [ -z "$(curl -sI ${WS_URL} | grep 'HTTP/1.1 200')" ]; do
+    if ! kill -0 "${JVM_PID}" 2> /dev/null; then
+      printf '. failed!\n\nprocess exited unexpectedly:\n'
+      cat $LOG
+      exit 1
+    fi
+
+    printf '.' 1>&2
+    sleep 1
+  done
+  printf ' ok\n\n' 1>&2
+  popd
+}
+start_revproxy
+
+run_bats() {
+  bats --tap test/httpcore/httpcore.bats > build/log/bats-httpcore.log 2>&1
+}
+${@:-run_bats}
+bats_ret=$?
+
+kill $JVM_PID $PC_PID
+wait $JVM_PID $PC_PID
+
+cat build/log/bats-httpcore.log
+exit $bats_ret

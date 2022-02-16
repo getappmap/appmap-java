@@ -1,0 +1,4 @@
+name: httpcore
+packages:
+- path: org.apache.http.nio.protocol.HttpAsyncService#responseReady
+
