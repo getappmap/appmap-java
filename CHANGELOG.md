@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/applandinc/appmap-java/compare/v1.9.0...v1.10.0) (2022-02-16)
+
+
+### Features
+
+* Add support for Http Core ([baa0ba6](https://github.com/applandinc/appmap-java/commit/baa0ba6f29e71c301d2f0fa2242c19d1bdb3b35c))
+
 # [1.9.0](https://github.com/applandinc/appmap-java/compare/v1.8.1...v1.9.0) (2022-01-18)
 
 
