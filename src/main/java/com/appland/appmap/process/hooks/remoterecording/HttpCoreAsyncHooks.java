@@ -66,8 +66,8 @@ public class HttpCoreAsyncHooks {
     final HttpAsyncExchange httpexchange = (HttpAsyncExchange)args[1];
     final HttpResponse res = httpexchange.getResponse();
     final boolean handled = RemoteRecordingManager.service(new HttpCoreRequest(req, res));
-    httpexchange.submitResponse(new BasicAsyncResponseProducer(res));
     if (handled) {
+      httpexchange.submitResponse(new BasicAsyncResponseProducer(res));
       throw new ExitEarly();
     }
   }

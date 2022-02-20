@@ -68,13 +68,14 @@ load '../helper'
 @test "expected appmap captured" {
   start_recording
   
-  _curl -XGET "${WS_URL}/vets"
+  _curl -XGET "${WS_URL}"
   
   stop_recording
 
   # Sanity check the events and classmap
-  assert_json_eq '.events | length' 8
+  assert_json_eq '.events | length' 6
 
+  
   assert_json_eq '.classMap | length' 1
-  assert_json_eq '[.classMap[0] | recurse | .name?] | join(".")' org.apache.http.nio.protocol.HttpAsyncService.responseReady
+  assert_json_eq '[.classMap[0] | recurse | .name?] | join(".")' 'org.apache.http.examples.nio.HelloWorldServer$HelloWorldHandler.handle.sayHello'
 }

@@ -21,23 +21,38 @@ public class HttpServerRequest {
       return;
     }
 
-    event.setHttpServerRequest(req.getMethod(), req.getRequestURI(), req.getProtocol(), req.getHeaders());
+    recordHttpServerRequest(event,
+      req.getMethod(), req.getRequestURI(), req.getProtocol(), 
+      req.getHeaders(),
+      req.getParameterMap());
+  }
+
+  public static void recordHttpServerRequest(Event event, 
+    String method, String uri, String protocol, 
+    Map<String, String> headers,
+    Map<String, String[]> params)  {
+    event.setHttpServerRequest(method, uri, protocol, headers);
     event.setParameters(null);
     
-
-    for (Map.Entry<String, String[]> param : req.getParameterMap().entrySet()) {
-      final String[] values = param.getValue();
-      event.addMessageParam(param.getKey(), values.length > 0 ? values[0] : "");
+    if (params != null) {
+      for (Map.Entry<String, String[]> param : params.entrySet()) {
+        final String[] values = param.getValue();
+        event.addMessageParam(param.getKey(), values.length > 0 ? values[0] : "");
+      }
     }
-
     recorder.add(event);
   }
 
   private static void recordHttpServerResponse(Event event, HttpServletResponse res) {
-    event.setHttpServerResponse(res.getStatus(), res.getContentType(), res.getHeaders());
+    recordHttpServerResponse(event, res.getStatus(), res.getHeaders());
+  }
+
+  public static void recordHttpServerResponse(Event event, int status, Map<String,String> headers) {
+    event.setHttpServerResponse(status, headers);
     event.setParameters(null);
     recorder.add(event);
   }
+
 
   @ArgumentArray
   @ExcludeReceiver
