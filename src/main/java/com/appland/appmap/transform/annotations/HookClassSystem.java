@@ -9,9 +9,11 @@ public class HookClassSystem extends SourceMethodSystem {
   private String targetClass = null;
   private String targetMethod = null;
   private Boolean ignoresChildren = IGNORE_CHILDREN_DEFAULT;
+  private final Integer position;
 
-  private HookClassSystem(CtBehavior behavior) {
+  private HookClassSystem(CtBehavior behavior, int position) {
     super(behavior);
+    this.position = position;
   }
 
   /**
@@ -38,7 +40,8 @@ public class HookClassSystem extends SourceMethodSystem {
           IgnoreChildren.class,
           IGNORE_CHILDREN_DEFAULT);
 
-      HookClassSystem system = new HookClassSystem(behavior);
+      Integer position = AnnotationUtil.getPosition(behavior, HookClass.class, ISystem.HOOK_POSITION_DEFAULT);
+      HookClassSystem system = new HookClassSystem(behavior, position);
       system.ignoresChildren = ignoresChildren;
       system.targetClass = hookClass.value();
       system.targetMethod = hookClass.method() == null || hookClass.method().isEmpty() 
@@ -72,5 +75,10 @@ public class HookClassSystem extends SourceMethodSystem {
   @Override
   public String getKey() {
     return this.targetMethod;
+  }
+
+  @Override
+  public Integer getHookPosition() {
+    return position;
   }
 }

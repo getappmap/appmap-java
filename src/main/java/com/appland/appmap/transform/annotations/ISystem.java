@@ -15,6 +15,10 @@ import javassist.CtBehavior;
  * @see ArgumentArray
  */
 public interface ISystem {
+  int HOOK_POSITION_FIRST = -1;
+  int HOOK_POSITION_DEFAULT = 0;
+  int HOOK_POSITION_LAST = 1;
+
   public static ISystem from(CtBehavior behavior) {
     return null;
   }
@@ -24,6 +28,8 @@ public interface ISystem {
   public void mutateStaticParameters(CtBehavior behavior, Parameters params);
 
   public void mutateRuntimeParameters(HookBinding binding, Parameters runtimeParameters);
+
+  public Integer getHookPosition();
 
   public Integer getParameterPriority();
 

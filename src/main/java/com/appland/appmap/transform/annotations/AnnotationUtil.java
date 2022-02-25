@@ -19,6 +19,19 @@ class AnnotationUtil {
   public static Object getValue(CtBehavior behavior,
                                 Class<?> annotationClass,
                                 Object defaultValue) {
+    return getValue(behavior, annotationClass, "value", defaultValue);
+  }
+
+  public static Integer getPosition(CtBehavior behavior,
+                                Class<?> annotationClass,
+                                Object defaultValue) {
+    return (Integer)getValue(behavior, annotationClass, "position", defaultValue);
+  }
+
+  private static Object getValue(CtBehavior behavior,
+                                Class<?> annotationClass,
+                                String annotationName,
+                                Object defaultValue) {
     try {
       Object annotation = behavior.getAnnotation(annotationClass);
       if (annotation == null) {
@@ -29,7 +42,7 @@ class AnnotationUtil {
         return defaultValue;
       }
 
-      Method valueMethod = annotationClass.getMethod("value");
+      Method valueMethod = annotationClass.getMethod(annotationName);
       if (valueMethod == null) {
         return defaultValue;
       }

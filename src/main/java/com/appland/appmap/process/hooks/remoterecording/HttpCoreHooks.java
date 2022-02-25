@@ -12,6 +12,7 @@ import com.appland.appmap.transform.annotations.ArgumentArray;
 import com.appland.appmap.transform.annotations.CallbackOn;
 import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookClass;
+import com.appland.appmap.transform.annotations.ISystem;
 import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.util.Logger;
 import com.appland.appmap.process.hooks.HttpServerRequest;
@@ -57,9 +58,8 @@ public class HttpCoreHooks {
 
   @ArgumentArray
   @ExcludeReceiver
-  @HookClass(value="org.apache.http.protocol.HttpRequestHandler", method="handle")
-  @CallbackOn(MethodEvent.METHOD_RETURN)
-  public static void postHandleSync(Event event, Object[] args)
+  @HookClass(value = "org.apache.http.protocol.HttpRequestHandler", method="handle", position = ISystem.HOOK_POSITION_LAST)
+  @CallbackOn(value = MethodEvent.METHOD_RETURN)
   public static void postHandleSync(Event event, Object ret, Object[] args)
     throws IOException, HttpException, ExitEarly {
     HttpResponse res = (HttpResponse) args[1];

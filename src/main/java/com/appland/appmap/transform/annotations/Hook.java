@@ -299,4 +299,8 @@ public class Hook {
     }
     return null;
   }
+
+  public Integer getPosition() {
+    return sourceSystem.getHookPosition();
+  }
 }
