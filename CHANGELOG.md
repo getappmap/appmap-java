@@ -1,3 +1,15 @@
+# [1.11.0](https://github.com/applandinc/appmap-java/compare/v1.10.0...v1.11.0) (2022-02-28)
+
+
+### Bug Fixes
+
+* Allow hook application to be ordered ([d111e0a](https://github.com/applandinc/appmap-java/commit/d111e0aa4c773d3e201a2be9e7fb731e77fb9291))
+
+
+### Features
+
+* http_server_requests for Http Core servers ([0b2d09c](https://github.com/applandinc/appmap-java/commit/0b2d09c20b8919f552e2693933d270151ad504d3))
+
 # [1.10.0](https://github.com/applandinc/appmap-java/compare/v1.9.0...v1.10.0) (2022-02-16)
 
 
