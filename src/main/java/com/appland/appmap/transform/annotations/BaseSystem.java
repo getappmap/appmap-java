@@ -26,6 +26,10 @@ public abstract class BaseSystem implements ISystem {
     return this.hookBehavior;
   }
 
+  public Integer getHookPosition() {
+    return ISystem.HOOK_POSITION_DEFAULT;
+  }
+
   public Integer getParameterPriority() {
     return Integer.MAX_VALUE;
   }

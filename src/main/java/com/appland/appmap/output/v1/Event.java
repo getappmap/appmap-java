@@ -365,7 +365,7 @@ public class Event {
    * @return {@code this}
    * @see <a href="https://github.com/applandinc/appmap#http-server-response-attributes">GitHub: AppMap - HTTP server response attributes</a>
    */
-  public Event setHttpServerResponse(Integer status, String mimeType, Map<String, String> headers) {
+  public Event setHttpServerResponse(Integer status, Map<String, String> headers) {
     this.httpServerResponse = new HttpServerResponse()
         .setStatus(status)
         .setHeaders(headers);

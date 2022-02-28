@@ -81,6 +81,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
     return Stream.of(matchingKeyedHooks, unkeyedHooks)
         .flatMap(Collection::stream)
+        .sorted(Comparator.comparingInt(Hook::getPosition))
         .collect(Collectors.toList());
   }
 

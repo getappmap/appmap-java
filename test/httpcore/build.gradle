@@ -27,11 +27,12 @@ dependencies {
 }
 
 application {
-  mainClass = 'org.apache.http.examples.nio.NHttpReverseProxy'
+  mainClass = 'org.apache.http.examples.nio.HelloWorldServer'
   applicationDefaultJvmArgs = [
     "-javaagent:${appmapJar}", 
     "-Dappmap.config.file=appmap.yml", 
     "-Dappmap.debug=true", 
-    "-Dappmap.debug.file=../../build/logs/httpcore-appmap.log"]
+    "-Dappmap.debug.file=../../build/logs/httpcore-appmap.log"
+  ]
 
 }
