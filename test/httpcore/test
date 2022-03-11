@@ -35,8 +35,8 @@ run_bats() {
 ${@:-run_bats}
 bats_ret=$?
 
-kill $JVM_PID $PC_PID
-wait $JVM_PID $PC_PID
+kill $JVM_PID
+wait $JVM_PID
 
 cat build/log/bats-httpcore.log
 exit $bats_ret

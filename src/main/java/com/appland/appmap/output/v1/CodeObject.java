@@ -2,12 +2,17 @@ package com.appland.appmap.output.v1;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.appland.appmap.util.Logger;
+import com.appland.appmap.annotation.Labels;
+
 import javassist.CtBehavior;
 import javassist.CtClass;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.regex.Matcher;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Represents a package, class or method.
@@ -85,6 +90,16 @@ public class CodeObject {
   public List<CodeObject>safeGetChildren() {
     return this.children != null? this.children : Collections.<CodeObject>emptyList();
   }
+
+  public String[] labels;
+  public CodeObject setLabels(String[] labels) {
+    if (labels != null) {
+      this.labels = labels.clone();
+    }
+    
+    return this;
+  }
+
   //
   // End of serializable attributes
   ////////
@@ -123,7 +138,8 @@ public class CodeObject {
       && codeObject.name.equals(this.name)
       && codeObject.isStatic == this.isStatic
       && (codeObject.file == null? this.file == null : codeObject.file.equals(this.file))
-      && codeObject.lineno == this.lineno;
+      && codeObject.lineno == this.lineno
+      && (codeObject.labels == null? this.labels == null : codeObject.labels.equals(this.labels));
 
   }
 
@@ -162,13 +178,27 @@ public class CodeObject {
    * @param behavior The behavior representing this CodeObject
    */
   public CodeObject(CtBehavior behavior) {
-    final String file = CodeObject.getSourceFilePath(behavior.getDeclaringClass());
+    final CtClass ctclass = behavior.getDeclaringClass();
+    final String file = CodeObject.getSourceFilePath(ctclass);
     final int lineno = behavior.getMethodInfo().getLineNumber(0);
+
+    String[] labels = null;
+
+    try {
+      if (behavior.hasAnnotation(Labels.class)) {
+        final Labels annotation = (Labels)behavior.getAnnotation(Labels.class);
+        labels = annotation.value();
+      }
+    } catch (ClassNotFoundException e) {
+      Logger.println(e);
+    }
 
     this.setType("function")
       .setName(behavior.getName())
       .setFile(file).setLineno(lineno)
-      .setStatic((behavior.getModifiers() & Modifier.STATIC) != 0);
+      .setStatic((behavior.getModifiers() & Modifier.STATIC) != 0)
+      .setLabels(labels)
+      ;
   }
 
   /**
@@ -180,7 +210,8 @@ public class CodeObject {
       .setName(src.name)
       .setStatic(src.isStatic)
       .setFile(src.file)
-      .setLineno(src.lineno);
+      .setLineno(src.lineno)
+      .setLabels(src.labels);
   }
 
   /**

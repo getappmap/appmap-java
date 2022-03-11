@@ -81,5 +81,17 @@ load '../helper'
   assert_json_eq '.events[5].http_server_response.status' 200
   
   assert_json_eq '.classMap | length' 1
-  assert_json_eq '[.classMap[0] | recurse | .name?] | join(".")' 'org.apache.http.examples.nio.HelloWorldServer$HelloWorldHandler.handle.sayHello'
+
+  # Pick the functions out of the classMap
+  local filter='[.classMap | paths(objects) as $p | getpath($p) | select(.type == "function")]'
+  
+  assert_json_eq "${filter}[0].name" 'sayHello'
+  assert_json_eq "${filter}[0].labels" '[
+  "say",
+  "Hello"
+]'
+  assert_json_eq "${filter}[1].name" 'handle'
+  assert_json_eq "${filter}[1].labels" '[
+  "handler"
+]'
 }
