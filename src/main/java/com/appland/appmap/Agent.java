@@ -39,7 +39,9 @@ public class Agent {
 
     Logger.println("Agent version " + Agent.class.getPackage().getImplementationVersion());
     Logger.println("System properties: " + System.getProperties().toString());
-    Logger.whereAmI();
+    if (Properties.Debug) {
+      Logger.whereAmI();
+    }
     
     inst.addTransformer(new ClassFileTransformer());
 
