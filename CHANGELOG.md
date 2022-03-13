@@ -1,3 +1,15 @@
+# [1.12.0](https://github.com/applandinc/appmap-java/compare/v1.11.0...v1.12.0) (2022-03-13)
+
+
+### Bug Fixes
+
+* Eliminate whereAmI at agent startup ([0396572](https://github.com/applandinc/appmap-java/commit/0396572973b1641d0405ac4dc5662a584d1054bb))
+
+
+### Features
+
+* Add @Labels annotation ([60c99bb](https://github.com/applandinc/appmap-java/commit/60c99bb4615ad0eeffab96bf444e069d24b9387b))
+
 # [1.11.0](https://github.com/applandinc/appmap-java/compare/v1.10.0...v1.11.0) (2022-02-28)
 
 
