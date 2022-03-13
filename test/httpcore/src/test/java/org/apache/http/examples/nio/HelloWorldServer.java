@@ -14,12 +14,16 @@ import org.apache.http.nio.protocol.BasicAsyncRequestHandler;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
+import com.appland.appmap.annotation.Labels;
+
 public class HelloWorldServer {
   static class HelloWorldHandler implements HttpRequestHandler {
+    @Labels({"say", "Hello"})
     String sayHello() { 
       return "<body><html><h1>Hello World!</h1></html></body>";
     }
 
+    @Labels({"handler"})
     public void handle(
             final HttpRequest request,
             final HttpResponse response,
@@ -29,6 +33,7 @@ public class HelloWorldServer {
     }
   }
 
+  @Labels({"server", "runner"})
   public HttpServer run(int port) throws IOException, InterruptedException {
     final HttpServer server = ServerBootstrap.bootstrap()
       .setListenerPort(port)
