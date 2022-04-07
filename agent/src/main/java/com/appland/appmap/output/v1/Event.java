@@ -1,11 +1,14 @@
 package com.appland.appmap.output.v1;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
 import javassist.CtBehavior;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -62,9 +65,14 @@ public class Event {
   @JSONField(name = "sql_query")
   public SqlQuery sqlQuery;
 
+  @JSONField(name = "elapsed")
+  public Float elapsed = null;
+
   private boolean frozen = false;
   private boolean ignored = false;
   private String packageName;
+
+  private LocalDateTime startTime;
 
   private synchronized Integer issueId() {
     return ++globalEventId;
@@ -440,6 +448,17 @@ public class Event {
   public Event setSqlQuery(String databaseType, String sql) {
     clearFunctionFields();
     this.sqlQuery = new SqlQuery(databaseType, sql);
+    return this;
+  }
+
+  public Event setStartTime() {
+    this.startTime = LocalDateTime.now();
+    return this;
+  }
+
+  public Event measureElapsed(Event callEvent) {
+    LocalDateTime endTime = LocalDateTime.now();
+    this.elapsed = new Float(Duration.between(callEvent.startTime, endTime).toNanos() / 10e09);
     return this;
   }
 

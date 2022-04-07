@@ -211,3 +211,16 @@ teardown_file() {
 
   assert_json_eq '.events[] | .http_server_response | .headers["Content-Type"]' "text/html;charset=UTF-8"
 }
+@test "recordings capture elapsed time" {
+  start_recording
+  run _curl -XGET "${WS_URL}"
+  stop_recording
+
+  # ensure recordings have elapsed time
+  run jq -e '.events[] | select(.event == "return") | .elapsed' <<< "$output"
+  assert_success
+
+  # and that the elapsed times are parseable by JavaScript
+  run xargs -L1 node -e 'console.log(Number(process.argv[1] +"foo"))' <<< "$output"
+  refute_output --partial 'NaN'
+}

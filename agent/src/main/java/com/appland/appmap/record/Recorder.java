@@ -170,7 +170,8 @@ public class Recorder {
             event.ignore();
           }
         }
-
+        
+        event.setStartTime();
         ts.callStack.push(event);
       } else if ( event.event.equals("return") ) {
         if ( ts.callStack.isEmpty() ) {
@@ -188,6 +189,7 @@ public class Recorder {
         Event caller = ts.callStack.pop();
         event.parentId = caller.id;
         event.threadId = caller.threadId;
+        event.measureElapsed(caller);
         // Erase these fields - see comment in Event#functionReturnEvent
         event.definedClass = null;
         event.methodId = null;
