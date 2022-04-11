@@ -21,9 +21,16 @@ def appmapJar = fileTree('../../build/libs').matching {
       }
     }.getFiles()[0]
 
+def annotationJar = fileTree('../../../annotation/build/libs').matching {
+      include {
+        it.file.name ==~ /.*annotation-[0-9.]*.jar$/
+      }
+    }.getFiles()[0]
+
 dependencies {
   implementation 'org.apache.httpcomponents:httpcore-nio:4.4.15'
   implementation files(appmapJar)
+  implementation files(annotationJar)
 }
 
 application {
@@ -31,7 +38,7 @@ application {
   applicationDefaultJvmArgs = [
     "-javaagent:${appmapJar}", 
     "-Dappmap.config.file=appmap.yml", 
-    "-Dappmap.debug=true", 
+    // "-Dappmap.debug=true", 
     "-Dappmap.debug.file=../../build/logs/httpcore-appmap.log"
   ]
 

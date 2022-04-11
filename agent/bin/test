@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+source ./bin/test_install
+
+./bin/test_run

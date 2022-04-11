@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex
 
-source ./bin/test_install
-
-./bin/test_run
+(cd agent && bin/test)
