@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/applandinc/appmap-java/compare/v1.12.0...v1.12.1) (2022-04-12)
+
+
+### Bug Fixes
+
+* Move Labels into separate artifact ([3527e65](https://github.com/applandinc/appmap-java/commit/3527e65c7f30ad1d9c1401d365612b4336c48b88))
+
 # [1.12.0](https://github.com/applandinc/appmap-java/compare/v1.11.0...v1.12.0) (2022-03-13)
 
 
