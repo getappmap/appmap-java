@@ -5,7 +5,7 @@ plugins:
   - - '@google/semantic-release-replace-plugin'
     - replacements:
         - files: [build.gradle]
-          from: (?<=def\s+defaultVersion\s*=\s*').*(?<!')
+          from: (?<=\s+defaultVersion\s*=\s*').*(?<!')
           to: ${nextRelease.version}
           countMatches: true
           results:
