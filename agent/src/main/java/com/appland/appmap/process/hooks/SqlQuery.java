@@ -9,6 +9,7 @@ import com.appland.appmap.transform.annotations.Unique;
 import com.appland.appmap.util.Logger;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -29,10 +30,23 @@ public class SqlQuery {
     recorder.add(event);
   }
 
+  private static boolean isMock(Object o) {
+    return o.getClass().getPackage().getName().startsWith("org.mockito");
+  }
+
   private static String getDbName(Connection c) {
     String dbname = "";
+    if (c == null) {
+      return dbname;
+    }
+
     try {
-      dbname = c.getMetaData().getDatabaseProductName();
+      DatabaseMetaData metadata;
+      if (isMock(c) || isMock(metadata = c.getMetaData())) {
+        return "[mocked]";
+      }
+
+      dbname = metadata.getDatabaseProductName();
     }
     catch (SQLException e) {
       Logger.println("WARNING, failed to get database name");
@@ -43,7 +57,15 @@ public class SqlQuery {
 
   private static String getDbName(Statement s) {
     String dbname = "";
+    if (s == null) {
+      return dbname;
+    }
+
     try {
+      if(isMock(s)) {
+        return "[mocked]";
+      }
+
       dbname = getDbName(s.getConnection());
     }
     catch (SQLException e) {
