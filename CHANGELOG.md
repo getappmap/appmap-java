@@ -1,3 +1,10 @@
+## [1.12.2](https://github.com/applandinc/appmap-java/compare/v1.12.1...v1.12.2) (2022-04-19)
+
+
+### Bug Fixes
+
+* Don't call mocked java.sql methods ([0ba3563](https://github.com/applandinc/appmap-java/commit/0ba3563477bd27178de53ec23768c0aa547f29ca))
+
 ## [1.12.1](https://github.com/applandinc/appmap-java/compare/v1.12.0...v1.12.1) (2022-04-12)
 
 
