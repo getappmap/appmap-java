@@ -18,7 +18,7 @@ public class Logger {
       return;
     }
 
-    log.println("AppMap [DEBUG]: " + msg);
+    log.println("AppMap[" + Thread.currentThread() + "] [DEBUG]: " + msg);
   }
 
   public static void printf(String format, Object... args) {
@@ -26,15 +26,24 @@ public class Logger {
       return;
     }
 
-    log.printf("AppMap [DEBUG]: " + format, args);
+    log.printf("AppMap[" + Thread.currentThread() + "] [DEBUG]: " + format, args);
   }
 
   public static void error(String msg) {
-    System.err.println("AppMap [ERROR]: " + msg);
+    System.err.println("AppMap[" + Thread.currentThread() + "] [ERROR]: " + msg);
+  }
+
+  public static void whereAmI(String msg) {
+    if (!Properties.Debug) {
+      return;
+    }
+
+    println(msg);
+    new Exception().printStackTrace(log);
   }
 
   public static void whereAmI() {
-    new Exception().printStackTrace(log);
+    whereAmI("whereAmI?");
   }
   
   private static PrintStream ensureLog() {
