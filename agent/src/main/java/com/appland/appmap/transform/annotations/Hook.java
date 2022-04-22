@@ -9,6 +9,7 @@ import javassist.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Hook {
   private static final EventTemplateRegistry eventTemplateRegistry = EventTemplateRegistry.get();
@@ -22,7 +23,6 @@ public class Hook {
 
   private final static List<Function<CtBehavior, ISystem>> optionalSystemFactories =
       new ArrayList<Function<CtBehavior, ISystem>>() {{
-          add(CallbackOnSystem::from);
           add(ExcludeReceiverSystem::from);
           add(ArgumentArraySystem::from);
       }};
@@ -94,9 +94,7 @@ public class Hook {
 
   public Parameters getRuntimeParameters(HookBinding binding) {
     Parameters runtimeParameters = this.staticParameters.clone();
-    this.sourceSystem.mutateRuntimeParameters(binding, runtimeParameters);
-    this.optionalSystems
-        .stream()
+    Stream.concat(Stream.of(this.sourceSystem), this.optionalSystems.stream())
         .sorted(Comparator.comparingInt(ISystem::getParameterPriority))
         .forEach(system -> {
           system.mutateRuntimeParameters(binding, runtimeParameters);
@@ -264,14 +262,7 @@ public class Hook {
   }
 
   public MethodEvent getMethodEvent() {
-    MethodEvent methodEvent = MethodEvent.METHOD_INVOCATION;
-    for (ISystem system : this.optionalSystems) {
-      if (system instanceof CallbackOnSystem) {
-        methodEvent = ((CallbackOnSystem) system).getMethodEvent();
-        break;
-      }
-    }
-    return methodEvent;
+    return this.sourceSystem.getMethodEvent();
   }
 
   public SourceMethodSystem getSourceSystem() {

@@ -75,8 +75,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
   private List<Hook> getHooks(String methodId) {
     List<Hook> matchingKeyedHooks = keyedHooks.get(methodId);
-    if (matchingKeyedHooks == null || matchingKeyedHooks.isEmpty()) {
-      return unkeyedHooks;
+    if (matchingKeyedHooks == null) {
+      matchingKeyedHooks = new ArrayList<Hook>();
     }
 
     return Stream.of(matchingKeyedHooks, unkeyedHooks)
@@ -126,11 +126,12 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       if (Properties.DebugHooks) {
         for (HookSite hookSite : hookSites) {
           final Hook hook = hookSite.getHook();
-          Logger.printf("hooked %s.%s%s on (%s) with %s\n",
+          Logger.printf("hooked %s.%s%s on (%s,%d) with %s\n",
                         behavior.getDeclaringClass().getName(),
                         behavior.getName(),
                         behavior.getMethodInfo().getDescriptor(),
                         hook.getMethodEvent().getEventString(),
+                        hook.getPosition(),
                         hook);
         }
       }

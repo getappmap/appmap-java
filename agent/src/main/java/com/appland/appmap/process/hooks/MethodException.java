@@ -4,7 +4,6 @@ import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.conditions.ConfigCondition;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.transform.annotations.ArgumentArray;
-import com.appland.appmap.transform.annotations.CallbackOn;
 import com.appland.appmap.transform.annotations.HookCondition;
 import com.appland.appmap.transform.annotations.MethodEvent;
 
@@ -15,8 +14,7 @@ public class MethodException {
   private static final Recorder recorder = Recorder.getInstance();
 
   @ArgumentArray
-  @CallbackOn(MethodEvent.METHOD_EXCEPTION)
-  @HookCondition(ConfigCondition.class)
+  @HookCondition(value = ConfigCondition.class,  methodEvent = MethodEvent.METHOD_EXCEPTION)
   public static void handle(Event event, Object self, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);

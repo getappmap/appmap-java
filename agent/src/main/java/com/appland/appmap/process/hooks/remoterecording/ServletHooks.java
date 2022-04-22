@@ -163,17 +163,15 @@ public class ServletHooks {
   }
 
   @ArgumentArray
-  @CallbackOn(MethodEvent.METHOD_RETURN)
   @ExcludeReceiver
-  @HookAnnotated("org.junit.Test")
+  @HookAnnotated(value = "org.junit.Test", methodEvent = MethodEvent.METHOD_RETURN)
   public static void junit(Event event, Object returnValue, Object[] args) {
     stopRecording(event, true);
   }
 
   @ArgumentArray
-  @CallbackOn(MethodEvent.METHOD_EXCEPTION)
   @ExcludeReceiver
-  @HookAnnotated("org.junit.Test")
+  @HookAnnotated(value = "org.junit.Test", methodEvent = MethodEvent.METHOD_EXCEPTION)
   public static void junit(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
@@ -188,17 +186,15 @@ public class ServletHooks {
   }
 
   @ArgumentArray
-  @CallbackOn(MethodEvent.METHOD_RETURN)
   @ExcludeReceiver
-  @HookAnnotated("org.junit.jupiter.api.Test")
+  @HookAnnotated(value = "org.junit.jupiter.api.Test", methodEvent = MethodEvent.METHOD_RETURN)
   public static void junitJupiter(Event event, Object returnValue, Object[] args) {
     stopRecording(event, true);
   }
 
   @ArgumentArray
-  @CallbackOn(MethodEvent.METHOD_EXCEPTION)
   @ExcludeReceiver
-  @HookAnnotated("org.junit.jupiter.api.Test")
+  @HookAnnotated(value = "org.junit.jupiter.api.Test", methodEvent = MethodEvent.METHOD_EXCEPTION)
   public static void junitJupiter(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
@@ -213,17 +209,15 @@ public class ServletHooks {
   }
 
   @ArgumentArray
-  @CallbackOn(MethodEvent.METHOD_RETURN)
   @ExcludeReceiver
-  @HookAnnotated("org.testng.annotations.Test")
+  @HookAnnotated(value = "org.testng.annotations.Test", methodEvent = MethodEvent.METHOD_RETURN)
   public static void testng(Event event, Object returnValue, Object[] args) {
     stopRecording(event, true);
   }
 
   @ArgumentArray
-  @CallbackOn(MethodEvent.METHOD_EXCEPTION)
   @ExcludeReceiver
-  @HookAnnotated("org.testng.annotations.Test")
+  @HookAnnotated(value = "org.testng.annotations.Test", methodEvent = MethodEvent.METHOD_EXCEPTION)
   public static void testng(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
@@ -244,17 +238,15 @@ public class ServletHooks {
   }
 
   @ArgumentArray
-  @CallbackOn(MethodEvent.METHOD_RETURN)
   @ExcludeReceiver
-  @HookCondition(RecordCondition.class)
+  @HookCondition(value = RecordCondition.class, methodEvent = MethodEvent.METHOD_RETURN)
   public static void record(Event event, Object returnValue, Object[] args) {
     stopRecording(event);
   }
 
   @ArgumentArray
-  @CallbackOn(MethodEvent.METHOD_EXCEPTION)
   @ExcludeReceiver
-  @HookCondition(RecordCondition.class)
+  @HookCondition(value = RecordCondition.class, methodEvent = MethodEvent.METHOD_EXCEPTION)
   public static void record(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);

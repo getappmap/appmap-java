@@ -24,6 +24,7 @@ public @interface HookClass {
    * @return A method name to apply this hook to.
    */
   public String method() default "";
+  public MethodEvent methodEvent() default MethodEvent.METHOD_INVOCATION;
 
   public int position() default ISystem.HOOK_POSITION_DEFAULT;
 }
