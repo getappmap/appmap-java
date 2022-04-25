@@ -80,4 +80,21 @@ public abstract class SourceMethodSystem extends BaseSystem {
   public Integer getParameterPriority() {
     return 200;
   }
+
+  @Override
+  public Integer getHookPosition() {
+    final MethodEvent methodEvent = getMethodEvent();
+    switch (methodEvent) {
+    case METHOD_INVOCATION:
+      return ISystem.HOOK_POSITION_FIRST;
+    case METHOD_RETURN:
+    case METHOD_EXCEPTION:
+      return ISystem.HOOK_POSITION_LAST;
+    default:
+      // If somehow another method event type gets used, it's imperative that
+      // this method get updated. So, throw an exception to indicate that
+      // there's a problem.
+      throw new RuntimeException("Unknown MethodEvent type (" + methodEvent.getEventString() + "," + methodEvent.getIndex() + ")");
+    }
+  }  
 }
