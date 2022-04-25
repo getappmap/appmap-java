@@ -80,3 +80,7 @@ assert_json_not_contains() {
 
   refute jq -er "${query}" <<< "${output}"
 }
+
+find_agent_jar() {
+  echo "$PWD/build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')"
+}
