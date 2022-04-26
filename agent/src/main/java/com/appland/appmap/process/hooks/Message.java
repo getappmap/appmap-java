@@ -2,7 +2,6 @@ package com.appland.appmap.process.hooks;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.Recorder;
-import com.appland.appmap.transform.annotations.CallbackOn;
 import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookClass;
 import com.appland.appmap.transform.annotations.MethodEvent;
@@ -19,9 +18,8 @@ public class Message {
   /**
    * Capture message params from Spring.
    */
-  @CallbackOn(MethodEvent.METHOD_RETURN)
   @ExcludeReceiver
-  @HookClass("org.springframework.util.PathMatcher")
+  @HookClass(value = "org.springframework.util.PathMatcher",  methodEvent = MethodEvent.METHOD_RETURN)
   public static void extractUriTemplateVariables(Event event,
                                                  Object returnVal,
                                                  String pattern,

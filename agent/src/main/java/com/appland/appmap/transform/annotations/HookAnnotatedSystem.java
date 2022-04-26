@@ -8,7 +8,7 @@ public class HookAnnotatedSystem extends SourceMethodSystem {
   private String annotationClass;
 
   private HookAnnotatedSystem(CtBehavior behavior, String annotationClass) {
-    super(behavior);
+    super(behavior, HookAnnotated.class);
 
     this.annotationClass = annotationClass;
   }

@@ -15,4 +15,6 @@ public @interface HookAnnotated {
    * @return The fully qualified name of an annotation
    */
   public String value() default "";
+
+  public MethodEvent methodEvent() default MethodEvent.METHOD_INVOCATION;
 }

@@ -12,7 +12,7 @@ public class HookClassSystem extends SourceMethodSystem {
   private final Integer position;
 
   private HookClassSystem(CtBehavior behavior, int position) {
-    super(behavior);
+    super(behavior, HookClass.class);
     this.position = position;
   }
 

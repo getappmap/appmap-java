@@ -19,16 +19,16 @@ class AnnotationUtil {
   public static Object getValue(CtBehavior behavior,
                                 Class<?> annotationClass,
                                 Object defaultValue) {
-    return getValue(behavior, annotationClass, "value", defaultValue);
+    return getObject(behavior, annotationClass, "value", defaultValue);
   }
 
   public static Integer getPosition(CtBehavior behavior,
                                 Class<?> annotationClass,
                                 Object defaultValue) {
-    return (Integer)getValue(behavior, annotationClass, "position", defaultValue);
+    return (Integer)getObject(behavior, annotationClass, "position", defaultValue);
   }
 
-  private static Object getValue(CtBehavior behavior,
+  public static Object getObject(CtBehavior behavior,
                                 Class<?> annotationClass,
                                 String annotationName,
                                 Object defaultValue) {

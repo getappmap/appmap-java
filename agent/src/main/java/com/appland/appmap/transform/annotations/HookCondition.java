@@ -17,4 +17,6 @@ public @interface HookCondition {
    * @return A class implementing {@link Condition}
    */
   public Class<? extends Condition> value() default Condition.class;
+  public MethodEvent methodEvent() default MethodEvent.METHOD_INVOCATION;
+
 }

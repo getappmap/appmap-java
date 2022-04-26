@@ -10,7 +10,7 @@ public class HookConditionSystem extends SourceMethodSystem {
   private Method conditionMethod = null;
 
   private HookConditionSystem(CtBehavior behavior, Method conditionMethod) {
-    super(behavior);
+    super(behavior, HookCondition.class);
 
     this.conditionMethod = conditionMethod;
   }
@@ -59,5 +59,10 @@ public class HookConditionSystem extends SourceMethodSystem {
       Logger.println(e);
       return false;
     }
+  }
+
+  @Override
+  public Integer getHookPosition() {
+    return ISystem.HOOK_POSITION_DEFAULT;
   }
 }

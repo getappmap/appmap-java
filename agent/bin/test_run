@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 export PATH="$BATS_DIR"/bin:$PATH
 
 ./test/petclinic/test

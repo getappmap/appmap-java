@@ -21,7 +21,6 @@ public class HttpClientRequest {
     recorder.add(event);
   }
 
-  // @CallbackOn(MethodEvent.METHOD_RETURN)
   // @HookClass(value = "java.net.HttpURLConnection")
   public static void connect(Event event, HttpURLConnection httpURLConnection, Object ret) throws IOException {
     event.setHttpClientResponse(httpURLConnection.getResponseCode(), httpURLConnection.getContentType());
