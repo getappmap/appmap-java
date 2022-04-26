@@ -1,3 +1,11 @@
+## [1.12.3](https://github.com/applandinc/appmap-java/compare/v1.12.2...v1.12.3) (2022-04-26)
+
+
+### Bug Fixes
+
+* Only show whereAmI when debugging ([f09468b](https://github.com/applandinc/appmap-java/commit/f09468b084a5fe7b0a8ce49e499d5efd1790e39a))
+* Order source method hooks correctly ([578f45d](https://github.com/applandinc/appmap-java/commit/578f45d0c1f5172a0e61bd19bdc71f8066af17a3))
+
 ## [1.12.2](https://github.com/applandinc/appmap-java/compare/v1.12.1...v1.12.2) (2022-04-19)
 
 
