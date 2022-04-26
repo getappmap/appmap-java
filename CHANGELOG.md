@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/applandinc/appmap-java/compare/v1.12.3...v1.13.0) (2022-04-26)
+
+
+### Features
+
+* Add elapsed time ([950f083](https://github.com/applandinc/appmap-java/commit/950f0830b08382a69806f2e0fec136723a085bfd))
+
 ## [1.12.3](https://github.com/applandinc/appmap-java/compare/v1.12.2...v1.12.3) (2022-04-26)
 
 
