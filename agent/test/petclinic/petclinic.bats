@@ -117,7 +117,7 @@ teardown_file() {
 
 @test "recordings capture http request" {
   start_recording
-  _curl -XGET "${WS_URL}"
+  run _curl -XGET "${WS_URL}"
   stop_recording
 
   assert_json '.events[] | .http_server_request'
@@ -127,7 +127,7 @@ teardown_file() {
 # test will only pass the first time it's run.
 @test "recordings capture sql queries" {
   start_recording
-  _curl -XGET "${WS_URL}/vets.html"
+  run _curl -XGET "${WS_URL}/vets.html"
   stop_recording
 
   assert_json '.events[] | .sql_query'
@@ -136,7 +136,7 @@ teardown_file() {
 
 @test "records exceptions" {
   start_recording
-  _curl -XGET "${WS_URL}/oups"
+  run _curl -XGET "${WS_URL}/oups"
   stop_recording
 
   assert_json '.events[] | .exceptions'
@@ -144,7 +144,7 @@ teardown_file() {
 
 @test "recordings have Java metadata" {
   start_recording
-  _curl -XGET "${WS_URL}"
+  run _curl -XGET "${WS_URL}"
   stop_recording
 
   eval $(java -cp test/petclinic/classes petclinic.Props java.vm.version java.vm.name)
@@ -156,7 +156,7 @@ teardown_file() {
 @test "message parameters contain path params from a Spring app" {
   skip
   start_recording
-  _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
+  run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
   stop_recording
 
   assert_json_eq '.events[] | .http_server_request.normalized_path_info' '/owners/:ownerId/pets/:petId/edit'
@@ -166,7 +166,7 @@ teardown_file() {
 
 @test "return events have parent_id and don't have non-essential parameters" {
   start_recording
-  _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
+  run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
   stop_recording
 
   assert_json_not_contains '.events[] | select(.frozen)'
@@ -184,7 +184,7 @@ teardown_file() {
   start_recording
   
   # this route seems least likely to be affected by future changes
-  _curl -XGET "${WS_URL}/oups"
+  run _curl -XGET "${WS_URL}/oups"
   
   stop_recording
 
@@ -198,7 +198,7 @@ teardown_file() {
 @test "recordings capture http request headers" {
   local basic_auth='Basic YWxhZGRpbjpvcGVuc2VzYW1l'
   start_recording
-  _curl -H "Authorization: $basic_auth" -XGET "${WS_URL}"
+  run _curl -H "Authorization: $basic_auth" -XGET "${WS_URL}"
   stop_recording
 
   assert_json_eq '.events[] | .http_server_request | .headers.authorization' "$basic_auth"
@@ -206,8 +206,21 @@ teardown_file() {
 
 @test "recordings capture http response headers" {
   start_recording
-  _curl -XGET "${WS_URL}"
+  run _curl -XGET "${WS_URL}"
   stop_recording
 
   assert_json_eq '.events[] | .http_server_response | .headers["Content-Type"]' "text/html;charset=UTF-8"
+}
+@test "recordings capture elapsed time" {
+  start_recording
+  run _curl -XGET "${WS_URL}"
+  stop_recording
+
+  # ensure recordings have elapsed time
+  run jq -e '.events[] | select(.event == "return") | .elapsed' <<< "$output"
+  assert_success
+
+  # and that the elapsed times are parseable by JavaScript
+  run xargs -L1 node -e 'console.log(Number(process.argv[1]))' <<< "$output"
+  refute_output --partial 'NaN'
 }
