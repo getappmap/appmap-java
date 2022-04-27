@@ -1,6 +1,8 @@
 package com.appland.appmap.config;
 
 import com.appland.appmap.util.Logger;
+import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.representer.Representer;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
@@ -55,10 +57,14 @@ public class AppMapConfig {
       return null;
     }
 
-    Yaml yaml = new Yaml();
+    // See https://stackoverflow.com/a/30162482 .
+    Representer representer = new Representer();
+    representer.getPropertyUtils().setSkipMissingProperties(true);
+    
+    Yaml yaml = new Yaml(new Constructor(AppMapConfig.class), representer);
 
     try {
-      singleton = yaml.loadAs(inputStream, AppMapConfig.class);
+      singleton = yaml.load(inputStream);
     } catch (YAMLException e) {
       Logger.error("AppMap: encountered syntax error in appmap.yml " + e.getMessage());
       System.exit(1);

@@ -23,3 +23,10 @@ setup() {
   assert_json_eq '.events[] | select(.id == 150) | .method_id' "testOwnerDetails"
   assert_json_eq '.events[] | select(.id == 168) | .parent_id' "150"
 }
+
+@test "extra properties in appmap.yml are ignored" {
+  run java -cp ../../../test/petclinic/classes \
+    -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap-extra.yml \
+    petclinic.Props
+  assert_success
+}
