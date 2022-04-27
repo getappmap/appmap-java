@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/applandinc/appmap-java/compare/v1.13.0...v1.13.1) (2022-04-27)
+
+
+### Bug Fixes
+
+* Ignore extra properties in appmap.yml ([95db306](https://github.com/applandinc/appmap-java/commit/95db30629f2a51df6559045a5cb9ee1ce2052ea6))
+
 # [1.13.0](https://github.com/applandinc/appmap-java/compare/v1.12.3...v1.13.0) (2022-04-26)
 
 
