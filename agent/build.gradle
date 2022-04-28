@@ -93,7 +93,12 @@ shadowJar {
 sourceSets {
   main {
     java {
-      srcDirs = ['src/main/java']
+      // Eclipse JDT Language Server (used by VS Code's Language Support for
+      // Java extension), doesn't understand Gradle plugins, per
+      // https://github.com/eclipse/buildship/issues/1126#issuecomment-1004643907
+      // . Adding it here allows the extension to work, and doesn't seem to
+      // impact anything else.
+      srcDirs = ['src/main/java', 'buildSrc/src/main/groovy']
     }
   }
 
@@ -102,23 +107,13 @@ sourceSets {
       srcDirs = ['src/test/java']
     }
   }
-
-  integrationTest {
-
-    java {
-      srcDirs = ['src/test/java/com/appland/appmap/integration']
-    }
-    compileClasspath += main.output + test.output + sourceSets.test.compileClasspath
-    runtimeClasspath += main.output + test.output + sourceSets.test.runtimeClasspath
-  }
 }
 
 task integrationTest(type: Test) {
   description = 'Runs integration tests'
   group = 'verification'
 
-  testClassesDirs = sourceSets.integrationTest.output.classesDirs
-  classpath = sourceSets.integrationTest.runtimeClasspath
+  include 'com/appland/appmap/integration/**'
 
   dependsOn shadowJar
   maxParallelForks = 1

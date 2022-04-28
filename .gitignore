@@ -6,11 +6,15 @@ build
 
 # AppMap files
 tmp
+*appmap.json
 
+# IDE-related files`
 .classpath
 .project
 .settings
 .vscode
 .idea
+agent/bin/main
+agent/bin/test
+annotation/bin
 
-*appmap.json

@@ -2,4 +2,4 @@
 
 set -ex
 
-(cd agent && bin/test)
+(cd agent && bin/run_tests)
