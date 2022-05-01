@@ -1,18 +1,18 @@
 package com.appland.appmap.config;
 
-import com.appland.appmap.util.Logger;
-import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.representer.Representer;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.error.YAMLException;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AppMapConfig {
   public File configFile;  // the configFile used
   public String name;
@@ -57,15 +57,10 @@ public class AppMapConfig {
       return null;
     }
 
-    // See https://stackoverflow.com/a/30162482 .
-    Representer representer = new Representer();
-    representer.getPropertyUtils().setSkipMissingProperties(true);
-    
-    Yaml yaml = new Yaml(new Constructor(AppMapConfig.class), representer);
-
+    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     try {
-      singleton = yaml.load(inputStream);
-    } catch (YAMLException e) {
+      singleton = mapper.readValue(inputStream, AppMapConfig.class);
+    } catch (IOException e) {
       Logger.error("AppMap: encountered syntax error in appmap.yml " + e.getMessage());
       System.exit(1);
     }
