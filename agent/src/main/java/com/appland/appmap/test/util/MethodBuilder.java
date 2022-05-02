@@ -20,7 +20,14 @@ public class MethodBuilder {
   private Integer modifiers = Modifier.PUBLIC;
   private List<ParameterBuilder> parameters = new ArrayList<ParameterBuilder>();
   private List<AnnotationBuilder> annotations = new ArrayList<AnnotationBuilder>();
+  private CtBehavior behavior;
 
+  public CtBehavior getBehavior() {
+    if (behavior == null) {
+      throw new RuntimeException("build not called");
+    }
+    return behavior;
+  }
   /**
    * Constructor. Typically you shouldn't be calling this outside of {@link ClassBuilder}.
    * @param declaringClassBuilder The declaring {@link ClassBuilder}
@@ -183,7 +190,7 @@ public class MethodBuilder {
    * @throws CannotCompileException If method compilation fails
    */
   public ClassBuilder endMethod() throws CannotCompileException {
-    this.build();
+    this.behavior = this.build();
     return this.declaringClassBuilder;
   }
 

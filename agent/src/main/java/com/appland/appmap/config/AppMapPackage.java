@@ -1,5 +1,6 @@
 package com.appland.appmap.config;
 
+import com.appland.appmap.util.FullyQualifiedName;
 public class AppMapPackage {
   public String path;
   public String[] exclude = new String[] {};
@@ -11,7 +12,7 @@ public class AppMapPackage {
    * @return {@code true} if the class/method is included in the configuration. {@code false} if it
    *         is not included or otherwise explicitly excluded.
    */
-  public Boolean includes(String canonicalName) {
+  public Boolean includes(FullyQualifiedName canonicalName) {
     if (this.path == null) {
       return false;
     }
@@ -19,7 +20,7 @@ public class AppMapPackage {
       return false;
     }
 
-    if (!canonicalName.startsWith(this.path)) {
+    if (!canonicalName.toString().startsWith(this.path)) {
       return false;
     }
 
@@ -30,9 +31,9 @@ public class AppMapPackage {
    * Returns whether or not the canonical name is explicitly excluded
    * @param canonicalName the canonical name of the class/method to be checked
    */
-  public Boolean excludes(String canonicalName) {
+  public Boolean excludes(FullyQualifiedName canonicalName) {
     for (String exclusion : this.exclude) {
-      if (canonicalName.startsWith(exclusion)) {
+      if (canonicalName.toString().startsWith(exclusion)) {
         return true;
       }
     }

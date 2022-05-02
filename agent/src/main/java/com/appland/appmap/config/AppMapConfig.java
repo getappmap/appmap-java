@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import com.appland.appmap.util.FullyQualifiedName;
+import com.appland.appmap.util.Logger;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,7 +85,7 @@ public class AppMapConfig {
    * @return {@code true} if the class/method is included in the configuration. {@code false} if it
    *         is not included or otherwise explicitly excluded.
    */
-  public Boolean includes(String canonicalName) {
+  public Boolean includes(FullyQualifiedName canonicalName) {
     if (this.packages == null) {
       return false;
     }
@@ -102,7 +104,7 @@ public class AppMapConfig {
    * @param canonicalName the canonical name of the class/method to be checked
    * @return {@code true} if the class/method is explicitly excluded in the configuration. Otherwise, {@code false}.
    */
-  public Boolean excludes(String canonicalName) {
+  public Boolean excludes(FullyQualifiedName canonicalName) {
     if (this.packages == null) {
       return false;
     }
@@ -116,7 +118,7 @@ public class AppMapConfig {
     return false;
   }
 
-  public boolean isShallow(String canonicalName) {
+  public boolean isShallow(FullyQualifiedName canonicalName) {
     if (canonicalName == null) {
       return false;
     }

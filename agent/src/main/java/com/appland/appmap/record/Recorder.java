@@ -4,6 +4,7 @@ import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.util.FullyQualifiedName;
 import com.appland.appmap.util.Logger;
 
 import java.io.File;
@@ -164,7 +165,7 @@ public class Recorder {
     ts.isProcessing = true;
     try {
       if ( event.event.equals("call") ) {
-        if ( !ts.callStack.empty() && event.hasPackageName() && AppMapConfig.get().isShallow(event.definedClass) ) {
+        if ( !ts.callStack.empty() && event.hasPackageName() && AppMapConfig.get().isShallow(event.fqn) ) {
           Event parent = ts.callStack.peek();
           if ( parent.hasPackageName() && event.packageName().equals(parent.packageName()) ) {
             event.ignore();

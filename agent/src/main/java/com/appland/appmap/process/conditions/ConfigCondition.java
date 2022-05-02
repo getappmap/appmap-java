@@ -2,6 +2,7 @@ package com.appland.appmap.process.conditions;
 
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.util.AppMapBehavior;
+import com.appland.appmap.util.FullyQualifiedName;
 import com.appland.appmap.util.StringUtil;
 import javassist.CtBehavior;
 
@@ -39,6 +40,6 @@ public abstract class ConfigCondition implements Condition {
       return false;
     }
 
-    return AppMapConfig.get().includes(StringUtil.canonicalName(behavior));
+    return AppMapConfig.get().includes(new FullyQualifiedName(behavior));
   }
 }
