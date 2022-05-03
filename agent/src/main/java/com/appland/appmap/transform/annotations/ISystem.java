@@ -1,5 +1,6 @@
 package com.appland.appmap.transform.annotations;
 
+import java.util.Map;
 import com.appland.appmap.output.v1.Parameters;
 import javassist.CtBehavior;
 
@@ -23,7 +24,7 @@ public interface ISystem {
     return null;
   }
 
-  public Boolean match(CtBehavior behavior);
+  public Boolean match(CtBehavior behavior, Map<String, Object> matchResult);
 
   public void mutateStaticParameters(CtBehavior behavior, Parameters params);
 

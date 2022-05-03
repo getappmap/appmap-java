@@ -9,6 +9,7 @@ import javassist.CtBehavior;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * RecordCondition checks if the behavior should be recorded due to its inclusion in the
@@ -24,7 +25,7 @@ public abstract class RecordCondition implements Condition {
    * @return {@code true} if the behavior should be recorded
    * @see Properties#Records
    */
-  public static Boolean match(CtBehavior behavior) {
+  public static Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
     if (behavior.getDeclaringClass().getName().startsWith("java.lang")) {
       return false;
     }

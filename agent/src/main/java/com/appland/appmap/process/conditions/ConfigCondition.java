@@ -1,5 +1,6 @@
 package com.appland.appmap.process.conditions;
 
+import java.util.Map;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.FullyQualifiedName;
@@ -26,7 +27,7 @@ public abstract class ConfigCondition implements Condition {
    * @return {@code true} if the behavior should be hooked
    * @see AppMapConfig
    */
-  public static Boolean match(CtBehavior behavior) {
+  public static Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
     if (behavior.getDeclaringClass().getName().startsWith("java.lang")) {
       return false;
     }

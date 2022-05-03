@@ -1,5 +1,6 @@
 package com.appland.appmap.transform.annotations;
 
+import java.util.Map;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.util.FullyQualifiedName;
 import com.appland.appmap.util.StringUtil;
@@ -29,7 +30,7 @@ public class HookAnnotatedSystem extends SourceMethodSystem {
   }
 
   @Override
-  public Boolean match(CtBehavior behavior) {
+  public Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
     final Boolean isExplicitlyExcluded = AppMapConfig.get().excludes(new FullyQualifiedName(behavior));
 
     return behavior.hasAnnotation(this.annotationClass) && !isExplicitlyExcluded;

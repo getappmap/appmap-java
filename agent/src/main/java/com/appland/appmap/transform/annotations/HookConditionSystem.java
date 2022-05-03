@@ -5,6 +5,7 @@ import com.appland.appmap.util.Logger;
 import javassist.CtBehavior;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 public class HookConditionSystem extends SourceMethodSystem {
   private Method conditionMethod = null;
@@ -39,7 +40,7 @@ public class HookConditionSystem extends SourceMethodSystem {
         return null;
       }
 
-      Method conditionMethod = conditionClass.getMethod("match", CtBehavior.class);
+      Method conditionMethod = conditionClass.getMethod("match", CtBehavior.class, Map.class);
       if (conditionMethod == null) {
         return null;
       }
@@ -51,9 +52,9 @@ public class HookConditionSystem extends SourceMethodSystem {
   }
 
   @Override
-  public Boolean match(CtBehavior behavior) {
+  public Boolean match(CtBehavior behavior, Map<String, Object> mapResult) {
     try {
-      return (Boolean) this.conditionMethod.invoke(null, behavior);
+      return (Boolean) this.conditionMethod.invoke(null, behavior, mapResult);
     } catch (Exception e) {
       Logger.printf("match failed due to %s exception\n", e.getClass().getName());
       Logger.println(e);

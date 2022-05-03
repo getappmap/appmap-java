@@ -107,7 +107,8 @@ public class Hook {
       return null;
     }
 
-    if (!this.sourceSystem.match(targetBehavior)) {
+    Map<String, Object> matchResult = new HashMap<String, Object>();
+    if (!this.sourceSystem.match(targetBehavior, matchResult)) {
       return null;
     }
 

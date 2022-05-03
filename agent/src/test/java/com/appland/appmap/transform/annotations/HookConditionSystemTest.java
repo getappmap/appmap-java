@@ -14,8 +14,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 import static com.appland.appmap.util.StringUtil.canonicalName;
 import static org.junit.Assert.*;
 
@@ -117,8 +118,9 @@ public class HookConditionSystemTest {
     }
 
     for (CtBehavior behavior : targetClassGood.getDeclaredBehaviors()) {
+      Map<String, Object> matchResult = new HashMap<String, Object>();
       hooks.stream()
-           .filter(hook -> hook.getSourceSystem().match(behavior))
+           .filter(hook -> hook.getSourceSystem().match(behavior, matchResult))
            .forEach(hook -> bindings.add(new HookBinding(hook, behavior, UNUSED_PARAMETER)));
     }
 
@@ -169,8 +171,9 @@ public class HookConditionSystemTest {
     }
 
     for (CtBehavior behavior : targetClassBad.getDeclaredBehaviors()) {
+      Map<String, Object> matchResult = new HashMap<String, Object>();
       hooks.stream()
-          .filter(hook -> hook.getSourceSystem().match(behavior))
+          .filter(hook -> hook.getSourceSystem().match(behavior, matchResult))
           .forEach(hook -> bindings.add(new HookBinding(hook, behavior, UNUSED_PARAMETER)));
     }
 

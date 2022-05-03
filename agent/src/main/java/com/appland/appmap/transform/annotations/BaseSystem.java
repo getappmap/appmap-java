@@ -1,5 +1,6 @@
 package com.appland.appmap.transform.annotations;
 
+import java.util.Map;
 import com.appland.appmap.output.v1.Parameters;
 import javassist.CtBehavior;
 
@@ -10,7 +11,7 @@ public abstract class BaseSystem implements ISystem {
     this.hookBehavior = hookBehavior;
   }
 
-  public Boolean match(CtBehavior behavior) {
+  public Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
     return false;
   }
 
