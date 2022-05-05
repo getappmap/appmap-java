@@ -143,7 +143,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
   @Override
   public byte[] transform(ClassLoader loader,
                           String className,
-                          Class redefiningClass,
+                          Class<?> redefiningClass,
                           ProtectionDomain domain,
                           byte[] bytes) throws IllegalClassFormatException {
     ClassPool classPool = new ClassPool();

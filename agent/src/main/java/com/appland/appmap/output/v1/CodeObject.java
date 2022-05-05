@@ -1,21 +1,19 @@
 package com.appland.appmap.output.v1;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.appland.appmap.util.Logger;
-
-import javassist.CtBehavior;
 import javassist.CtAppMapClassType;
+import javassist.CtBehavior;
 import javassist.CtClass;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Method;
-
-import java.util.*;
-import java.util.regex.Matcher;
-
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Represents a package, class or method.
@@ -277,7 +275,7 @@ public class CodeObject {
    * @return The root CodeObject
    */
   public static CodeObject createTree(String packageName) {
-    final List<String> packageTokens = new ArrayList();
+    final List<String> packageTokens = new ArrayList<String>();
     if (packageName != null) {
       for (String token : packageName.split("\\.")) {
         packageTokens.add(token);

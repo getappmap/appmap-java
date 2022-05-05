@@ -1,12 +1,11 @@
 package com.appland.appmap.record;
 
-import com.alibaba.fastjson.JSON;
-import com.appland.appmap.output.v1.Event;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,19 +15,16 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import com.alibaba.fastjson.JSON;
+import com.appland.appmap.output.v1.Event;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class RecorderTest {
 
@@ -82,7 +78,7 @@ public class RecorderTest {
 
     // Assert that it's parseable
     InputStream is = new FileInputStream(targetPath.toString());
-    Map appmap = JSON.parseObject(is, Map.class);
+    Map<?,?> appmap = JSON.parseObject(is, Map.class);
     assertEquals("[classMap, metadata, version, events]", appmap.keySet().toString());
   }
 
@@ -132,7 +128,7 @@ public class RecorderTest {
     iterLock.acquire();
 
     final ExecutorService es = Executors.newFixedThreadPool(2);
-    final Future f1 = es.submit(() -> {
+    final Future<?> f1 = es.submit(() -> {
         try {
           iterLock.acquire();
           recorder.add(newEvent());
@@ -142,7 +138,7 @@ public class RecorderTest {
         }
     });
 
-    final Future f2 = es.submit(() -> {
+    final Future<?> f2 = es.submit(() -> {
         doAnswer((invocation) -> {
             final Object ret = (Iterator<?>)invocation.callRealMethod();
             iterLock.release();

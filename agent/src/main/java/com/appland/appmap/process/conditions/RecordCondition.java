@@ -4,10 +4,8 @@ import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.FullyQualifiedName;
-import com.appland.appmap.util.StringUtil;
 import javassist.CtBehavior;
 
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Map;
 

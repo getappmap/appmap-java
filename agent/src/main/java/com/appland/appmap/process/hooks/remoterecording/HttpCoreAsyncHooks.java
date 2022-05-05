@@ -1,27 +1,22 @@
 package com.appland.appmap.process.hooks.remoterecording;
 
 import java.io.IOException;
-
+import com.appland.appmap.config.Properties;
+import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.process.ExitEarly;
+import com.appland.appmap.transform.annotations.ArgumentArray;
+import com.appland.appmap.transform.annotations.ExcludeReceiver;
+import com.appland.appmap.transform.annotations.HookClass;
+import com.appland.appmap.util.Logger;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.nio.entity.NStringEntity;
 import org.apache.http.nio.protocol.BasicAsyncRequestConsumer;
 import org.apache.http.nio.protocol.BasicAsyncResponseProducer;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
 import org.apache.http.nio.protocol.HttpAsyncRequestConsumer;
 import org.apache.http.nio.protocol.HttpAsyncRequestHandler;
 import org.apache.http.protocol.HttpContext;
-
-import com.appland.appmap.config.Properties;
-import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.process.ExitEarly;
-
-import com.appland.appmap.transform.annotations.ArgumentArray;
-import com.appland.appmap.transform.annotations.ExcludeReceiver;
-import com.appland.appmap.transform.annotations.HookClass;
-import com.appland.appmap.util.Logger;
 
 public class HttpCoreAsyncHooks {
   private static final boolean debug = Properties.DebugHttp;
@@ -67,8 +62,10 @@ public class HttpCoreAsyncHooks {
     final HttpResponse res = httpexchange.getResponse();
     final boolean handled = RemoteRecordingManager.service(new HttpCoreRequest(req, res));
     if (handled) {
-      httpexchange.submitResponse(new BasicAsyncResponseProducer(res));
-      throw new ExitEarly();
+      try (BasicAsyncResponseProducer producer = new BasicAsyncResponseProducer(res)) {
+        httpexchange.submitResponse(producer);
+        throw new ExitEarly();
+      }
     }
   }
 }

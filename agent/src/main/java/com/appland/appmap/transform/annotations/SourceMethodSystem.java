@@ -17,7 +17,7 @@ public abstract class SourceMethodSystem extends BaseSystem {
   private String hookMethod;
   private MethodEvent methodEvent;
 
-  protected SourceMethodSystem(CtBehavior behavior, Class annotationClass) {
+  protected SourceMethodSystem(CtBehavior behavior, Class<?> annotationClass) {
     super(behavior);
     this.hookClass = behavior.getDeclaringClass().getName();
     this.hookMethod = behavior.getName();

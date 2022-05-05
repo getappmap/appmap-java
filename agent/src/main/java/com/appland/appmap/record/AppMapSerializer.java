@@ -15,8 +15,6 @@ import java.util.List;
  * Writes AppMap data to JSON.
  */
 public class AppMapSerializer {
-  private final Writer writer;
-
   public static class FileSections {
     public static final String Version = "version";
     public static final String Metadata = "metadata";
@@ -39,7 +37,6 @@ public class AppMapSerializer {
   private final HashSet<String> sectionsWritten = new HashSet<String>();
 
   private AppMapSerializer(Writer writer) {
-    this.writer = writer;
     this.json = new JSONWriter(writer);
     this.json.startObject();
   }

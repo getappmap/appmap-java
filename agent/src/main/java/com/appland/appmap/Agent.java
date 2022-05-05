@@ -1,5 +1,9 @@
 package com.appland.appmap;
 
+import java.io.File;
+import java.lang.instrument.Instrumentation;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.record.Recorder;
@@ -7,14 +11,6 @@ import com.appland.appmap.record.Recorder.Metadata;
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.transform.ClassFileTransformer;
 import com.appland.appmap.util.Logger;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.instrument.Instrumentation;
-import java.text.SimpleDateFormat;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Date;
 
 /**
  * Agent is a JVM agent which instruments, records, and prints appmap files

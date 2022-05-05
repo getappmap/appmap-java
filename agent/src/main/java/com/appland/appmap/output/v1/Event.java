@@ -1,16 +1,14 @@
 package com.appland.appmap.output.v1;
 
-import com.alibaba.fastjson.JSON;
+import java.lang.reflect.Modifier;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.appland.appmap.util.FullyQualifiedName;
 import javassist.CtBehavior;
-
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.Map;
 
 /**
  * Represents a snapshot of a method invocation, return, exception or some other kind of runtime
@@ -475,7 +473,8 @@ public class Event {
 
   public Event measureElapsed(Event callEvent) {
     LocalDateTime endTime = LocalDateTime.now();
-    this.elapsed = new Float(Duration.between(callEvent.startTime, endTime).toNanos() / 10e09);
+    double duration = Duration.between(callEvent.startTime, endTime).toNanos() / 10e09;
+    this.elapsed = Float.valueOf((float)duration);
     return this;
   }
 

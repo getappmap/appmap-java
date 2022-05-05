@@ -1,23 +1,10 @@
 package com.appland.appmap.process.hooks.remoterecording;
 
-import com.appland.appmap.config.Properties;
-import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.process.ExitEarly;
-import com.appland.appmap.process.conditions.RecordCondition;
-import com.appland.appmap.record.ActiveSessionException;
-import com.appland.appmap.record.Recorder;
-import com.appland.appmap.record.Recording;
-import com.appland.appmap.reflect.FilterChain;
-import com.appland.appmap.reflect.HttpServletRequest;
-import com.appland.appmap.reflect.HttpServletResponse;
-import com.appland.appmap.transform.annotations.*;
-import com.appland.appmap.util.Logger;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import static com.appland.appmap.util.StringUtil.*;
+import com.appland.appmap.record.Recording;
+import com.appland.appmap.reflect.HttpServletRequest;
+import com.appland.appmap.reflect.HttpServletResponse;
 
 class ServletRequest implements RemoteRecordingRequest {
   private HttpServletRequest req;

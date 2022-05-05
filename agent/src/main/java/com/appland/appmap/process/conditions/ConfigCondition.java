@@ -4,7 +4,6 @@ import java.util.Map;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.FullyQualifiedName;
-import com.appland.appmap.util.StringUtil;
 import javassist.CtBehavior;
 
 

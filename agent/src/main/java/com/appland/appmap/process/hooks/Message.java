@@ -38,10 +38,7 @@ public class Message {
       return;
     }
 
-    Map<String, String> pathParams = (Map<String, String>)returnVal;
-    for (Map.Entry<String, String> param : pathParams.entrySet()) {
-      lastEvent.addMessageParam(param.getKey(), param.getValue());
-    }
+    addMessageParams(returnVal, lastEvent);
 
     // KEG: I can suggest a more robust way to hook this information.
     // Spring framework's RequestMappingInfoHandlerMapping sets the following request attributes:
@@ -54,5 +51,13 @@ public class Message {
 
     final String normalizedPath = pattern.replace('{', ':').replace("}", "");
     lastEvent.httpServerRequest.setNormalizedPath(normalizedPath);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static void addMessageParams(Object returnVal, final Event lastEvent) {
+    Map<String, String> pathParams = (Map<String, String>)returnVal;
+    for (Map.Entry<String, String> param : pathParams.entrySet()) {
+      lastEvent.addMessageParam(param.getKey(), param.getValue());
+    }
   }
 }

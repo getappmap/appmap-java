@@ -81,7 +81,6 @@ public class CodeObjectTree {
     
     CodeObject currentObject = this.root;
     int start = 0, end = 0;
-    String name;
     // Avoid allocating a String[] by scanning definedClass again.
     while ((end = definedClass.indexOf('.', start)) > 0) {
       CodeObject child = currentObject.findChildBySubstring(definedClass, start, end);

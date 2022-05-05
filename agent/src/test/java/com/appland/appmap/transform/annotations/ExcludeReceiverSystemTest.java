@@ -117,7 +117,8 @@ public class ExcludeReceiverSystemTest {
         .endMethod()
         .ctClass();
 
-    CtMethod invalidHookMethod = hookClass.getDeclaredMethods()[0];
+    
+    /* CtMethod invalidHookMethod = */hookClass.getDeclaredMethods()/*[0]*/;
     // TODO
     // fix how validation occurs
     // assertNull(Hook.from(invalidHookMethod));

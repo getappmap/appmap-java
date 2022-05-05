@@ -3,36 +3,21 @@ package com.appland.appmap.process.hooks.remoterecording;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.ExitEarly;
-import com.appland.appmap.record.Recording;
+import com.appland.appmap.process.hooks.HttpServerRequest;
 import com.appland.appmap.transform.annotations.ArgumentArray;
 import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookClass;
 import com.appland.appmap.transform.annotations.ISystem;
 import com.appland.appmap.transform.annotations.MethodEvent;
-import com.appland.appmap.util.Logger;
-import com.appland.appmap.process.hooks.HttpServerRequest;
-
 import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.RequestLine;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
-
-import org.apache.http.protocol.HttpContext;
-
-import org.apache.http.nio.protocol.BasicAsyncResponseProducer;
-import org.apache.http.nio.protocol.HttpAsyncExchange;
 
 public class HttpCoreHooks {
-  private static Boolean debug = Properties.DebugHttp;
-
   private static Map<String, String> getHeaderMap(Header[] headers) {
     HashMap<String, String> ret = new HashMap<String, String>();
     for (Header h: headers) {
