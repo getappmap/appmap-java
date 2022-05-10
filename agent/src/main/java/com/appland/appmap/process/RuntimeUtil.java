@@ -10,7 +10,7 @@ public class RuntimeUtil {
    * @return The value as an Object
    */
   public static Object boxValue(byte value) {
-    return new Byte(value);
+    return Byte.valueOf(value);
   }
 
   /**
@@ -19,7 +19,7 @@ public class RuntimeUtil {
    * @return The value as an Object
    */
   public static Object boxValue(char value) {
-    return new Character(value);
+    return Character.valueOf(value);
   }
 
   /**
@@ -28,7 +28,7 @@ public class RuntimeUtil {
    * @return The value as an Object
    */
   public static Object boxValue(short value) {
-    return new Short(value);
+    return Short.valueOf(value);
   }
 
   /**
@@ -37,7 +37,7 @@ public class RuntimeUtil {
    * @return The value as an Object
    */
   public static Object boxValue(long value) {
-    return new Long(value);
+    return Long.valueOf(value);
   }
 
   /**
@@ -46,7 +46,7 @@ public class RuntimeUtil {
    * @return The value as an Object
    */
   public static Object boxValue(float value) {
-    return new Float(value);
+    return Float.valueOf(value);
   }
 
   /**
@@ -55,7 +55,7 @@ public class RuntimeUtil {
    * @return The value as an Object
    */
   public static Object boxValue(double value) {
-    return new Double(value);
+    return Double.valueOf(value);
   }
 
   /**
@@ -64,7 +64,7 @@ public class RuntimeUtil {
    * @return The value as an Object
    */
   public static Object boxValue(int value) {
-    return new Integer(value);
+    return Integer.valueOf(value);
   }
 
   /**
@@ -73,7 +73,7 @@ public class RuntimeUtil {
    * @return The value as an Object
    */
   public static Object boxValue(boolean value) {
-    return new Boolean(value);
+    return Boolean.valueOf(value);
   }
 
   /**

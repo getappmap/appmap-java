@@ -1,0 +1,38 @@
+package com.appland.appmap.util;
+
+import java.lang.reflect.Modifier;
+import javassist.CtBehavior;
+
+public class FullyQualifiedName {
+  public final String packageName;
+  public final String className;
+  public final boolean isStatic;
+  public final String methodName;
+
+  public FullyQualifiedName(String packageName, String className, boolean isStatic,
+      String methodName) {
+    this.packageName = packageName;
+    this.className = className;
+    this.isStatic = isStatic;
+    this.methodName = methodName;
+  }
+
+  public FullyQualifiedName(CtBehavior behavior) {
+    this(behavior.getDeclaringClass().getPackageName(),
+        behavior.getDeclaringClass().getSimpleName(), Modifier.isStatic(behavior.getModifiers()),
+        behavior.getMethodInfo().getName());
+  }
+
+  public FullyQualifiedName(FullyQualifiedName fqn) {
+    this(fqn.packageName, fqn.className, fqn.isStatic, fqn.methodName);
+  }
+
+  public String methodSpec() {
+    // This intentionally omits packageName
+    return StringUtil.canonicalName(className, isStatic, methodName);
+  }
+
+  public String toString() {
+    return StringUtil.canonicalName(packageName, className, isStatic, methodName);
+  }
+}

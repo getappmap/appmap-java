@@ -1,5 +1,6 @@
 package com.appland.appmap.transform.annotations;
 
+import java.util.Map;
 import com.appland.appmap.util.Logger;
 import javassist.CtBehavior;
 
@@ -56,7 +57,7 @@ public class HookClassSystem extends SourceMethodSystem {
   }
 
   @Override
-  public Boolean match(CtBehavior behavior) {
+  public Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
     if (this.ignoresChildren) {
       if (!behavior.getDeclaringClass().getName().equals(this.targetClass)) {
         return false;

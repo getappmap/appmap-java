@@ -13,7 +13,7 @@ public class ReflectiveType {
   }
 
   protected Method getMethod(String name, Class<?>... parameterTypes) {
-    final Class cls = self.getClass();
+    final Class<?> cls = self.getClass();
     try {
       return cls.getMethod(name, parameterTypes);
     } catch (Exception e) {

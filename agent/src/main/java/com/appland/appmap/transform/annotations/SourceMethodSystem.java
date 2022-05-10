@@ -1,5 +1,6 @@
 package com.appland.appmap.transform.annotations;
 
+import java.util.Map;
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.output.v1.Value;
 import com.appland.appmap.util.Logger;
@@ -16,7 +17,7 @@ public abstract class SourceMethodSystem extends BaseSystem {
   private String hookMethod;
   private MethodEvent methodEvent;
 
-  protected SourceMethodSystem(CtBehavior behavior, Class annotationClass) {
+  protected SourceMethodSystem(CtBehavior behavior, Class<?> annotationClass) {
     super(behavior);
     this.hookClass = behavior.getDeclaringClass().getName();
     this.hookMethod = behavior.getName();
@@ -25,7 +26,7 @@ public abstract class SourceMethodSystem extends BaseSystem {
       MethodEvent.METHOD_INVOCATION);    
   }
 
-  public Boolean match(CtBehavior behavior) {
+  public Boolean match(CtBehavior behavior, Map<String, Object> mapResult) {
     return false;
   }
 

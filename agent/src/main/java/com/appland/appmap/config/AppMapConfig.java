@@ -1,18 +1,20 @@
 package com.appland.appmap.config;
 
-import com.appland.appmap.util.Logger;
-import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.representer.Representer;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.error.YAMLException;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import com.appland.appmap.util.FullyQualifiedName;
+import com.appland.appmap.util.Logger;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AppMapConfig {
   public File configFile;  // the configFile used
   public String name;
@@ -57,15 +59,10 @@ public class AppMapConfig {
       return null;
     }
 
-    // See https://stackoverflow.com/a/30162482 .
-    Representer representer = new Representer();
-    representer.getPropertyUtils().setSkipMissingProperties(true);
-    
-    Yaml yaml = new Yaml(new Constructor(AppMapConfig.class), representer);
-
+    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     try {
-      singleton = yaml.load(inputStream);
-    } catch (YAMLException e) {
+      singleton = mapper.readValue(inputStream, AppMapConfig.class);
+    } catch (IOException e) {
       Logger.error("AppMap: encountered syntax error in appmap.yml " + e.getMessage());
       System.exit(1);
     }
@@ -88,18 +85,19 @@ public class AppMapConfig {
    * @return {@code true} if the class/method is included in the configuration. {@code false} if it
    *         is not included or otherwise explicitly excluded.
    */
-  public Boolean includes(String canonicalName) {
+  public AppMapPackage.LabelConfig includes(FullyQualifiedName canonicalName) {
     if (this.packages == null) {
-      return false;
+      return null;
     }
 
     for (AppMapPackage pkg : this.packages) {
-      if (pkg.includes(canonicalName)) {
-        return true;
+      final AppMapPackage.LabelConfig ls = pkg.find(canonicalName);
+      if (ls != null) {
+        return ls;
       }
     }
 
-    return false;
+    return null;
   }
 
   /**
@@ -107,7 +105,7 @@ public class AppMapConfig {
    * @param canonicalName the canonical name of the class/method to be checked
    * @return {@code true} if the class/method is explicitly excluded in the configuration. Otherwise, {@code false}.
    */
-  public Boolean excludes(String canonicalName) {
+  public Boolean excludes(FullyQualifiedName canonicalName) {
     if (this.packages == null) {
       return false;
     }
@@ -121,12 +119,12 @@ public class AppMapConfig {
     return false;
   }
 
-  public boolean isShallow(String canonicalName) {
+  public boolean isShallow(FullyQualifiedName canonicalName) {
     if (canonicalName == null) {
       return false;
     }
     for (AppMapPackage pkg : this.packages) {
-      if (pkg.includes(canonicalName)) {
+      if (pkg.find(canonicalName) != null) {
         return pkg.shallow;
       }
     }

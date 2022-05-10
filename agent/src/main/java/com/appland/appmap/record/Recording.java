@@ -1,20 +1,21 @@
 package com.appland.appmap.record;
 
-import com.appland.appmap.util.Logger;
-
-import java.io.*;
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
-
-import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import com.appland.appmap.util.Logger;
 
 public class Recording {
     private final File file;
@@ -66,17 +67,18 @@ public class Recording {
     }
 
     public void readFully(boolean delete, Writer writer) throws IOException {
-        final Reader reader = new FileReader(this.file);
+      try (final Reader reader = new FileReader(this.file)) {
         char[] buffer = new char[2048];
         int bytesRead;
         while ((bytesRead = reader.read(buffer)) != -1) {
-            writer.write(buffer, 0, bytesRead);
+          writer.write(buffer, 0, bytesRead);
         }
         writer.flush();
 
         if (delete) {
-            this.delete();
+          this.delete();
         }
+      }
     }
 
     public int size() {

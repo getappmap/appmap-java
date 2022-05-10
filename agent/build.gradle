@@ -48,7 +48,8 @@ dependencies {
   implementation 'org.reflections:reflections:0.9.11'
   implementation 'javax.servlet:javax.servlet-api:4.0.1'
   implementation 'org.apache.commons:commons-lang3:3.10'
-  implementation 'org.yaml:snakeyaml:1.29'
+  implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2'  
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.2.2'
   implementation 'org.slf4j:slf4j-nop:1.7.30'
   implementation 'info.picocli:picocli:4.6.1'
   implementation 'org.apache.httpcomponents:httpcore-nio:4.4.15'
@@ -93,7 +94,12 @@ shadowJar {
 sourceSets {
   main {
     java {
-      srcDirs = ['src/main/java']
+      // Eclipse JDT Language Server (used by VS Code's Language Support for
+      // Java extension), doesn't understand Gradle plugins, per
+      // https://github.com/eclipse/buildship/issues/1126#issuecomment-1004643907
+      // . Adding it here allows the extension to work, and doesn't seem to
+      // impact anything else.
+      srcDirs = ['src/main/java', 'buildSrc/src/main/groovy']
     }
   }
 
@@ -102,23 +108,13 @@ sourceSets {
       srcDirs = ['src/test/java']
     }
   }
-
-  integrationTest {
-
-    java {
-      srcDirs = ['src/test/java/com/appland/appmap/integration']
-    }
-    compileClasspath += main.output + test.output + sourceSets.test.compileClasspath
-    runtimeClasspath += main.output + test.output + sourceSets.test.runtimeClasspath
-  }
 }
 
 task integrationTest(type: Test) {
   description = 'Runs integration tests'
   group = 'verification'
 
-  testClassesDirs = sourceSets.integrationTest.output.classesDirs
-  classpath = sourceSets.integrationTest.runtimeClasspath
+  include 'com/appland/appmap/integration/**'
 
   dependsOn shadowJar
   maxParallelForks = 1

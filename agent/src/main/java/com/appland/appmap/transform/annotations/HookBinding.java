@@ -10,13 +10,11 @@ public class HookBinding {
   private final Hook hook;
   private final CtBehavior targetBehavior;
   private final Parameters targetParameters;
-  private final Integer behaviorOrdinal;
 
   public HookBinding(Hook hook, CtBehavior targetBehavior, Integer behaviorOrdinal) {
     this.hook = hook;
     this.targetBehavior = targetBehavior;
     this.targetParameters = new Parameters(this.targetBehavior);
-    this.behaviorOrdinal = behaviorOrdinal;
   }
 
   public Hook getHook() {

@@ -1,7 +1,6 @@
 package com.appland.appmap.reflect;
 
 import java.lang.reflect.Method;
-import java.util.Vector;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;

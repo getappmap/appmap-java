@@ -71,6 +71,9 @@ public class StringUtil {
     return className + (isStatic ? "." : "#") + methodName;
   }
   
+  public static String canonicalName(String packageName, String classSimpleName, boolean isStatic, String methodName){
+    return packageName + '.' + classSimpleName + (isStatic ? '.' : '#') + methodName;
+  }
   /**
    * Returns canonical name of method referenced in the event.
    * @param event the event to reference

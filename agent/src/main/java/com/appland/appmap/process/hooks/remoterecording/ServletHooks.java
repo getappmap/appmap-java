@@ -1,5 +1,9 @@
 package com.appland.appmap.process.hooks.remoterecording;
 
+import static com.appland.appmap.util.StringUtil.canonicalName;
+import static com.appland.appmap.util.StringUtil.decapitalize;
+import static com.appland.appmap.util.StringUtil.identifierToSentence;
+import java.io.File;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.ExitEarly;
@@ -10,14 +14,14 @@ import com.appland.appmap.record.Recording;
 import com.appland.appmap.reflect.FilterChain;
 import com.appland.appmap.reflect.HttpServletRequest;
 import com.appland.appmap.reflect.HttpServletResponse;
-import com.appland.appmap.transform.annotations.*;
+import com.appland.appmap.transform.annotations.ArgumentArray;
+import com.appland.appmap.transform.annotations.ContinueHooking;
+import com.appland.appmap.transform.annotations.ExcludeReceiver;
+import com.appland.appmap.transform.annotations.HookAnnotated;
+import com.appland.appmap.transform.annotations.HookClass;
+import com.appland.appmap.transform.annotations.HookCondition;
+import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.util.Logger;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-
-import static com.appland.appmap.util.StringUtil.*;
 
 
 public class ServletHooks {

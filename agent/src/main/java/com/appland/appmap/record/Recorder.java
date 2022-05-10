@@ -1,18 +1,16 @@
 package com.appland.appmap.record;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Stack;
+import java.util.concurrent.ConcurrentHashMap;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.util.Logger;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
-import java.util.Stack;
 
 /**
  * Recorder is a singleton responsible for managing recording sessions and routing events to any
@@ -164,7 +162,7 @@ public class Recorder {
     ts.isProcessing = true;
     try {
       if ( event.event.equals("call") ) {
-        if ( !ts.callStack.empty() && event.hasPackageName() && AppMapConfig.get().isShallow(event.definedClass) ) {
+        if ( !ts.callStack.empty() && event.hasPackageName() && AppMapConfig.get().isShallow(event.fqn) ) {
           Event parent = ts.callStack.peek();
           if ( parent.hasPackageName() && event.packageName().equals(parent.packageName()) ) {
             event.ignore();

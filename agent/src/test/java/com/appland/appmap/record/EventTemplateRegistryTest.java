@@ -33,7 +33,7 @@ public class EventTemplateRegistryTest {
     behaviorsToRegister.add(classType.getDeclaredMethod("methodOneParam"));
 
     for (CtMethod method : behaviorsToRegister) {
-      registry.register(method);
+      registry.register(method, new String[0]);
     }
   }
 
@@ -47,7 +47,7 @@ public class EventTemplateRegistryTest {
 
   @Test
   public void testCloneEventTemplate() throws Exception {
-    Integer index = registry.register(buildCloneableEventTemplate().getDeclaredMethod("registeredMethod"));
+    Integer index = registry.register(buildCloneableEventTemplate().getDeclaredMethod("registeredMethod"), new String[0]);
     assertTrue(registry.buildCallEvent(index) != null);
   }
 

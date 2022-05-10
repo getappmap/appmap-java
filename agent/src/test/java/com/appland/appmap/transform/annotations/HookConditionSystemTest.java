@@ -1,21 +1,25 @@
 package com.appland.appmap.transform.annotations;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.config.AppMapPackage;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.conditions.ConfigCondition;
 import com.appland.appmap.test.util.ClassBuilder;
-import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
+import com.appland.appmap.test.util.MethodBuilder;
+import com.appland.appmap.util.FullyQualifiedName;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.appland.appmap.util.StringUtil.canonicalName;
-import static org.junit.Assert.*;
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtMethod;
 
 public class HookConditionSystemTest {
   private final static String TargetClassNameGood = "HookConditionSystemTest.Good.TargetClass";
@@ -27,23 +31,29 @@ public class HookConditionSystemTest {
 
   @Before
   public void initializeTestClasses() throws Exception {
-    targetClassGood = new ClassBuilder(TargetClassNameGood)
-        .beginMethod()
-          .setName("methodNoArgs")
-          .addAnnotation(Test.class.getName())
-        .endMethod()
-        .beginMethod()
-          .setName("methodSingleArg")
-          .addParameter(CtClass.intType, "x")
-          .addAnnotation(Test.class.getName())
-        .endMethod()
-        .beginMethod()
-          .setName("methodManyArgs")
-          .addParameter(CtClass.intType, "x")
-          .addParameter(CtClass.intType, "y")
-          .addAnnotation(Test.class.getName())
-        .endMethod()
-        .ctClass();
+    final ClassBuilder goodClass = new ClassBuilder(TargetClassNameGood);
+    final MethodBuilder methodNoArgs = goodClass.beginMethod();
+    methodNoArgs
+      .setName("methodNoArgs")
+      .addAnnotation(Test.class.getName())
+    .endMethod();
+
+    final MethodBuilder methodSingleArg = goodClass.beginMethod();
+    methodSingleArg
+      .setName("methodSingleArg")
+      .addParameter(CtClass.intType, "x")
+      .addAnnotation(Test.class.getName())
+    .endMethod();
+
+    final MethodBuilder methodManyArgs = goodClass.beginMethod();
+    methodManyArgs
+      .setName("methodManyArgs")
+      .addParameter(CtClass.intType, "x")
+      .addParameter(CtClass.intType, "y")
+      .addAnnotation(Test.class.getName())
+    .endMethod();
+
+    targetClassGood = goodClass.ctClass();
 
     targetClassBad = new ClassBuilder(TargetClassNameBad)
         .beginMethod()
@@ -64,9 +74,10 @@ public class HookConditionSystemTest {
         .ctClass();
 
     AppMapConfig config = Mockito.spy(AppMapConfig.get());
-    Mockito.doReturn(true).when(config).includes(canonicalName(TargetClassNameGood, false, "methodNoArgs"));
-    Mockito.doReturn(true).when(config).includes(canonicalName(TargetClassNameGood, false, "methodSingleArg"));
-    Mockito.doReturn(true).when(config).includes(canonicalName(TargetClassNameGood, false, "methodManyArgs"));
+    AppMapPackage.LabelConfig noLabels = new AppMapPackage.LabelConfig();
+    Mockito.doReturn(noLabels).when(config).includes(new FullyQualifiedName(methodNoArgs.getBehavior()));
+    Mockito.doReturn(noLabels).when(config).includes(new FullyQualifiedName(methodSingleArg.getBehavior()));
+    Mockito.doReturn(noLabels).when(config).includes(new FullyQualifiedName(methodManyArgs.getBehavior()));
   }
 
   @Test
@@ -109,8 +120,9 @@ public class HookConditionSystemTest {
     }
 
     for (CtBehavior behavior : targetClassGood.getDeclaredBehaviors()) {
+      Map<String, Object> matchResult = new HashMap<String, Object>();
       hooks.stream()
-           .filter(hook -> hook.getSourceSystem().match(behavior))
+           .filter(hook -> hook.getSourceSystem().match(behavior, matchResult))
            .forEach(hook -> bindings.add(new HookBinding(hook, behavior, UNUSED_PARAMETER)));
     }
 
@@ -161,8 +173,9 @@ public class HookConditionSystemTest {
     }
 
     for (CtBehavior behavior : targetClassBad.getDeclaredBehaviors()) {
+      Map<String, Object> matchResult = new HashMap<String, Object>();
       hooks.stream()
-          .filter(hook -> hook.getSourceSystem().match(behavior))
+          .filter(hook -> hook.getSourceSystem().match(behavior, matchResult))
           .forEach(hook -> bindings.add(new HookBinding(hook, behavior, UNUSED_PARAMETER)));
     }
 

@@ -1,21 +1,19 @@
 package com.appland.appmap.output.v1;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.appland.appmap.util.Logger;
-
-import javassist.CtBehavior;
 import javassist.CtAppMapClassType;
+import javassist.CtBehavior;
 import javassist.CtClass;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Method;
-
-import java.util.*;
-import java.util.regex.Matcher;
-
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Represents a package, class or method.
@@ -180,12 +178,10 @@ public class CodeObject {
    * name, location and flags.
    * @param behavior The behavior representing this CodeObject
    */
-  public CodeObject(CtBehavior behavior) {
+  public CodeObject(CtBehavior behavior, String[] labels) {
     final CtClass ctclass = behavior.getDeclaringClass();
     final String file = CodeObject.getSourceFilePath(ctclass);
     final int lineno = behavior.getMethodInfo().getLineNumber(0);
-
-    String[] labels = null;
 
     try {
       // Look for the Labels annotation by class name. If we introduce a
@@ -277,7 +273,7 @@ public class CodeObject {
    * @return The root CodeObject
    */
   public static CodeObject createTree(String packageName) {
-    final List<String> packageTokens = new ArrayList();
+    final List<String> packageTokens = new ArrayList<String>();
     if (packageName != null) {
       for (String token : packageName.split("\\.")) {
         packageTokens.add(token);
@@ -339,7 +335,7 @@ public class CodeObject {
    * @param method The method to create a hierarchy from
    * @return The root of the CodeObject tree
    */
-  public static CodeObject createTree(CtBehavior method) {
+  public static CodeObject createTree(CtBehavior method, String[] labels) {
     CtClass classType = method.getDeclaringClass();
     CodeObject rootObject = CodeObject.createTree(classType);
     CodeObject classObject = rootObject.get(classType.getName());
@@ -349,7 +345,7 @@ public class CodeObject {
       return null;
     }
 
-    CodeObject methodObject = new CodeObject(method);
+    CodeObject methodObject = new CodeObject(method, labels);
     classObject.addChild(methodObject);
 
     return rootObject;

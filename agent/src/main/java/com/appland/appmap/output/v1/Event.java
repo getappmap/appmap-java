@@ -1,15 +1,14 @@
 package com.appland.appmap.output.v1;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.annotation.JSONField;
-import javassist.CtBehavior;
-
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.appland.appmap.util.FullyQualifiedName;
+import javassist.CtBehavior;
 
 /**
  * Represents a snapshot of a method invocation, return, exception or some other kind of runtime
@@ -24,6 +23,9 @@ public class Event {
   public String path;
   public Value receiver;
   public Parameters parameters;
+
+  @JSONField(serialize = false, deserialize = false)
+  public FullyQualifiedName fqn;
 
   @JSONField(name = "defined_class")
   public String definedClass;
@@ -85,15 +87,15 @@ public class Event {
    * @param master The event to copy information from
    */
   public static Event functionCallEvent(Event master) {
-    Event event = new Event();
-    event.setEvent("call");
-    event.setThreadId(Thread.currentThread().getId());
-    event.setDefinedClass(master.definedClass);
-    event.setMethodId(master.methodId);
-    event.setPath(master.path);
-    event.setLineNumber(master.lineNumber);
-    event.setStatic(master.isStatic);
-    return event;
+    return new Event()
+      .setFQN(master.fqn)
+      .setEvent("call")
+      .setThreadId(Thread.currentThread().getId())
+      .setDefinedClass(master.definedClass)
+      .setMethodId(master.methodId)
+      .setPath(master.path)
+      .setLineNumber(master.lineNumber)
+      .setStatic(master.isStatic);
   }
 
   /**
@@ -101,15 +103,15 @@ public class Event {
    * left to be filled in later.
    */
   public static Event functionReturnEvent(Event master) {
-    Event event = new Event();
-    event.setEvent("return");
     // In some cases, such as naming the file output, this information is relied upon.
     // It will be stripped before the event is written.
     // Consider this technical debt...
-    event.setDefinedClass(master.definedClass);
-    event.setStatic(master.isStatic);
-    event.setMethodId(master.methodId);
-    return event;
+    return new Event()
+      .setEvent("return")
+      .setFQN(master.fqn)
+      .setDefinedClass(master.definedClass)
+      .setStatic(master.isStatic)
+      .setMethodId(master.methodId);
   }
 
   /**
@@ -124,7 +126,8 @@ public class Event {
    * @param behavior Behavior to gather information from
    */
   public Event(CtBehavior behavior) {
-    this.setDefinedClass(behavior.getDeclaringClass().getName())
+    this.setFQN(behavior)
+        .setDefinedClass(behavior.getDeclaringClass().getName())
         .setMethodId(behavior.getName())
         .setStatic((behavior.getModifiers() & Modifier.STATIC) != 0)
         .setPath(CodeObject.getSourceFilePath(behavior.getDeclaringClass()))
@@ -155,6 +158,18 @@ public class Event {
   public boolean hasPackageName() { return packageName != null; }
 
   public String packageName() { return packageName; }
+
+  public Event setFQN(CtBehavior behavior) {
+    this.fqn = new FullyQualifiedName(behavior);
+
+    return this;
+  }
+
+  public Event setFQN(FullyQualifiedName fqn) {
+    this.fqn = new FullyQualifiedName(fqn);
+
+    return this;
+  }
 
   /**
    * Set the "event" string.
@@ -458,7 +473,8 @@ public class Event {
 
   public Event measureElapsed(Event callEvent) {
     LocalDateTime endTime = LocalDateTime.now();
-    this.elapsed = new Float(Duration.between(callEvent.startTime, endTime).toNanos() / 10e09);
+    double duration = Duration.between(callEvent.startTime, endTime).toNanos() / 10e09;
+    this.elapsed = Float.valueOf((float)duration);
     return this;
   }
 

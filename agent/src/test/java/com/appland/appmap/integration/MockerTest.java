@@ -28,7 +28,7 @@ public class MockerTest {
   public void testMockedConnection() {
     final Connection c = mock(Connection.class);
     try {
-      final String s = c.nativeSQL("select 1");
+      c.nativeSQL("select 1");
     }
     catch (SQLException e) {
       e.printStackTrace();
