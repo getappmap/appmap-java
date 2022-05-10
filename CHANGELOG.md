@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/applandinc/appmap-java/compare/v1.13.1...v1.14.0) (2022-05-10)
+
+
+### Features
+
+* Configurable method labels ([2deb582](https://github.com/applandinc/appmap-java/commit/2deb582b178732f528830741b93d6b2f17ad1100))
+
 ## [1.13.1](https://github.com/applandinc/appmap-java/compare/v1.13.0...v1.13.1) (2022-04-27)
 
 
