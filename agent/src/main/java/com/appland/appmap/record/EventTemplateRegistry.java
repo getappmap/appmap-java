@@ -34,9 +34,9 @@ public class EventTemplateRegistry {
    * @param behavior The behavior to create a template from
    * @return A behavior ordinal (an index to the event template)
    */
-  public Integer register(CtBehavior behavior) {
+  public Integer register(CtBehavior behavior, String[] labels) {
     Event event = new Event(behavior);
-    return this.register(event, behavior);
+    return this.register(event, behavior, labels);
   }
 
   /**
@@ -46,8 +46,8 @@ public class EventTemplateRegistry {
    * @param behavior The behavior used to create the {@link Event} template
    * @return The behavior ordinal (an index to the {@link Event} template)
    */
-  public synchronized Integer register(Event event, CtBehavior behavior) {
-    recorder.registerCodeObject(CodeObject.createTree(behavior));
+  public synchronized Integer register(Event event, CtBehavior behavior, String[] labels) {
+    recorder.registerCodeObject(CodeObject.createTree(behavior, labels));
     eventTemplates.add(event);
     return eventTemplates.size() - 1;
   }

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.config.AppMapPackage;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.conditions.ConfigCondition;
 import com.appland.appmap.test.util.ClassBuilder;
@@ -73,9 +74,10 @@ public class HookConditionSystemTest {
         .ctClass();
 
     AppMapConfig config = Mockito.spy(AppMapConfig.get());
-    Mockito.doReturn(true).when(config).includes(new FullyQualifiedName(methodNoArgs.getBehavior()));
-    Mockito.doReturn(true).when(config).includes(new FullyQualifiedName(methodSingleArg.getBehavior()));
-    Mockito.doReturn(true).when(config).includes(new FullyQualifiedName(methodManyArgs.getBehavior()));
+    AppMapPackage.LabelConfig noLabels = new AppMapPackage.LabelConfig();
+    Mockito.doReturn(noLabels).when(config).includes(new FullyQualifiedName(methodNoArgs.getBehavior()));
+    Mockito.doReturn(noLabels).when(config).includes(new FullyQualifiedName(methodSingleArg.getBehavior()));
+    Mockito.doReturn(noLabels).when(config).includes(new FullyQualifiedName(methodManyArgs.getBehavior()));
   }
 
   @Test

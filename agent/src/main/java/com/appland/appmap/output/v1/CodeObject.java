@@ -178,12 +178,10 @@ public class CodeObject {
    * name, location and flags.
    * @param behavior The behavior representing this CodeObject
    */
-  public CodeObject(CtBehavior behavior) {
+  public CodeObject(CtBehavior behavior, String[] labels) {
     final CtClass ctclass = behavior.getDeclaringClass();
     final String file = CodeObject.getSourceFilePath(ctclass);
     final int lineno = behavior.getMethodInfo().getLineNumber(0);
-
-    String[] labels = null;
 
     try {
       // Look for the Labels annotation by class name. If we introduce a
@@ -337,7 +335,7 @@ public class CodeObject {
    * @param method The method to create a hierarchy from
    * @return The root of the CodeObject tree
    */
-  public static CodeObject createTree(CtBehavior method) {
+  public static CodeObject createTree(CtBehavior method, String[] labels) {
     CtClass classType = method.getDeclaringClass();
     CodeObject rootObject = CodeObject.createTree(classType);
     CodeObject classObject = rootObject.get(classType.getName());
@@ -347,7 +345,7 @@ public class CodeObject {
       return null;
     }
 
-    CodeObject methodObject = new CodeObject(method);
+    CodeObject methodObject = new CodeObject(method, labels);
     classObject.addChild(methodObject);
 
     return rootObject;

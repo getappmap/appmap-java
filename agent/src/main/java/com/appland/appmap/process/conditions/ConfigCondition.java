@@ -2,6 +2,7 @@ package com.appland.appmap.process.conditions;
 
 import java.util.Map;
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.config.AppMapPackage;
 import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.FullyQualifiedName;
 import javassist.CtBehavior;
@@ -40,6 +41,12 @@ public abstract class ConfigCondition implements Condition {
       return false;
     }
 
-    return AppMapConfig.get().includes(new FullyQualifiedName(behavior));
+    final AppMapPackage.LabelConfig ls = AppMapConfig.get().includes(new FullyQualifiedName(behavior));
+    if (ls != null) {
+      matchResult.put("labels", ls.getLabels());
+      return true;
+    }
+
+    return false;
   }
 }

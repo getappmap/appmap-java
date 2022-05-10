@@ -85,18 +85,19 @@ public class AppMapConfig {
    * @return {@code true} if the class/method is included in the configuration. {@code false} if it
    *         is not included or otherwise explicitly excluded.
    */
-  public Boolean includes(FullyQualifiedName canonicalName) {
+  public AppMapPackage.LabelConfig includes(FullyQualifiedName canonicalName) {
     if (this.packages == null) {
-      return false;
+      return null;
     }
 
     for (AppMapPackage pkg : this.packages) {
-      if (pkg.includes(canonicalName)) {
-        return true;
+      final AppMapPackage.LabelConfig ls = pkg.find(canonicalName);
+      if (ls != null) {
+        return ls;
       }
     }
 
-    return false;
+    return null;
   }
 
   /**
@@ -123,7 +124,7 @@ public class AppMapConfig {
       return false;
     }
     for (AppMapPackage pkg : this.packages) {
-      if (pkg.includes(canonicalName)) {
+      if (pkg.find(canonicalName) != null) {
         return pkg.shallow;
       }
     }

@@ -112,7 +112,8 @@ public class Hook {
       return null;
     }
 
-    Integer behaviorOrdinal = eventTemplateRegistry.register(targetBehavior);
+    String[] labels = (String[])matchResult.getOrDefault("labels", new String[0]);
+    Integer behaviorOrdinal = eventTemplateRegistry.register(targetBehavior, labels);
     if (behaviorOrdinal < 0) {
       return null;
     }

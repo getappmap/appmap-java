@@ -1,0 +1,10 @@
+name: Spring Pet Clinic
+packages:
+- path: org.springframework.samples.petclinic
+
+- path: org.apache.commons.logging
+  methods:
+  - class: LogAdapter\$Slf4jLocationAwareLog
+    name: (info|debug)
+    labels: [log]
+

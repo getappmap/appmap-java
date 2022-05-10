@@ -39,6 +39,6 @@ public abstract class RecordCondition implements Condition {
     final FullyQualifiedName canonicalName = new FullyQualifiedName(behavior);
     return Arrays.stream(Properties.getRecords()).anyMatch(
             record ->  record.equals(canonicalName.toString())) &&
-          AppMapConfig.get().includes(canonicalName);
+          (AppMapConfig.get().includes(canonicalName) != null);
   }
 }
