@@ -11,7 +11,7 @@ public class FullyQualifiedName {
 
   public FullyQualifiedName(String packageName, String className, boolean isStatic,
       String methodName) {
-    this.packageName = packageName;
+    this.packageName = packageName != null? packageName : "";
     this.className = className;
     this.isStatic = isStatic;
     this.methodName = methodName;

@@ -1,94 +1,106 @@
 package com.appland.appmap.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-
-class Tests {
-  static class Fixtures {
-    //@formatter:off
-    final static String[] LABEL_SPEC = {
-      "---",
-      "class: (Foo|Bar)", 
-      "name: (foo|bar)",
-      "labels: [foo]"
-    };
- 
-    final static String[] PACKAGE_CONFIG = {
-      "---",
-      "path: com.example",
-      "exclude: [com.example.Spam.ham]",
-      "methods:",
-      "- class: (Foo|Bar)",
-      "  name: (foo|bar)",
-      "  labels: [foo]"
-    };
-    //@formatter:on
-  }
-
-  public static class LabelConfigTests {
-    private AppMapPackage.LabelConfig lc;
-
-    @Before
-    public void load() {
-      final String input = String.join("\n", Fixtures.LABEL_SPEC);
-
-      ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-      try {
-        lc = mapper.readValue(input, AppMapPackage.LabelConfig.class);
-        assertEquals("foo", lc.getLabels()[0]);
-      } catch (Exception e) {
-        e.printStackTrace();
-        fail(e.getMessage());
-      }
-    }
-
-    @Test
-    public void testMatches() {
-      assertTrue(lc.matches("Foo", "bar"));
-    }
-
-    @Test
-    public void testMatchesWholeClass() {
-      assertFalse(lc.matches("Foo$Foo1", "bar"));
-    }
-
-    @Test
-    public void testMatchesWholeName() {
-      assertFalse(lc.matches("Foo", "bar!"));
-    }
-  }
-
-  public static class PackageTests {
-    @Test
-    public void testLoadConfig() {
-      final String input = String.join("\n", Fixtures.PACKAGE_CONFIG);
-      ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-      try {
-        final AppMapPackage appMapPackage = mapper.readValue(input, AppMapPackage.class);
-        assertEquals("com.example", appMapPackage.path);
-        assertNotNull(appMapPackage.methods);
-
-      } catch (Exception e) {
-        e.printStackTrace();
-        fail(e.getMessage());
-      }
-    }
-  }
-}
-
-
-@RunWith(Suite.class)
-@Suite.SuiteClasses({Tests.LabelConfigTests.class, Tests.PackageTests.class})
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 public class AppMapPackageTest {
-}
+  <T> T loadYaml(String[] yaml, Class<T> c) throws Exception {
+    final String input = String.join("\n", yaml);
 
+    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    return (T) mapper.readValue(input, c);
+  }
+
+  //@formatter:off
+  final static String[] LABEL_SPEC = {
+    "---",
+    "class: (Foo|Bar)", 
+    "name: (foo|bar)",
+    "labels: [foo]"
+  };
+
+  final static String[] METHOD_ONLY_SPEC = {
+    "---",
+    "class: (Foo|Bar)", 
+    "name: (foo|bar)",
+  };
+  final static String[] BROKEN_REGEX_SPEC = {
+    "---",
+    "class: (Foo|Bar", 
+    "name: (foo|bar)",
+  };
+
+  final static String[] PACKAGE_CONFIG = {
+    "---",
+    "path: com.example",
+    "exclude: [com.example.Spam.ham]",
+    "methods:",
+    "- class: (Foo|Bar)",
+    "  name: (foo|bar)",
+    "  labels: [foo]"
+  };
+  //@formatter:on
+
+  @Nested
+  class LabelConfigTests {
+    AppMapPackage.LabelConfig lc;
+    @Nested
+    class WithFullSpec {
+      @BeforeEach
+      public void load() throws Exception {
+        lc = loadYaml(LABEL_SPEC, AppMapPackage.LabelConfig.class);
+        assertEquals("foo", lc.getLabels()[0]);
+      }
+
+      @Test
+      public void testMatches() {
+        assertTrue(lc.matches("Foo", "bar"));
+      }
+
+      @Test
+      public void testMatchesWholeClass() {
+        assertFalse(lc.matches("Foo$Foo1", "bar"));
+      }
+
+      @Test
+      public void testMatchesWholeName() {
+        assertFalse(lc.matches("Foo", "bar!"));
+      }
+    }
+
+    @Test
+    void testMissingLabels() throws Exception {
+      lc = loadYaml(METHOD_ONLY_SPEC, AppMapPackage.LabelConfig.class);
+      assertNull(lc.getLabels());
+    }
+
+    @Test
+    void testBrokenRegex() throws Exception {
+      assertThrows(JsonProcessingException.class,
+          () -> loadYaml(BROKEN_REGEX_SPEC, AppMapPackage.LabelConfig.class));
+    }
+
+  }
+
+  @Nested
+  class PackageTests {
+    AppMapPackage appMapPackage;
+
+    @Test
+    public void testLoadConfig() throws Exception {
+      appMapPackage = loadYaml(PACKAGE_CONFIG, AppMapPackage.class);
+      assertEquals("com.example", appMapPackage.path);
+      assertNotNull(appMapPackage.methods);
+    }
+  }
+}
