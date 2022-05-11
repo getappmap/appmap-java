@@ -1,3 +1,10 @@
+## [1.14.1](https://github.com/applandinc/appmap-java/compare/v1.14.0...v1.14.1) (2022-05-11)
+
+
+### Bug Fixes
+
+* Handle missing package names ([4270ab5](https://github.com/applandinc/appmap-java/commit/4270ab5bfdb0ab08ad1452573cd8b7fbed806b7d))
+
 # [1.14.0](https://github.com/applandinc/appmap-java/compare/v1.13.1...v1.14.0) (2022-05-10)
 
 
