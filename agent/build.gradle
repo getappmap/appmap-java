@@ -59,7 +59,10 @@ dependencies {
   // com.appland.appmap.annotation.
   // implementation project(':annotation')
 
-  testImplementation 'junit:junit:4.12'
+  testImplementation platform('org.junit:junit-bom:5.8.2')
+  testImplementation 'org.junit.jupiter:junit-jupiter'
+  testImplementation 'org.junit.vintage:junit-vintage-engine'
+  
   testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
   testImplementation "org.mockito:mockito-core:3.+"
 }
@@ -88,8 +91,6 @@ shadowJar {
     exclude(dependency('org.apache.httpcomponents:.*:.*'))
  }
 }
-
-
 
 sourceSets {
   main {
@@ -124,7 +125,7 @@ task integrationTest(type: Test) {
 }
 
 test {
-  useJUnit()
+  useJUnitPlatform()
   dependsOn shadowJar
   dependsOn cleanTest
   exclude 'com/appland/appmap/integration/**'
@@ -162,6 +163,7 @@ task sourcesJar(type: Jar) {
 javadoc {
   exclude 'com/appland/**'
 }
+
 task mockJavadocJar(type: Jar) {
   classifier = 'javadoc'
   from javadoc.destinationDir
@@ -235,3 +237,5 @@ if (project.hasProperty("signingKey")) {
     sign publishing.publications.appMapAgent
   }
 }
+
+tasks.publishToMavenLocal.dependsOn(check, integrationTest)
