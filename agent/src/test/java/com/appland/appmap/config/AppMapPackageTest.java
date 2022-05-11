@@ -53,7 +53,7 @@ public class AppMapPackageTest {
 
   @Nested
   class LabelConfigTests {
-    private AppMapPackage.LabelConfig lc;
+    AppMapPackage.LabelConfig lc;
     @Nested
     class WithFullSpec {
       @BeforeEach
@@ -81,7 +81,7 @@ public class AppMapPackageTest {
     @Test
     void testMissingLabels() throws Exception {
       lc = loadYaml(METHOD_ONLY_SPEC, AppMapPackage.LabelConfig.class);
-      assertNull(lc.labels);
+      assertNull(lc.getLabels());
     }
 
     @Test
