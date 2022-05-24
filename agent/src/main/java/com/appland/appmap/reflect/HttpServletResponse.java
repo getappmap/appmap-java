@@ -3,11 +3,12 @@ package com.appland.appmap.reflect;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 
-public class HttpServletResponse extends HttpHeaders {
+public class HttpServletResponse extends ReflectiveType implements HttpHeaders {
   public static final int SC_CONFLICT = 409;
   public static final int SC_NOT_FOUND = 404;
   public static final int SC_OK = 200;
 
+  private final HttpHeaderDelegate headerDelegate;
   private final Method fnSetContentType;
   private final Method fnSetContentLength;
   private final Method fnSetStatus;
@@ -17,6 +18,7 @@ public class HttpServletResponse extends HttpHeaders {
 
   public HttpServletResponse(Object self) {
     super(self);
+    this.headerDelegate = new HttpHeaderDelegate(self);
 
     fnSetContentType = getMethod("setContentType", String.class);
     fnSetContentLength = getMethod("setContentLength", int.class);
@@ -60,5 +62,10 @@ public class HttpServletResponse extends HttpHeaders {
     return fnGetContentType != null?
       (String) invokeWrappedMethod(fnGetContentType)
       : "";
+  }
+
+  @Override
+  public HttpHeaderDelegate getHeaderDelegate() {
+    return headerDelegate;
   }
 }
