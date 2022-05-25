@@ -12,6 +12,9 @@ public class HttpServletRequest extends ReflectiveType implements HttpHeaders {
   private final Method fnGetRequestURI;
   private final Method fnGetProtocol;
   private final Method fnGetParameterMap;
+  private final Method fnGetAttribute;
+  private final Method fnSetAttribute;
+  private final Method fnGetAttributeNames;
 
   public HttpServletRequest(Object self) {
     super(self);
@@ -21,6 +24,9 @@ public class HttpServletRequest extends ReflectiveType implements HttpHeaders {
     fnGetRequestURI = getMethod("getRequestURI");
     fnGetProtocol = getMethod("getProtocol");
     fnGetParameterMap = getMethod("getParameterMap");
+    fnGetAttribute = getMethod("getAttribute", String.class);
+    fnSetAttribute = getMethod("setAttribute", String.class, Object.class);
+    fnGetAttributeNames = getMethod("getAttributeNames");
   }
 
   public String getMethod() {
@@ -46,6 +52,25 @@ public class HttpServletRequest extends ReflectiveType implements HttpHeaders {
     return fnGetProtocol != null?
       (Map<String, String[]>) invokeWrappedMethod(fnGetParameterMap)
       : new HashMap<String, String[]>();
+  }
+
+  public Object getAttribute(String name) {
+    return fnGetAttribute != null?
+      invokeWrappedMethod(fnGetAttribute, name)
+      : null;
+  }
+
+  public void setAttribute(String key, Object value) {
+    if (fnSetAttribute != null) {
+      invokeWrappedMethod(fnSetAttribute, key, value);
+    }
+  }
+  
+  @SuppressWarnings("unchecked")
+  public Enumeration<String> getAttributeNames() {
+    return fnGetAttributeNames != null?
+      (Enumeration<String>) invokeWrappedMethod(fnGetAttributeNames)
+      : null;
   }
 
   @Override

@@ -92,6 +92,12 @@ public class Recorder {
         activeSession.add(event);
       }
     }
+
+    synchronized void addEventUpdate(Event event) {
+      if (activeSession != null) {
+        activeSession.addEventUpdate(event);
+      }
+    }
   }
 
   /**
@@ -162,7 +168,7 @@ public class Recorder {
     ts.isProcessing = true;
     try {
       if ( event.event.equals("call") ) {
-        if ( !ts.callStack.empty() && event.hasPackageName() && AppMapConfig.get().isShallow(event.fqn) ) {
+        if (!ts.callStack.empty() && event.hasPackageName() && AppMapConfig.get().isShallow(event.fqn()) ) {
           Event parent = ts.callStack.peek();
           if ( parent.hasPackageName() && event.packageName().equals(parent.packageName()) ) {
             event.ignore();
@@ -280,7 +286,7 @@ public class Recorder {
   // until the next event on the same thread is received.
   private void flush() {
     getThreadStateIterator().forEachRemaining((ts) -> {
-      if ( ts.lastEvent == null ) {
+      if (ts.lastEvent == null) {
         return;
       }
 
@@ -295,5 +301,12 @@ public class Recorder {
         ts.isProcessing = false;
       }
     });
+  }
+
+  public void addEventUpdate(Event event) {
+    if (!activeSession.exists()) {
+      return;
+    }
+    activeSession.addEventUpdate(event);
   }
 }

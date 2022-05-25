@@ -106,7 +106,6 @@ public class RemoteRecordingManager {
         "RemoteRecordingManager.service - handling appmap request for %s\n",
         req
       );
-      Logger.whereAmI();
     }
     Logger.println("service, ret.getRequestUri(): " + req.getRequestURI());
     if (req.getRequestURI().endsWith(CheckpointRoute)) {
