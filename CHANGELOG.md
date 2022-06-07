@@ -1,3 +1,10 @@
+## [1.15.1](https://github.com/applandinc/appmap-java/compare/v1.15.0...v1.15.1) (2022-06-07)
+
+
+### Bug Fixes
+
+* Record normalized_path for Spring requests ([f6a9ee6](https://github.com/applandinc/appmap-java/commit/f6a9ee65667d9feabf882a5ddb817dfeb999567d))
+
 # [1.15.0](https://github.com/applandinc/appmap-java/compare/v1.14.1...v1.15.0) (2022-06-07)
 
 
