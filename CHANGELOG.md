@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/applandinc/appmap-java/compare/v1.14.1...v1.15.0) (2022-06-07)
+
+
+### Features
+
+* Allow appmap_dir, language, and add'l ([a94ea0b](https://github.com/applandinc/appmap-java/commit/a94ea0ba59d013c74d8d5a4c147ce6a25948c4c1))
+
 ## [1.14.1](https://github.com/applandinc/appmap-java/compare/v1.14.0...v1.14.1) (2022-05-11)
 
 
