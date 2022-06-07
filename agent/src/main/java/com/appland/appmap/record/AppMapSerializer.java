@@ -1,15 +1,17 @@
 package com.appland.appmap.record;
 
-import com.alibaba.fastjson.JSONWriter;
-import com.appland.appmap.config.AppMapConfig;
-import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.record.Recorder.Metadata;
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.Writer;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+
+import com.alibaba.fastjson.JSONWriter;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.record.Recorder.Metadata;
 
 /**
  * Writes AppMap data to JSON.
@@ -19,6 +21,7 @@ public class AppMapSerializer {
     public static final String Version = "version";
     public static final String Metadata = "metadata";
     public static final String Events = "events";
+    public static final String EventUpdates = "eventUpdates";
     public static final String ClassMap = "class_map";
   }
 
@@ -38,6 +41,11 @@ public class AppMapSerializer {
 
   private AppMapSerializer(Writer writer) {
     this.json = new JSONWriter(writer);
+    // The eventUpdates object contains Event objects that are also in the
+    // events array. Setting DisableCircularReferenceDetect tells fastjson that
+    // it should serialize the updated object, rather than generating a
+    // reference to the other object.
+    this.json.config(SerializerFeature.DisableCircularReferenceDetect, true);
     this.json.startObject();
   }
 
@@ -226,6 +234,18 @@ public class AppMapSerializer {
   }
 
   public void flush() throws IOException {
+    this.json.flush();
+  }
+
+  public void writeEventUpdates(Map<Integer, Event>updates) throws IOException {
+    this.setCurrentSection(FileSections.EventUpdates, "");
+    this.json.writeKey("eventUpdates");
+    this.json.startObject();
+    updates.forEach((k, v) -> {
+      this.json.writeKey(k.toString());
+      this.json.writeValue(v);
+    });
+    this.json.endObject();
     this.json.flush();
   }
 

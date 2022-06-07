@@ -5,6 +5,13 @@ import com.appland.appmap.util.Logger;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+/* ReflectiveType implements some simple ducking typing. As long as self
+ * implements the methods required by subclasses of ReflectiveType, the actual
+ * type of self is immaterial. For example,
+ * com.appland.appmap.reflect.HttpServletRequest can wrap objects that implement
+ * either javax.servlet.HttpServletRequest, or
+ * jakarta.servlet.http.HttpServletRequest. 
+ */
 public class ReflectiveType {
   protected Object self;
 

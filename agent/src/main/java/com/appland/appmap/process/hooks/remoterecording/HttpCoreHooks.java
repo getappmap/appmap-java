@@ -34,10 +34,9 @@ public class HttpCoreHooks {
     throws IOException, HttpException, ExitEarly {
     HttpRequest req = (HttpRequest) args[0];
     final RequestLine rl = req.getRequestLine();
-    HttpServerRequest.recordHttpServerRequest(event, 
+    HttpServerRequest.recordHttpServerRequest(event,
       rl.getMethod(), rl.getUri(), rl.getProtocolVersion().toString(),
-      getHeaderMap(req.getAllHeaders()),
-      null); // TODO: add params
+      getHeaderMap(req.getAllHeaders())); // TODO: add params
   }
 
   @ArgumentArray
@@ -45,8 +44,8 @@ public class HttpCoreHooks {
   @HookClass(value = "org.apache.http.protocol.HttpRequestHandler", method="handle", position = ISystem.HOOK_POSITION_LAST, methodEvent = MethodEvent.METHOD_RETURN)
   public static void postHandleSync(Event event, Object ret, Object[] args)
     throws IOException, HttpException, ExitEarly {
-    HttpResponse res = (HttpResponse) args[1];
-    HttpServerRequest.recordHttpServerResponse(event, res.getStatusLine().getStatusCode(), getHeaderMap(res.getAllHeaders()));
+      HttpResponse res = (HttpResponse) args[1];
+      HttpServerRequest.recordHttpServerResponse(event, null, res.getStatusLine().getStatusCode(), getHeaderMap(res.getAllHeaders()));
   }
 
 }

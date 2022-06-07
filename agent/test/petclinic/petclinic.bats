@@ -154,14 +154,16 @@ teardown_file() {
 }
 
 @test "message parameters contain path params from a Spring app" {
-  skip
   start_recording
   run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
   stop_recording
 
-  assert_json_eq '.events[] | .http_server_request.normalized_path_info' '/owners/:ownerId/pets/:petId/edit'
-  assert_json_contains '.events[] | .message' 'ownerId'
-  assert_json_contains '.events[] | .message' 'petId'
+  local appmap="${output}"
+  local reqid=$(jq '.events[] | select(.http_server_request.path_info == "/owners/1/pets/1/edit") | .id' <<< "${appmap}")
+  run jq -r -e --arg reqid $reqid '.eventUpdates[$reqid] | .http_server_request.normalized_path_info, (.message[] | .name)' <<< "${appmap}"
+  assert_output '/owners/:ownerId/pets/:petId/edit
+petId
+ownerId'
 }
 
 @test "return events have parent_id and don't have non-essential parameters" {
@@ -180,7 +182,7 @@ teardown_file() {
   assert_json_not_contains '.events[] | select(.http_server_response and .defined_class)'
 }
 
-@test "expected appmap captured" {
+@test "recording captures an exception in http request" {
   start_recording
   
   # this route seems least likely to be affected by future changes

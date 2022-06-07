@@ -1,15 +1,24 @@
 package com.appland.appmap.record;
 
-import com.appland.appmap.output.v1.CodeObject;
-import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.util.Logger;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.RandomAccessFile;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+
+import com.alibaba.fastjson.JSON;
+import com.appland.appmap.output.v1.CodeObject;
+import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.util.Logger;
 
 public class RecordingSession {
 
@@ -18,6 +27,7 @@ public class RecordingSession {
   private Path tmpPath;
   private AppMapSerializer serializer;
   private final Recorder.Metadata metadata;
+  private final Map<Integer, Event>eventUpdates = new HashMap<Integer, Event>();
 
   RecordingSession(Recorder.Metadata metadata) {
     this.tmpPath = null;
@@ -49,6 +59,11 @@ public class RecordingSession {
     } catch (IOException e) {
       throw new ActiveSessionException(String.format("Failed to flush recording session:\n%s\n", e.getMessage()), e);
     }
+  }
+
+  public synchronized void addEventUpdate(Event event) {
+    Logger.println("addEventUpdate, event: " + JSON.toJSONString(event));
+    this.eventUpdates.put(event.id, event);
   }
 
   public synchronized Recording checkpoint() {
@@ -84,6 +99,7 @@ public class RecordingSession {
       AppMapSerializer serializer = AppMapSerializer.reopen(fw, raf);
       serializer.writeClassMap(this.getClassMap());
       serializer.writeMetadata(this.metadata);
+      serializer.writeEventUpdates(this.eventUpdates);
       serializer.finish();
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -103,6 +119,7 @@ public class RecordingSession {
     try {
       this.serializer.writeClassMap(this.getClassMap());
       this.serializer.writeMetadata(this.metadata);
+      this.serializer.writeEventUpdates(this.eventUpdates);
       this.serializer.finish();
     } catch (IOException e) {
       throw new RuntimeException(e);

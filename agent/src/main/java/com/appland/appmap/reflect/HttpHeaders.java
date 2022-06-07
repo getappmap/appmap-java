@@ -7,29 +7,23 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpHeaders extends ReflectiveType {
-  protected final Method fnGetHeader;
-  protected final Method fnGetHeaderNames;
+public interface HttpHeaders {
+  HttpHeaderDelegate getHeaderDelegate();
 
-  public HttpHeaders(Object self) {
-    super(self);
-
-    fnGetHeader = getMethod("getHeader", String.class);
-    fnGetHeaderNames = getMethod("getHeaderNames");
+  default String getHeader(String name) {
+    HttpHeaderDelegate delegate = getHeaderDelegate();
+    return delegate.fnGetHeader != null?
+    (String) delegate.invokeWrappedMethod(delegate.fnGetHeader, name)
+    : "";
   }
-
-  public String getHeader(String name) {
-    return fnGetHeader != null?
-      (String) invokeWrappedMethod(fnGetHeader, name)
-      : "";
-  }
-
+  
   @SuppressWarnings("unchecked")
-  public Enumeration<String> getHeaderNames() {
+  default Enumeration<String> getHeaderNames() {
+    HttpHeaderDelegate delegate = getHeaderDelegate();
     try {
-      return (Enumeration<String>) invokeWrappedMethod(fnGetHeaderNames);
+      return (Enumeration<String>) delegate.invokeWrappedMethod(delegate.fnGetHeaderNames);
     } catch (ClassCastException _e) {
-      return Collections.enumeration((Collection<String>) invokeWrappedMethod(fnGetHeaderNames));
+      return Collections.enumeration((Collection<String>)delegate.invokeWrappedMethod(delegate.fnGetHeaderNames));
     } catch (Exception e) {
       // Fall through
     }
@@ -40,7 +34,7 @@ public class HttpHeaders extends ReflectiveType {
   /**
    * Non-standard utility method. Retrieves all headers.
    */
-  public Map<String, String> getHeaders() {
+  default Map<String, String> getHeaders() {
     HashMap<String, String> headers = new HashMap<>();
 
     for (Enumeration<String> e = getHeaderNames(); e.hasMoreElements();) {

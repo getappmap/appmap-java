@@ -11,9 +11,17 @@ import com.appland.appmap.util.FullyQualifiedName;
 import javassist.CtBehavior;
 
 /**
- * Represents a snapshot of a method invocation, return, exception or some other kind of runtime
- * event. This class is serialized according to the AppMap schema specification.
- * @see <a href="https://github.com/applandinc/appmap#events">GitHub: AppMap - events</a>
+ * Represents a snapshot of a method invocation, return, exception or some other
+ * kind of runtime event. This class is serialized according to the AppMap
+ * schema specification.
+ * @see <a href="https://github.com/applandinc/appmap#events">GitHub: AppMap -
+ * events</a>
+ *
+ * NOTE: Fields that are intended to be serialized should conform to the
+ * requirements (naming, access level) of fastjson. Fields that are not intended
+ * to be serialized should be private. Accessors for these fields should not
+ * have "get" and "set" prefixes (since that would cause them to be serialized).
+ * See, for example, the "fqn" field.
  */
 public class Event {
   private static Integer globalEventId = 0;
@@ -24,8 +32,7 @@ public class Event {
   public Value receiver;
   public Parameters parameters;
 
-  @JSONField(serialize = false, deserialize = false)
-  public FullyQualifiedName fqn;
+  private FullyQualifiedName fqn;
 
   @JSONField(name = "defined_class")
   public String definedClass;
@@ -88,7 +95,7 @@ public class Event {
    */
   public static Event functionCallEvent(Event master) {
     return new Event()
-      .setFQN(master.fqn)
+      .fqn(master.fqn)
       .setEvent("call")
       .setThreadId(Thread.currentThread().getId())
       .setDefinedClass(master.definedClass)
@@ -108,7 +115,7 @@ public class Event {
     // Consider this technical debt...
     return new Event()
       .setEvent("return")
-      .setFQN(master.fqn)
+      .fqn(master.fqn)
       .setDefinedClass(master.definedClass)
       .setStatic(master.isStatic)
       .setMethodId(master.methodId);
@@ -126,7 +133,7 @@ public class Event {
    * @param behavior Behavior to gather information from
    */
   public Event(CtBehavior behavior) {
-    this.setFQN(behavior)
+    this.fqn(behavior)
         .setDefinedClass(behavior.getDeclaringClass().getName())
         .setMethodId(behavior.getName())
         .setStatic((behavior.getModifiers() & Modifier.STATIC) != 0)
@@ -159,13 +166,17 @@ public class Event {
 
   public String packageName() { return packageName; }
 
-  public Event setFQN(CtBehavior behavior) {
+  public FullyQualifiedName fqn() {
+    return this.fqn;
+  }
+
+  public Event fqn(CtBehavior behavior) {
     this.fqn = new FullyQualifiedName(behavior);
 
     return this;
   }
 
-  public Event setFQN(FullyQualifiedName fqn) {
+  public Event fqn(FullyQualifiedName fqn) {
     this.fqn = new FullyQualifiedName(fqn);
 
     return this;
@@ -512,6 +523,10 @@ public class Event {
     return this;
   }
 
+  public void defrost() {
+    this.frozen = false;
+  }
+  
   void clearFunctionFields() {
     methodId = null;
     definedClass = null;
