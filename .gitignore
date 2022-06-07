@@ -1,8 +1,9 @@
 # Ignore Gradle project-specific cache directory
 .gradle
 
-# Ignore Gradle build output directory
+# Ignore build artifacts and compiled code
 build
+classes
 
 # AppMap files
 tmp
@@ -18,3 +19,5 @@ agent/bin/main
 agent/bin/test
 annotation/bin
 
+# Test-generated files
+test/
