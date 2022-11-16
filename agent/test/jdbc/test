@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -x
+
+bats --tap test/jdbc/jdbc.bats > build/log/bats-jdbc.log 2>&1

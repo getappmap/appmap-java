@@ -19,5 +19,3 @@ agent/bin/main
 agent/bin/test
 annotation/bin
 
-# Test-generated files
-test/

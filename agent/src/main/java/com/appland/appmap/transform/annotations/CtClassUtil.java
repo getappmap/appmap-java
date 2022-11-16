@@ -19,6 +19,8 @@ class CtClassUtil {
    * Otherwise, {@code false}.
    */
   public static Boolean isChildOf(CtClass candidateChildClass, String parentClassName) {
+    // System.err.println("candidateChildClass: " + candidateChildClass.getName() + ", parentClassName: " + parentClassName);
+
     if (candidateChildClass.getName().equals(parentClassName)) {
       return true;
     }
@@ -26,6 +28,7 @@ class CtClassUtil {
     CtClass[] interfaces = tryClass(candidateChildClass, "interfaces", candidateChildClass::getInterfaces);
     if ( interfaces != null ) {
       for (CtClass superType : interfaces) {
+        //System.err.println("interface: " + superType.getName());
         if (superType.getName().equals(parentClassName)) {
           return true;
         } else {
@@ -41,6 +44,12 @@ class CtClassUtil {
       if (superClass.getName().equals(parentClassName)) {
         return true;
       }
+      /*
+      else if (isChildOf(superClass, parentClassName)) {
+        return true;
+      }
+      */
+      
       final CtClass cls = superClass;
       superClass = tryClass(cls, "superclass", cls::getSuperclass);
     }
