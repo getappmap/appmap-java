@@ -3,8 +3,10 @@ install: true
 os: linux
 dist: bionic
 jdk:
-  - openjdk8
-  
+- openjdk17
+- openjdk8
+- openjdk11
+
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
@@ -16,10 +18,10 @@ cache:
     - '$HOME/.m2/'
 
 script:
-  - ./gradlew -is check
-  - ./gradlew -is test
-  - ./gradlew -is integrationTest
-  - ./bin/test
+- java -version
+- ./gradlew -is check
+- ./gradlew -is integrationTest
+- ./bin/test
 
 before_deploy:
   - |
@@ -37,3 +39,4 @@ deploy:
     script: semantic-release
     on:
       branch: master
+      jdk: openjdk8
