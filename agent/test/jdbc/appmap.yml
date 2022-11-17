@@ -1,0 +1,8 @@
+# This is the AppMap configuration file.
+# For full documentation of this file for Java programs, see:
+# https://appland.com/docs/reference/appmap-java.html#configuration
+name: complete
+# Your project contains the directory src/main/java.
+# AppMap has auto-detected the following Java packages in this directory:
+packages:
+- path: com.example.accessingdatajpa

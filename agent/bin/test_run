@@ -9,3 +9,4 @@ export PATH="$BATS_DIR"/bin:$PATH
 ./test/http_client/test
 ./test/agent_cli/test
 ./test/access/test
+./test/jdbc/test
