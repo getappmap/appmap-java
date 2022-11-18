@@ -19,8 +19,8 @@ cache:
 
 script:
 - java -version
-- ./gradlew -is check
-- ./gradlew -is integrationTest
+- ./gradlew check
+- ./gradlew integrationTest
 - ./bin/test
 
 before_deploy:

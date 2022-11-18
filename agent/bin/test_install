@@ -16,7 +16,7 @@ rm -rf spring-petclinic
 git clone https://github.com/spring-projects/spring-petclinic.git \
     && cd spring-petclinic \
     && git checkout 9cb8dde9b8b70218cb666447cbf1342bce7a473c \
-    && ./mvnw package -Dmaven.test.skip=true
+    && ./mvnw -q package -Dmaven.test.skip=true
 )
 
 export BATS_DIR=$PWD/build/bats
