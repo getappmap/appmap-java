@@ -1,3 +1,10 @@
+## [1.15.2](https://github.com/getappmap/appmap-java/compare/v1.15.1...v1.15.2) (2022-11-18)
+
+
+### Bug Fixes
+
+* avoid a javassist issue ([7c39c28](https://github.com/getappmap/appmap-java/commit/7c39c287e094cfb70429274a1f5ab414ef66a736))
+
 ## [1.15.1](https://github.com/applandinc/appmap-java/compare/v1.15.0...v1.15.1) (2022-06-07)
 
 
