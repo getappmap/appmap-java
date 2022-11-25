@@ -255,10 +255,9 @@ public class HttpServerRequest {
   }
 
   private static void addSpringPath(HttpServletRequest req) {
-    final String pattern = (String) req
-        .getAttribute(BEST_MATCHING_PATTERN_ATTRIBUTE);
-    if (pattern != null) {
-      final Event lastEvent = (Event) req.getAttribute(LAST_EVENT_KEY);
+    final String uri = (String)req.getRequestURI();
+    if (uri != null) {
+      final Event lastEvent = (Event)req.getAttribute(LAST_EVENT_KEY);
       if (lastEvent == null || lastEvent.httpServerRequest == null) {
         return;
       }
@@ -266,11 +265,14 @@ public class HttpServerRequest {
       // the session.
       lastEvent.defrost();
 
-      final String normalizedPath = pattern.replace('{', ':').replace("}", "");
-      lastEvent.httpServerRequest.setNormalizedPath(normalizedPath);
-
       Map<String, ?> uriTemplateVariables = getTemplateVariables(req);
-      addMessageParams(uriTemplateVariables, lastEvent);
+      if (uriTemplateVariables != null) {
+        // If it has template variables, it's parameterized.
+        final String pattern = (String) req.getAttribute(BEST_MATCHING_PATTERN_ATTRIBUTE);
+        lastEvent.httpServerRequest.setNormalizedPath(pattern);
+
+        addMessageParams(uriTemplateVariables, lastEvent);
+      }
 
       recorder.addEventUpdate(lastEvent);
     }
