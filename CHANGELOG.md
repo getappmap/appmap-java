@@ -1,3 +1,10 @@
+## [1.15.3](https://github.com/getappmap/appmap-java/compare/v1.15.2...v1.15.3) (2022-11-25)
+
+
+### Bug Fixes
+
+* handle parameterized requests correctly ([c54769e](https://github.com/getappmap/appmap-java/commit/c54769e362cf3ee90ba9a0a32ae2f5eba44bae1d))
+
 ## [1.15.2](https://github.com/getappmap/appmap-java/compare/v1.15.1...v1.15.2) (2022-11-18)
 
 
