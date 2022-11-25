@@ -161,7 +161,7 @@ teardown_file() {
   local appmap="${output}"
   local reqid=$(jq '.events[] | select(.http_server_request.path_info == "/owners/1/pets/1/edit") | .id' <<< "${appmap}")
   run jq -r -e --arg reqid $reqid '.eventUpdates[$reqid] | .http_server_request.normalized_path_info, (.message[] | .name)' <<< "${appmap}"
-  assert_output '/owners/:ownerId/pets/:petId/edit
+  assert_output '/owners/{ownerId}/pets/{petId}/edit
 petId
 ownerId'
 }
