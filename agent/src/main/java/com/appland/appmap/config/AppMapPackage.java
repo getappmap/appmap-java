@@ -1,8 +1,8 @@
 package com.appland.appmap.config;
 
 import java.util.regex.Pattern;
+
 import com.appland.appmap.util.FullyQualifiedName;
-import com.appland.appmap.util.Logger;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 

@@ -3,23 +3,21 @@
  */
 package com.appland.appmap.record;
 
-import com.appland.appmap.test.util.ClassBuilder;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+
+import com.appland.appmap.test.util.ClassBuilder;
+
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
 
 public class EventTemplateRegistryTest {
   private static final EventTemplateRegistry registry = EventTemplateRegistry.get();
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testRegister() throws Exception {
@@ -53,7 +51,8 @@ public class EventTemplateRegistryTest {
 
   @Test
   public void testUnknownEventTemplate() throws Exception {
-    thrown.expect(UnknownEventException.class);
-    registry.buildCallEvent(Integer.MAX_VALUE);
+    Assertions.assertThrows(UnknownEventException.class, () -> {
+      registry.buildCallEvent(Integer.MAX_VALUE);
+    });
   }
 }

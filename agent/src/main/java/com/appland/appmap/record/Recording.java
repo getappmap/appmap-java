@@ -2,6 +2,7 @@ package com.appland.appmap.record;
 
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;

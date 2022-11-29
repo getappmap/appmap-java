@@ -1,13 +1,11 @@
 package com.appland.appmap.record;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 import com.appland.appmap.config.AppMapConfig;
-import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.util.Logger;

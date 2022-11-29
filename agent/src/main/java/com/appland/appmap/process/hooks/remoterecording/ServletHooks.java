@@ -3,7 +3,7 @@ package com.appland.appmap.process.hooks.remoterecording;
 import static com.appland.appmap.util.StringUtil.canonicalName;
 import static com.appland.appmap.util.StringUtil.decapitalize;
 import static com.appland.appmap.util.StringUtil.identifierToSentence;
-import java.io.File;
+
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.ExitEarly;
