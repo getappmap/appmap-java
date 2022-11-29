@@ -1,3 +1,8 @@
+setup_file() {
+  mkdir -p test/petclinic/classes
+  javac -d test/petclinic/classes test/petclinic/Props.java
+}
+
 setup() {
   # bats doc says you'll get better error messages if you load helper scripts in
   # setup. (Note that loading them # in setup_file doesn't work.)

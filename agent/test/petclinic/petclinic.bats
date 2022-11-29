@@ -20,6 +20,15 @@ setup_file() {
   export LOG=build/fixtures/spring-petclinic/petclinic.log
   export WS_URL="http://localhost:8080"
 
+  printf 'checking for running Petclinic server' >&3
+  
+  if ! curl -Isf "${WS_URL}" >/dev/null 2>&1; then
+    if [ $? -eq 7 ]; then
+      printf 'server already running' >&3
+      exit 1
+    fi
+  fi
+
   printf 'getting set up' >&3
   java -ea -Dappmap.debug -Dappmap.debug.file=${LOG_DIR}/petclinic-appmap.log -Dappmap.debug.hooks -Dappmap.config.file=test/petclinic/appmap.yml -javaagent:$(find_agent_jar) -jar build/fixtures/spring-petclinic/target/$(ls build/fixtures/spring-petclinic/target | grep 'spring-petclinic-[[:digit:]].*\.jar$') &> $LOG &
   export JVM_PID=$!

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
-set -x
 
-bats --tap test/jdbc/jdbc.bats > build/log/bats-jdbc.log 2>&1
+LOG=build/log/bats-jdbc.log 
+trap "cat $LOG" ERR
+
+bats --tap test/jdbc/jdbc.bats >$LOG 2>&1

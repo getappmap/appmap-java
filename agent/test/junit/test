@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 
 rsync -au --delete build/fixtures/spring-petclinic test/junit
 cp test/petclinic/appmap.yml test/junit/spring-petclinic

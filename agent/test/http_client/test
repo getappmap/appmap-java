@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
 
 basedir=test/http_client
 cd test/http_client
@@ -16,7 +15,7 @@ java -ea -jar build/fixtures/spring-petclinic/target/$(ls build/fixtures/spring-
 JVM_PID=$!
 
 printf 'Starting spring-petclinic'
-while [ -z "$(curl -I "${WS_URL}" | grep 'HTTP/1.1 200')" ]; do
+while [ -z "$(curl -sI "${WS_URL}" | grep 'HTTP/1.1 200')" ]; do
   if ! kill -0 "${JVM_PID}" 2> /dev/null; then
     printf '. failed!\n\nprocess exited unexpectedly:\n'
     cat $PETCLINIC_LOG
