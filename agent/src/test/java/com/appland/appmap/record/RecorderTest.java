@@ -35,7 +35,7 @@ public class RecorderTest {
   @Before
   public void before() throws Exception {
     final Recorder.Metadata metadata =
-        new Recorder.Metadata();
+        new Recorder.Metadata("recorder_test", "tests");
 
     Recorder.getInstance().start(metadata);
   }
@@ -77,8 +77,7 @@ public class RecorderTest {
     Recorder recorder = recordEvents();
 
     final Recording recording = recorder.checkpoint();
-    Path targetPath = FileSystems.getDefault().getPath("build", "tmp", "snapshot.appmap.json");
-    recording.moveTo(targetPath.toString());
+    Path targetPath = recording.moveTo("snapshot.appmap.json");
 
     // Assert that it's parseable
     InputStream is = new FileInputStream(targetPath.toString());

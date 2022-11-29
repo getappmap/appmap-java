@@ -148,6 +148,8 @@ public class AppMapSerializer {
       {
         this.json.writeKey("name");
         this.json.writeValue(metadata.recorderName);
+        this.json.writeKey("type");
+        this.json.writeValue(metadata.recorderType);
       }
       this.json.endObject();
 

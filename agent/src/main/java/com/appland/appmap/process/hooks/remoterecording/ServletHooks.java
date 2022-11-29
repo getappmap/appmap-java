@@ -28,6 +28,10 @@ public class ServletHooks {
   private static final boolean debug = Properties.DebugHttp;
   private static final Recorder recorder = Recorder.getInstance();
 
+  private static final String JUNIT_NAME = "junit";
+  private static final String TESTNG_NAME = "testng";
+  private static final String TEST_RECORDER_TYPE = "tests";
+
   private static void service(Object[] args) throws ExitEarly {
     if (args.length != 2) {
       return;
@@ -98,29 +102,10 @@ public class ServletHooks {
     skipFilterChain(args);
   }
 
-  private static Recorder.Metadata getMetadata(Event event) {
-    // TODO: Obtain this info in the constructor
-    boolean junit = false;
-    StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-    for (int i = 0; !junit && i < stack.length; i++) {
-      if (stack[i].getClassName().startsWith("org.junit")) {
-        junit = true;
-      }
-    }
-    Recorder.Metadata metadata = new Recorder.Metadata();
-    if (junit) {
-      metadata.recorderName = "toggle_record_receiver";
-      metadata.framework = "junit";
-    } else {
-      metadata.recorderName = canonicalName(event.definedClass, event.isStatic, event.methodId);
-    }
-    return metadata;
-  }
-
-  private static void startRecording(Event event) {
+  private static void startRecording(Event event, String recorderName, String recorderType) {
     Logger.printf("Recording started for %s\n", canonicalName(event));
     try {
-      Recorder.Metadata metadata = getMetadata(event);
+      Recorder.Metadata metadata = new Recorder.Metadata(recorderName, recorderType);
       final String feature = identifierToSentence(event.methodId);
       final String featureGroup = identifierToSentence(event.definedClass);
       metadata.scenarioName = String.format(
@@ -156,14 +141,14 @@ public class ServletHooks {
       recorder.getMetadata().exception = exception;
     }
     Recording recording = recorder.stop();
-    recording.moveTo(String.join(File.separator, new String[]{ Properties.getOutputDirectory().getPath(), filePath }));
+    recording.moveTo(filePath);
   }
 
   @ArgumentArray
   @ExcludeReceiver
   @HookAnnotated("org.junit.Test")
   public static void junit(Event event, Object[] args) {
-    startRecording(event);
+    startRecording(event, JUNIT_NAME, TEST_RECORDER_TYPE);
   }
 
   @ArgumentArray
@@ -186,7 +171,7 @@ public class ServletHooks {
   @ExcludeReceiver
   @HookAnnotated("org.junit.jupiter.api.Test")
   public static void junitJupiter(Event event, Object[] args) {
-    startRecording(event);
+    startRecording(event, JUNIT_NAME, TEST_RECORDER_TYPE);
   }
 
   @ArgumentArray
@@ -209,7 +194,7 @@ public class ServletHooks {
   @ExcludeReceiver
   @HookAnnotated("org.testng.annotations.Test")
   public static void testng(Event event, Object[] args) {
-    startRecording(event);
+    startRecording(event, TESTNG_NAME, TEST_RECORDER_TYPE);
   }
 
   @ArgumentArray
@@ -238,7 +223,7 @@ public class ServletHooks {
   @ExcludeReceiver
   @HookCondition(RecordCondition.class)
   public static void record(Event event, Object[] args) {
-    startRecording(event);
+    startRecording(event, "record_process", "process");
   }
 
   @ArgumentArray

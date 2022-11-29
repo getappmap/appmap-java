@@ -108,7 +108,7 @@ public class RecordingSession {
     Logger.printf("AppMap: Recording flushed at checkpoint\n");
     Logger.printf("AppMap: Wrote recording to file %s\n", targetPath);
 
-    return new Recording(targetPath.toFile());
+    return new Recording(this.metadata.recorderName, targetPath.toFile());
   }
 
   public synchronized Recording stop() {
@@ -132,7 +132,7 @@ public class RecordingSession {
     Logger.printf("AppMap: Recording finished\n");
     Logger.printf("AppMap: Wrote recording to file %s\n", file.getPath());
 
-    return new Recording(file);
+    return new Recording(metadata.recorderName, file);
   }
 
   CodeObjectTree getClassMap() {

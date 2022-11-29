@@ -33,6 +33,7 @@ public class Recorder {
   public static class Metadata {
     public String scenarioName;
     public String recorderName;
+    public String recorderType;
     public String framework;
     public String frameworkVersion;
     public String recordedClassName;
@@ -40,6 +41,11 @@ public class Recorder {
     public String sourceLocation;
     public Boolean testSucceeded;
     public Throwable exception;
+
+    public Metadata(String recorderName, String recorderType) {
+      this.recorderName = recorderName;
+      this.recorderType = recorderType;
+    }
   }
 
   /**
@@ -246,7 +252,7 @@ public class Recorder {
    * Record the execution of a Runnable and return the scenario data as a String
    */
   public Recording record(Runnable fn) throws ActiveSessionException {
-    this.start(new Metadata());
+    this.start(new Metadata("java", "process"));
     fn.run();
     return this.stop();
   }
@@ -256,13 +262,13 @@ public class Recorder {
    */
   public void record(String name, Runnable fn) throws ActiveSessionException, IOException {
     final String fileName = name.replaceAll("[^a-zA-Z0-9-_]", "_");
-    final Metadata metadata = new Metadata();
+    final Metadata metadata = new Metadata("java", "process");
     metadata.scenarioName = name;
 
     this.start(metadata);
     fn.run();
     Recording recording = this.stop();
-    recording.moveTo(String.join(File.separator, new String[]{ Properties.getOutputDirectory().getPath(), fileName + ".appmap.json" }));
+    recording.moveTo(fileName + ".appmap.json");
   }
 
   // Mockito can't stub methods on the Collection<ThreadState>
