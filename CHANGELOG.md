@@ -1,3 +1,10 @@
+## [1.15.4](https://github.com/getappmap/appmap-java/compare/v1.15.3...v1.15.4) (2022-11-30)
+
+
+### Bug Fixes
+
+* improve naming of output directory ([660b506](https://github.com/getappmap/appmap-java/commit/660b506768419da39153a4b902eed625f34fdf61))
+
 ## [1.15.3](https://github.com/getappmap/appmap-java/compare/v1.15.2...v1.15.3) (2022-11-25)
 
 
