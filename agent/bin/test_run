@@ -4,6 +4,15 @@ set -e
 
 export PATH="$BATS_DIR"/bin:$PATH
 
+file="$0"
+report_failure() {
+  local ln=$1
+  local test=$(awk "NR==$ln { print \$0 }" "$file")
+  echo "Test command $test failed"
+}
+
+trap 'report_failure $LINENO' ERR
+
 ./test/petclinic/test
 ./test/httpcore/test
 ./test/http_client/test

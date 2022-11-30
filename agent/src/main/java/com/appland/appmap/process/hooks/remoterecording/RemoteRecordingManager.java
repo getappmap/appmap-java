@@ -61,8 +61,7 @@ public class RemoteRecordingManager {
       return;
     }
 
-    Recorder.Metadata metadata = new Recorder.Metadata();
-    metadata.recorderName = "remote_recording";
+    Recorder.Metadata metadata = new Recorder.Metadata("remote_recording", "remote");
     recorder.start(metadata);
     req.setStatus(HttpServletResponse.SC_OK);
   }

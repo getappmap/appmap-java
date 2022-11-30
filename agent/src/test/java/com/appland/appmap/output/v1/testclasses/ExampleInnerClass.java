@@ -4,6 +4,7 @@ import com.appland.appmap.ExampleClass;
 
 public class ExampleInnerClass extends ExampleClass {
 
+    @SuppressWarnings("unused")
     private static final class StaticFinalInnerClass {
 
     }

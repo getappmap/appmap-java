@@ -1,15 +1,28 @@
 package com.appland.appmap.transform.annotations;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.record.EventTemplateRegistry;
 import com.appland.appmap.util.Logger;
-import javassist.*;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtMethod;
+import javassist.NotFoundException;
 
 public class Hook {
   private static final EventTemplateRegistry eventTemplateRegistry = EventTemplateRegistry.get();
@@ -119,7 +132,6 @@ public class Hook {
     }
 
     HookBinding binding = new HookBinding(this, targetBehavior, behaviorOrdinal);
-    Parameters behaviorParameters = new Parameters(targetBehavior);
     for (ISystem system : this.optionalSystems) {
       if (!system.validate(binding)) {
         return null;

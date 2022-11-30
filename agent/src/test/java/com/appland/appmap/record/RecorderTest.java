@@ -11,7 +11,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -35,7 +34,7 @@ public class RecorderTest {
   @Before
   public void before() throws Exception {
     final Recorder.Metadata metadata =
-        new Recorder.Metadata();
+        new Recorder.Metadata("recorder_test", "tests");
 
     Recorder.getInstance().start(metadata);
   }
@@ -77,8 +76,7 @@ public class RecorderTest {
     Recorder recorder = recordEvents();
 
     final Recording recording = recorder.checkpoint();
-    Path targetPath = FileSystems.getDefault().getPath("build", "tmp", "snapshot.appmap.json");
-    recording.moveTo(targetPath.toString());
+    Path targetPath = recording.moveTo("snapshot.appmap.json");
 
     // Assert that it's parseable
     InputStream is = new FileInputStream(targetPath.toString());

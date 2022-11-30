@@ -27,6 +27,10 @@ def annotationJar = fileTree('../../../annotation/build/libs').matching {
       }
     }.getFiles()[0]
 
+if (!appmapJar || !annotationJar) {
+  throw new GradleException("missing jars\n  appmapJar: ${appmapJar}\n  annotationJar: ${annotationJar}");
+}
+
 dependencies {
   implementation 'org.apache.httpcomponents:httpcore-nio:4.4.15'
   implementation files(appmapJar)

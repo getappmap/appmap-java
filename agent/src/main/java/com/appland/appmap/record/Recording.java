@@ -2,6 +2,7 @@ package com.appland.appmap.record;
 
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -15,12 +16,16 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+
+import com.appland.appmap.config.Properties;
 import com.appland.appmap.util.Logger;
 
 public class Recording {
+    private final Path outputDirectory;
     private final File file;
 
-    public Recording(File file) {
+    public Recording(String recorderName, File file) {
+        this.outputDirectory = Paths.get(Properties.getOutputDirectory().toString(), recorderName);
         this.file = file;
     }
 
@@ -28,9 +33,9 @@ public class Recording {
         this.file.delete();
     }
 
-    public void moveTo(String filePath) {
+    public Path moveTo(String filePath) {
         Path sourcePath = Paths.get(this.file.getPath());
-        Path targetPath = Paths.get(filePath);
+        final Path targetPath = outputDirectory.resolve(filePath);
 
         Logger.printf("Moving %s to %s\n", sourcePath, targetPath);
 
@@ -53,17 +58,28 @@ public class Recording {
             },
         };
         List<String> errors = new ArrayList<>();
-        for (FileMover mover: movers) {
-            FileMover.Result r = tryMove.apply(mover);
-            if ( r.isSucceeded() ) {
-                errors.clear();;
-                break;
+        try {
+            Files.createDirectories(outputDirectory);
+
+            for (FileMover mover : movers) {
+                FileMover.Result r = tryMove.apply(mover);
+                if (r.isSucceeded()) {
+                    errors.clear();
+                    break;
+                }
+                r.exception.printStackTrace();
+                errors.add(r.exception.toString());
             }
-            errors.add(r.exception.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+            errors.add(e.toString());
         }
+
         if (!errors.isEmpty()) {
             throw new RuntimeException(String.join(", ", errors));
         }
+
+        return targetPath;
     }
 
     public void readFully(boolean delete, Writer writer) throws IOException {

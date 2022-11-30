@@ -30,9 +30,6 @@ public class Agent {
    * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html">Package java.lang.instrument</a>
    */
   public static void premain(String agentArgs, Instrumentation inst) {
-
-    final File dir = Properties.getOutputDirectory();
-
     Logger.println("Agent version " + Agent.class.getPackage().getImplementationVersion());
     Logger.println("System properties: " + System.getProperties().toString());
     if (Properties.Debug) {
@@ -51,14 +48,13 @@ public class Agent {
       final Date date = new Date();
       final SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss");
       final String timestamp = dateFormat.format(date);
-      final Metadata metadata = new Metadata();
+      final Metadata metadata = new Metadata("java", "process");
       final Recorder recorder = Recorder.getInstance();
 
       if (appmapName == null || appmapName.trim().isEmpty()) {
         appmapName = timestamp;
       }
 
-      metadata.recorderName = "remote_recording";
       metadata.scenarioName = appmapName;
 
       recorder.start(metadata);
@@ -71,7 +67,7 @@ public class Agent {
         }
 
         Recording recording = recorder.stop();
-        recording.moveTo(String.join(File.pathSeparator, new String[]{ dir.getPath(), fileName }));
+        recording.moveTo(fileName);
       }));
     }
   }
