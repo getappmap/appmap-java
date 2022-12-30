@@ -7,7 +7,7 @@
 # About
 
 `appmap-java` is a Java agent for recording
-[AppMaps](https://github.com/applandinc/appmap) of your code. "AppMap" is a data
+[AppMaps](https://github.com/getappmap/appmap) of your code. "AppMap" is a data
 format which records code structure (modules, classes, and methods), code
 execution events (function calls and returns), and code metadata (repo name,
 repo URL, commit SHA, labels, etc). It's more granular than a performance
@@ -17,7 +17,7 @@ flows.
 
 # Usage
 
-Visit the [AppMap for Java](https://appland.com/docs/reference/appmap-java.html)
+Visit the [AppMap for Java](https://appmap.io/docs/reference/appmap-java.html)
 reference page on AppLand.com for a complete reference guide.
 
 # Development
