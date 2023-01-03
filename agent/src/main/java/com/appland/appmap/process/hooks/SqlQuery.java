@@ -32,7 +32,14 @@ public class SqlQuery {
   }
 
   private static boolean isMock(Object o) {
-    return o.getClass().getPackage().getName().startsWith("org.mockito");
+    final Class c = o.getClass();
+    final Package p = c.getPackage();
+    if (p == null) {
+      // If there's no package info, it's not a Mockito object.
+      return false;
+    }
+
+    return p.getName().startsWith("org.mockito");
   }
 
   private static String getDbName(Connection c) {
