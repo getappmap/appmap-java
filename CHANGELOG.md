@@ -1,3 +1,10 @@
+## [1.15.5](https://github.com/getappmap/appmap-java/compare/v1.15.4...v1.15.5) (2023-01-04)
+
+
+### Bug Fixes
+
+* eliminate possibility of NPE ([cf13c4b](https://github.com/getappmap/appmap-java/commit/cf13c4bd8e96c464854278521f89f8cae97fe85b))
+
 ## [1.15.4](https://github.com/getappmap/appmap-java/compare/v1.15.3...v1.15.4) (2022-11-30)
 
 
