@@ -18,7 +18,7 @@ plugins:
         - CHANGELOG.md
         - build.gradle
   - - '@semantic-release/exec'
-    - publishCmd: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
+    - publishCmd: ./gradlew --stacktrace publishToSonatype closeAndReleaseSonatypeStagingRepository
   - - '@semantic-release/github'
     - assets:
         - agent/build/libs/appmap-*.jar*
