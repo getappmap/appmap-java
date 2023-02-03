@@ -58,6 +58,7 @@ public class Recording {
             },
         };
         List<String> errors = new ArrayList<>();
+        IOException lastException = null;
         try {
             Files.createDirectories(outputDirectory);
 
@@ -67,7 +68,7 @@ public class Recording {
                     errors.clear();
                     break;
                 }
-                r.exception.printStackTrace();
+                lastException = r.exception;
                 errors.add(r.exception.toString());
             }
         } catch (IOException e) {
@@ -76,6 +77,8 @@ public class Recording {
         }
 
         if (!errors.isEmpty()) {
+            if (lastException != null)
+                lastException.printStackTrace();
             throw new RuntimeException(String.join(", ", errors));
         }
 
