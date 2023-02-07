@@ -104,7 +104,7 @@ public class RecorderTest {
     final Recording recording = recorder.stop();
     Exception exception = null;
     try {
-      recording.moveTo("/no-such-directory");
+      recording.moveTo("/no-such-directory/.");
     } catch (RuntimeException e) {
       exception = e;
     }
