@@ -24,10 +24,9 @@ script:
 - ./bin/test
 
 before_deploy:
+  - nvm install lts/*
   - |
-    nvm install --lts=gallium \
-      && nvm use --lts=gallium \
-      && npm i -g \
+    npm i -g \
         semantic-release \
         @semantic-release/exec \
         @semantic-release/git \
