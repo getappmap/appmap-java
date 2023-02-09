@@ -1,3 +1,10 @@
+## [1.15.6](https://github.com/getappmap/appmap-java/compare/v1.15.5...v1.15.6) (2023-02-09)
+
+
+### Bug Fixes
+
+* Don't print exception when copying across filesystems fails ([57ce08f](https://github.com/getappmap/appmap-java/commit/57ce08f9737c54384c7a14205f7ae311e4cf4984))
+
 ## [1.15.5](https://github.com/getappmap/appmap-java/compare/v1.15.4...v1.15.5) (2023-01-04)
 
 
