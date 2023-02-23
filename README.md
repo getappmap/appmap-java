@@ -22,7 +22,7 @@ reference page on AppLand.com for a complete reference guide.
 
 # Development
 
-[![Build Status](https://travis-ci.com/applandinc/appmap-java.svg?branch=master)](https://travis-ci.com/applandinc/appmap-java)
+[![Build Status](https://travis-ci.com/getappmap/appmap-java.svg?branch=master)](https://travis-ci.com/getappmap/appmap-java)
 
 The [Spring PetClinic](https://github.com/spring-projects/spring-petclinic)
 provides a convenient way to develop on `appmap-java`.
