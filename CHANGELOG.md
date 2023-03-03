@@ -1,3 +1,10 @@
+## [1.15.7](https://github.com/getappmap/appmap-java/compare/v1.15.6...v1.15.7) (2023-03-03)
+
+
+### Bug Fixes
+
+* don't crash on unnamed package ([4fc4dab](https://github.com/getappmap/appmap-java/commit/4fc4dab9821573e58fc2b40c8a16042f2f9a245d))
+
 ## [1.15.6](https://github.com/getappmap/appmap-java/compare/v1.15.5...v1.15.6) (2023-02-09)
 
 
