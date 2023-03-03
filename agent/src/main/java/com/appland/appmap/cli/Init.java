@@ -1,14 +1,13 @@
 package com.appland.appmap.cli;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import picocli.CommandLine;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -16,6 +15,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+
+import picocli.CommandLine;
 
 @CommandLine.Command(name = "init", description = "Suggests AppMap configuration settings for a new project.")
 public class Init implements Callable<Integer> {
@@ -54,7 +59,14 @@ public class Init implements Callable<Integer> {
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
           if (file.getFileName().toString().endsWith(".java")) {
-            Path packagePath = file.getParent().subpath(javaDir.toPath().getNameCount(), file.getParent().getNameCount());
+            int pkgStart = javaDir.toPath().getNameCount();
+            int pkgEnd = file.getParent().getNameCount();
+            if (pkgStart == pkgEnd) {
+              // We're in the the unnamed package, ignore
+              return FileVisitResult.CONTINUE;
+            }
+
+            Path packagePath = file.getParent().subpath(pkgStart, pkgEnd);
             if (packagePath.getNameCount() > 0) {
               packages.add(packagePath);
             }
