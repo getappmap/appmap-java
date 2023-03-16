@@ -1,9 +1,9 @@
 package com.appland.appmap.config;
 
-import com.appland.appmap.util.Logger;
-
 import java.io.File;
 import java.util.function.Function;
+
+import com.appland.appmap.util.Logger;
 
 public class Properties {
   public static final Boolean Debug = (System.getProperty("appmap.debug") != null);
@@ -25,7 +25,7 @@ public class Properties {
 
   public static final String DefaultConfigFile = "appmap.yml";
   public static final String ConfigFile = resolveProperty(
-      "appmap.config.file", DefaultConfigFile);
+      "appmap.config.file", (String) null);
 
   public static final Integer DefaultMaxValueSize = 1024;
   public static final Integer MaxValueSize = resolveProperty(

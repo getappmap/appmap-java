@@ -4,6 +4,7 @@ import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.record.Recorder;
@@ -38,8 +39,12 @@ public class Agent {
     
     inst.addTransformer(new ClassFileTransformer());
 
-    if (AppMapConfig.load(new File(Properties.ConfigFile)) == null) {
-      Logger.printf("failed to load config %s\n", Properties.ConfigFile);
+    // If the user explicitly specified a config file, but the file doesn't
+    // exist, raise an error. They've almost certainly made a mistake.
+    boolean configSpecified = Properties.ConfigFile != null;
+    String configFile = !configSpecified ? "appmap.yml" : Properties.ConfigFile;
+    if (AppMapConfig.load(new File(configFile), configSpecified) == null) {
+      Logger.error("failed to load config %s\n", Properties.ConfigFile);
       System.exit(1);
     }
 
@@ -71,4 +76,5 @@ public class Agent {
       }));
     }
   }
+
 }

@@ -1,10 +1,10 @@
 package com.appland.appmap.util;
 
-import com.appland.appmap.config.Properties;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+
+import com.appland.appmap.config.Properties;
 
 public class Logger {
   private static PrintStream log = ensureLog();
@@ -29,10 +29,13 @@ public class Logger {
     log.printf("AppMap[" + Thread.currentThread() + "] [DEBUG]: " + format, args);
   }
 
-  public static void error(String msg) {
-    System.err.println("AppMap[" + Thread.currentThread() + "] [ERROR]: " + msg);
+  public static void error(String format, Object... args) {
+    System.err.printf("AppMap[" + Thread.currentThread() + "] [ERROR]: " + format, args);
   }
 
+  public static void error(Throwable t) {
+    t.printStackTrace();
+  }
   public static void whereAmI(String msg) {
     if (!Properties.Debug) {
       return;
