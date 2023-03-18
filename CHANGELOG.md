@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/getappmap/appmap-java/compare/v1.15.7...v1.16.0) (2023-03-18)
+
+
+### Features
+
+* generate a default config ([9ff949b](https://github.com/getappmap/appmap-java/commit/9ff949b68081e79329006693cdd6633097fcf9ce))
+
 ## [1.15.7](https://github.com/getappmap/appmap-java/compare/v1.15.6...v1.15.7) (2023-03-03)
 
 
