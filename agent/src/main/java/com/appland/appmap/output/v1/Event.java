@@ -6,8 +6,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.alibaba.fastjson.annotation.JSONField;
 import com.appland.appmap.util.FullyQualifiedName;
+
 import javassist.CtBehavior;
 
 /**
@@ -24,7 +27,7 @@ import javassist.CtBehavior;
  * See, for example, the "fqn" field.
  */
 public class Event {
-  private static Integer globalEventId = 0;
+  private static AtomicInteger globalEventId = new AtomicInteger(0);
 
   public Integer id;
   public String event;
@@ -83,8 +86,8 @@ public class Event {
 
   private LocalDateTime startTime;
 
-  private synchronized Integer issueId() {
-    return ++globalEventId;
+  private Integer issueId() {
+    return globalEventId.incrementAndGet();
   }
 
   /**
