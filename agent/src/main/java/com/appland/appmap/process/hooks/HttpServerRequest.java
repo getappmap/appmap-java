@@ -6,6 +6,7 @@ import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.hooks.remoterecording.RemoteRecordingManager;
 import com.appland.appmap.record.ActiveSession;
 import com.appland.appmap.record.Recorder;
+import com.appland.appmap.record.Recorder.Metadata;
 import com.appland.appmap.reflect.HttpServletRequest;
 import com.appland.appmap.reflect.HttpServletResponse;
 import com.appland.appmap.transform.annotations.ArgumentArray;
@@ -57,6 +58,10 @@ public class HttpServerRequest {
     // processed.
     req.setAttribute(LAST_EVENT_KEY, event);
 
+    // if (true /* env.enabledFor("requests")*/ ) {
+    // recorder.setPerThreadSession(new ActiveSession());
+    // recorder.start(new Metadata("java", "request"));
+    // }
     recorder.add(event);
   }
 
@@ -66,6 +71,10 @@ public class HttpServerRequest {
     event.setHttpServerRequest(method, uri, protocol, headers);
     event.setParameters(null);
 
+    if (true /* env.enables("requests") */ ) {
+      recorder.setPerThreadSession(new ActiveSession());
+      recorder.start(new Metadata("java", "request"));
+    }
     recorder.add(event);
   }
 

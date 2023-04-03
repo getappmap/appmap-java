@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
+
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
@@ -15,12 +16,13 @@ import com.appland.appmap.util.Logger;
  * active session. It also maintains a code object tree containing every known package/class/method.
  */
 public class Recorder {
-  private static final String ERROR_SESSION_PRESENT = "an active recording session already exists";
-  private static final String ERROR_NO_SESSION = "there is no active recording session";
+  static final String ERROR_SESSION_PRESENT = "an active recording session already exists";
+  static final String ERROR_NO_SESSION = "there is no active recording session";
 
   private static final Recorder instance = new Recorder();
 
-  private final ActiveSession activeSession = new ActiveSession();
+  private final ActiveSession globalSession = new ActiveSession();
+  private ThreadLocal<ActiveSession> perThreadSession = new ThreadLocal<ActiveSession>();
   private final CodeObjectTree globalCodeObjects = new CodeObjectTree();
   private final Map<Long, ThreadState> threadState = new ConcurrentHashMap<>();
 
@@ -70,6 +72,10 @@ public class Recorder {
   private Recorder() {
   }
 
+  public void setPerThreadSession(ActiveSession session) {
+    perThreadSession.set(session);
+  }
+
   /**
    * Start a recording session.
    *
@@ -78,20 +84,20 @@ public class Recorder {
    */
   public void start(Metadata metadata) throws ActiveSessionException {
     RecordingSession session = new RecordingSession(metadata);
-    activeSession.set(session);
+    getCurrentSession().set(session);
   }
 
   public boolean hasActiveSession() {
-    return activeSession.exists();
+    return getCurrentSession().exists();
   }
 
   public Metadata getMetadata() throws ActiveSessionException {
-    return activeSession.get().getMetadata();
+    return getCurrentSession().get().getMetadata();
   }
 
   public Recording checkpoint() {
     this.flush();
-    return activeSession.get().checkpoint();
+    return getCurrentSession().get().checkpoint();
   }
 
   /**
@@ -103,7 +109,7 @@ public class Recorder {
    */
   public Recording stop() throws ActiveSessionException {
     this.flush();
-    return activeSession.release().stop();
+    return getCurrentSession().release().stop();
   }
 
   /**
@@ -112,31 +118,31 @@ public class Recorder {
    * @param event The event to be recorded.
    */
   public void add(Event event) {
-    if (!activeSession.exists()) {
+    if (!getCurrentSession().exists()) {
       return;
     }
 
     ThreadState ts = threadState();
 
     // We don't want re-entrant events on the same thread.
-    if ( ts.isProcessing ) {
+    if (ts.isProcessing) {
       return;
     }
 
     ts.isProcessing = true;
     try {
-      if ( event.event.equals("call") ) {
-        if (!ts.callStack.empty() && event.hasPackageName() && AppMapConfig.get().isShallow(event.fqn()) ) {
+      if (event.event.equals("call")) {
+        if (!ts.callStack.empty() && event.hasPackageName() && AppMapConfig.get().isShallow(event.fqn())) {
           Event parent = ts.callStack.peek();
-          if ( parent.hasPackageName() && event.packageName().equals(parent.packageName()) ) {
+          if (parent.hasPackageName() && event.packageName().equals(parent.packageName())) {
             event.ignore();
           }
         }
-        
+
         event.setStartTime();
         ts.callStack.push(event);
-      } else if ( event.event.equals("return") ) {
-        if ( ts.callStack.isEmpty() ) {
+      } else if (event.event.equals("return")) {
+        if (ts.callStack.isEmpty()) {
           Logger.println("Discarding 'return' event because the call stack is empty for this thread");
           return;
         }
@@ -156,7 +162,7 @@ public class Recorder {
         event.definedClass = null;
         event.methodId = null;
         event.isStatic = null;
-        if ( caller.ignored() ) {
+        if (caller.ignored()) {
           event.ignore();
         }
       } else {
@@ -167,13 +173,26 @@ public class Recorder {
       ts.lastEvent = event;
 
       // The previous event is given until now to get all its properties.
-      if ( previousEvent != null && !previousEvent.ignored() ) {
+      if (previousEvent != null && !previousEvent.ignored()) {
         // This is the line that can generate re-entrant events, apparently.
         previousEvent.freeze();
-        activeSession.addEvent(previousEvent);
+        addEvent(previousEvent);
       }
     } finally {
       ts.isProcessing = false;
+    }
+  }
+
+  public void addEventUpdate(Event event) {
+    if (globalSession.exists()) {
+      globalSession.addEventUpdate(event);
+    }
+
+    ActiveSession perThread = perThreadSession.get();
+    if (perThread != null) {
+      if (perThread.exists()) {
+        perThread.addEventUpdate(event);
+      }
     }
   }
 
@@ -223,6 +242,11 @@ public class Recorder {
     recording.moveTo(fileName + ".appmap.json");
   }
 
+  private ActiveSession getCurrentSession() {
+    ActiveSession perThread = perThreadSession.get();
+    return perThread != null ? perThread : globalSession;
+  }
+
   // Mockito can't stub methods on the Collection<ThreadState>
   // returned by values(), so return an iterator on it instead.
   //
@@ -254,17 +278,19 @@ public class Recorder {
         ts.lastEvent = null;
 
         event.freeze();
-        activeSession.addEvent(event);
+        addEvent(event);
       } finally {
         ts.isProcessing = false;
       }
     });
   }
 
-  public void addEventUpdate(Event event) {
-    if (!activeSession.exists()) {
-      return;
+  private void addEvent(Event event) {
+    globalSession.addEvent(event);
+    ActiveSession perThread = perThreadSession.get();
+    if (perThread != null) {
+      perThread.addEvent(event);
     }
-    activeSession.addEventUpdate(event);
   }
+
 }
