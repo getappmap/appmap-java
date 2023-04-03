@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.hooks.remoterecording.RemoteRecordingManager;
+import com.appland.appmap.record.ActiveSession;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.reflect.HttpServletRequest;
 import com.appland.appmap.reflect.HttpServletResponse;

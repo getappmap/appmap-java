@@ -58,52 +58,6 @@ public class Recorder {
     Stack<Event> callStack = new Stack<>();
   }
 
-  static class ActiveSession {
-    private RecordingSession activeSession = null;
-
-    synchronized RecordingSession get() throws ActiveSessionException {
-      if (activeSession == null) {
-        throw new ActiveSessionException(ERROR_NO_SESSION);
-      }
-
-      return activeSession;
-    }
-
-    boolean exists() {
-      return activeSession != null;
-    }
-
-    synchronized RecordingSession release() throws ActiveSessionException {
-      if (activeSession == null) {
-        throw new ActiveSessionException(ERROR_NO_SESSION);
-      }
-
-      RecordingSession result = activeSession;
-      activeSession = null;
-      return result;
-    }
-
-    synchronized void set(RecordingSession session) throws ActiveSessionException {
-      if (activeSession != null) {
-        throw new ActiveSessionException(ERROR_SESSION_PRESENT);
-      }
-
-      activeSession = session;
-    }
-
-    synchronized void addEvent(Event event) {
-      if (activeSession != null) {
-        activeSession.add(event);
-      }
-    }
-
-    synchronized void addEventUpdate(Event event) {
-      if (activeSession != null) {
-        activeSession.addEventUpdate(event);
-      }
-    }
-  }
-
   /**
    * Get the global Recorder instance.
    *
