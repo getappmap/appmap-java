@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/getappmap/appmap-java/compare/v1.16.0...v1.17.0) (2023-04-18)
+
+
+### Features
+
+* hook Apache's HttpClient ([25201d7](https://github.com/getappmap/appmap-java/commit/25201d7bb57c5ff86e9d1ea04c3ad42f06bc67cc))
+
 # [1.16.0](https://github.com/getappmap/appmap-java/compare/v1.15.7...v1.16.0) (2023-03-18)
 
 
