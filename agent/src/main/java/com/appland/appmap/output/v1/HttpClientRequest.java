@@ -9,27 +9,11 @@ import com.alibaba.fastjson.annotation.JSONField;
  * @see <a href="https://github.com/applandinc/appmap#http-client-request-attributes">GitHub: AppMap - HTTP client request attributes</a>
  */
 public class HttpClientRequest {
-  public String protocol;
-
   @JSONField(name = "request_method")
   public String method;
 
-  @JSONField(name = "path_info")
-  public String path;
-
-  @JSONField(name = "normalized_path_info")
-  public String normalizedPath;
-
-  /**
-   * Set the protocol of this request.
-   * @param protocol The request protocol
-   * @return {@code this}
-   * @see <a href="https://github.com/applandinc/appmap#http-client-request-attributes">GitHub: AppMap - HTTP client request attributes</a>
-   */
-  public HttpClientRequest setProtocol(String protocol) {
-    this.protocol = protocol;
-    return this;
-  }
+  @JSONField(name = "url")
+  public String url;
 
   /**
    * Set the method of this request.
@@ -43,21 +27,16 @@ public class HttpClientRequest {
   }
 
   /**
-   * Set the path of this request.
-   * @param path The URI path requested
+   * Set the URL of this request.
+   * 
+   * @param url The URL requested
    * @return {@code this}
-   * @see <a href="https://github.com/applandinc/appmap#http-client-request-attributes">GitHub: AppMap - HTTP client request attributes</a>
+   * @see <a href=
+   *      "https://github.com/applandinc/appmap#http-client-request-attributes">GitHub:
+   *      AppMap - HTTP client request attributes</a>
    */
-  public HttpClientRequest setPath(String path) {
-    this.path = path;
-    return this;
-  }
-
-  /**
-   * Set the normalized path for this request.
-   */
-  public HttpClientRequest setNormalizedPath(String path) {
-    this.normalizedPath = path;
+  public HttpClientRequest setURL(String url) {
+    this.url = url;
     return this;
   }
 }
