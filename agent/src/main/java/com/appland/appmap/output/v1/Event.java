@@ -408,18 +408,20 @@ public class Event {
 
   /**
    * Record HTTP client request details for this event.
-   * @param method The request method
-   * @param path The request URI path
+   * 
+   * @param method   The request method
+   * @param url      The request URI
    * @param protocol The request protocol
    * @return {@code this}
-   * @see <a href="https://github.com/applandinc/appmap#http-client-request-attributes">GitHub: AppMap - HTTP client request attributes</a>
+   * @see <a href=
+   *      "https://github.com/applandinc/appmap#http-client-request-attributes">GitHub:
+   *      AppMap - HTTP client request attributes</a>
    */
-  public Event setHttpClientRequest(String method, String path, String protocol) {
+  public Event setHttpClientRequest(String method, String url) {
     clearFunctionFields();
     this.httpClientRequest = new HttpClientRequest()
-            .setMethod(method)
-            .setPath(path)
-            .setProtocol(protocol);
+        .setMethod(method)
+        .setURL(url);
     return this;
   }
 

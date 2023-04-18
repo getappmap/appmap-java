@@ -1,6 +1,5 @@
 package com.appland.appmap.reflect;
 
-import java.lang.reflect.Method;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,69 +7,50 @@ import java.util.Map;
 public class HttpServletRequest extends ReflectiveType implements HttpHeaders {
   private final HttpHeaderDelegate headerDelegate;
 
-  private final Method fnGetMethod;
-  private final Method fnGetRequestURI;
-  private final Method fnGetProtocol;
-  private final Method fnGetParameterMap;
-  private final Method fnGetAttribute;
-  private final Method fnSetAttribute;
-  private final Method fnGetAttributeNames;
+  private final String GET_METHOD = "getMethod";
+  private final String GET_REQUEST_URI = "getRequestURI";
+  private final String GET_PROTOCOL = "getProtocol";
+  private final String GET_PARAMETER_MAP = "getParameterMap";
+  private final String GET_ATTRIBUTE = "getAttribute";
+  private final String SET_ATTRIBUTE = "setAttribute";
+  private final String GET_ATTRIBUTE_NAMES = "getAttributerNames";
 
   public HttpServletRequest(Object self) {
     super(self);
     this.headerDelegate = new HttpHeaderDelegate(self);
     
-    fnGetMethod = getMethod("getMethod");
-    fnGetRequestURI = getMethod("getRequestURI");
-    fnGetProtocol = getMethod("getProtocol");
-    fnGetParameterMap = getMethod("getParameterMap");
-    fnGetAttribute = getMethod("getAttribute", String.class);
-    fnSetAttribute = getMethod("setAttribute", String.class, Object.class);
-    fnGetAttributeNames = getMethod("getAttributeNames");
+    addMethods(GET_METHOD, GET_REQUEST_URI, GET_PROTOCOL, GET_PARAMETER_MAP, GET_ATTRIBUTE_NAMES);
+    addMethod(GET_ATTRIBUTE, String.class);
+    addMethod(SET_ATTRIBUTE, String.class, Object.class);
   }
 
   public String getMethod() {
-    return fnGetMethod != null?
-      (String) invokeWrappedMethod(fnGetMethod)
-      : "";
+    return invokeStringMethod(GET_METHOD);
   }
 
   public String getRequestURI() {
-    return fnGetRequestURI != null?
-      (String) invokeWrappedMethod(fnGetRequestURI)
-      : "";
+    return invokeStringMethod(GET_REQUEST_URI);
   }
 
   public String getProtocol() {
-    return fnGetProtocol != null?
-      (String) invokeWrappedMethod(fnGetProtocol)
-      : "";
+    return invokeStringMethod(GET_PROTOCOL);
   }
 
-  @SuppressWarnings("unchecked")
   public Map<String, String[]> getParameterMap() {
-    return fnGetProtocol != null?
-      (Map<String, String[]>) invokeWrappedMethod(fnGetParameterMap)
-      : new HashMap<String, String[]>();
+    return invokeMethod(GET_PARAMETER_MAP, new HashMap<String, String[]>());
   }
 
   public Object getAttribute(String name) {
-    return fnGetAttribute != null?
-      invokeWrappedMethod(fnGetAttribute, name)
-      : null;
+    return invokeObjectMethod(GET_ATTRIBUTE, name);
   }
 
   public void setAttribute(String key, Object value) {
-    if (fnSetAttribute != null) {
-      invokeWrappedMethod(fnSetAttribute, key, value);
-    }
+    invokeObjectMethod(SET_ATTRIBUTE, key, value);
   }
   
   @SuppressWarnings("unchecked")
   public Enumeration<String> getAttributeNames() {
-    return fnGetAttributeNames != null?
-      (Enumeration<String>) invokeWrappedMethod(fnGetAttributeNames)
-      : null;
+    return (Enumeration<String>) invokeObjectMethod(GET_ATTRIBUTE_NAMES);
   }
 
   @Override

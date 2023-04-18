@@ -84,3 +84,42 @@ assert_json_not_contains() {
 find_agent_jar() {
   echo "$PWD/build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')"
 }
+
+start_petclinic() {
+  mkdir -p test/petclinic/classes
+  javac -d test/petclinic/classes test/petclinic/Props.java
+
+  export LOG_DIR=build/log
+  mkdir -p ${LOG_DIR}
+
+  export LOG=build/fixtures/spring-petclinic/petclinic.log
+  export WS_URL="http://localhost:8080"
+
+  printf 'checking for running Petclinic server' >&3
+  
+  if ! curl -Isf "${WS_URL}" >/dev/null 2>&1; then
+    if [ $? -eq 7 ]; then
+      printf 'server already running' >&3
+      exit 1
+    fi
+  fi
+
+  printf 'getting set up' >&3
+  java -ea -Dappmap.debug -Dappmap.debug.file=${LOG_DIR}/petclinic-appmap.log -Dappmap.debug.hooks -Dappmap.config.file=test/petclinic/appmap.yml -javaagent:$(find_agent_jar) -jar build/fixtures/spring-petclinic/target/$(ls build/fixtures/spring-petclinic/target | grep 'spring-petclinic-[[:digit:]].*\.jar$') &> $LOG &
+  export JVM_PID=$!
+  while ! curl -Isf "${WS_URL}" >/dev/null; do
+  if ! kill -0 "${JVM_PID}" 2> /dev/null; then
+    printf '. failed!\n\nprocess exited unexpectedly:\n' >&3
+    cat $LOG >&3
+    exit 1
+  fi
+
+  printf '.' >&3
+  sleep 1
+  done
+  printf ' ok\n\n' >&3
+}
+
+stop_petclinic() {
+  kill ${JVM_PID}
+}

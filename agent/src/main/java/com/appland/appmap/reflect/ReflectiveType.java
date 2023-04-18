@@ -1,9 +1,11 @@
 package com.appland.appmap.reflect;
 
-import com.appland.appmap.util.Logger;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.appland.appmap.util.Logger;
 
 /* ReflectiveType implements some simple ducking typing. As long as self
  * implements the methods required by subclasses of ReflectiveType, the actual
@@ -13,10 +15,24 @@ import java.lang.reflect.Method;
  * jakarta.servlet.http.HttpServletRequest. 
  */
 public class ReflectiveType {
+  private Map<String, Method> methods = new HashMap<String, Method>();
+
   protected Object self;
 
   public ReflectiveType(Object self) {
     this.self = self;
+  }
+
+  /* Add no-argument methods that can be called on self */
+  protected void addMethods(String... names) {
+    for (String name : names) {
+      this.methods.put(name, getMethod(name));
+    }
+  }
+
+  /* Add a method that takes parameters that can be called on self */
+  protected void addMethod(String name, Class<?>... parameterTypes) {
+    this.methods.put(name, getMethod(name, parameterTypes));
   }
 
   protected Method getMethod(String name, Class<?>... parameterTypes) {
@@ -33,17 +49,35 @@ public class ReflectiveType {
     try {
       method.setAccessible(true);
       return method.invoke(self, parameters);
-    }
-    catch (InvocationTargetException e) {
+    } catch (InvocationTargetException e) {
       Throwable thrown = e.getTargetException();
-      final String msg = String.format("%s.%s threw an exception, %s\n", self.getClass().getName(), method.getName(), thrown != null? thrown.getMessage() : "<no msg>");
+      final String msg = String.format("%s.%s threw an exception, %s\n", self.getClass().getName(), method.getName(),
+          thrown != null ? thrown.getMessage() : "<no msg>");
       Logger.println(msg);
       throw new Error(msg, thrown);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       Logger.printf("failed invoking %s.%s, %s\n", self.getClass().getName(), method.getName(), e.getMessage());
     }
     return null;
+  }
+
+  @SuppressWarnings("unchecked")
+  protected <T> T invokeMethod(String name, T defaultValue, Object... parameters) {
+    Method m = methods.get(name);
+    return m != null ? (T) invokeWrappedMethod(m, parameters)
+        : defaultValue;
+  }
+
+  protected String invokeStringMethod(String name, Object... parameters) {
+    return invokeMethod(name, "", parameters);
+  }
+
+  protected int invokeIntMethod(String name, Object... parameters) {
+    return invokeMethod(name, -1, parameters);
+  }
+
+  protected Object invokeObjectMethod(String name, Object... parameters) {
+    return invokeMethod(name, null, parameters);
   }
 
   /**
