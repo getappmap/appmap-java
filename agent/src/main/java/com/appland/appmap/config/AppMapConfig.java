@@ -201,11 +201,7 @@ public class AppMapConfig {
 
       pw.print("\n"
           + "# Your project contains the directory src/main/java. AppMap has\n"
-          + "# auto-detected Java packages. By default, only classes in these\n"
-          + "# packages will be recorded. To record classes in subpackages, remove\n"
-          + "# the line(s)\n"
-          + "#   shallow: true\n"
-          + "\n"
+          + "# auto-detected the following Java packages in this directory:\n"
           + "packages:\n");
 
       // Collect just the packages that don't have a matching ancestor in the package
@@ -228,7 +224,6 @@ public class AppMapConfig {
           }
           String path = String.join(".", tokens);
           pw.format("- path: %s\n", path);
-          pw.format("  shallow: true\n");
         }
       });
     } else {
