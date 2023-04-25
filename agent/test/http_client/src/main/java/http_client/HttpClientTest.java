@@ -9,14 +9,14 @@ import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recording;
 
 public class HttpClientTest {
-  private String wsURL;
+  private String url;
+  private String contentType;
 
   public static void main(String[] argv) throws IOException {
-    final String WS_URL = argv[0];
 
     final Recording recording = Recorder.getInstance().record(() -> {
       try {
-        HttpClientTest.run(WS_URL);
+        new HttpClientTest(argv[0], argv.length > 1 ? argv[1] : null).run();
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -29,17 +29,17 @@ public class HttpClientTest {
     }
   }
 
-  public static void run(String wsURL) throws IOException {
-    new HttpClientTest(wsURL).getVets();
+  HttpClientTest(String url, String contentType) {
+    this.url = url;
+    this.contentType = contentType;
   }
 
-  public HttpClientTest(String wsURL) {
-    this.wsURL = wsURL;
+  public void run() throws IOException {
+    getURL();
   }
 
-  public int getVets() throws IOException {
-    return Request.Get(wsURL + "/vets.html")
+  public int getURL() throws IOException {
+    return Request.Get(url)
         .execute().returnResponse().getStatusLine().getStatusCode();
   }
-
 }

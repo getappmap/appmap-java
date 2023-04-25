@@ -12,6 +12,11 @@ class HttpEntity extends ReflectiveType {
   }
 
   String getContentType() {
-    return new Header(invokeObjectMethod(GET_CONTENT_TYPE)).getValue();
+    Object obj = invokeObjectMethod(GET_CONTENT_TYPE);
+    if (obj == null) {
+      return "";
+    }
+
+    return new Header(obj).getValue();
   }
 }

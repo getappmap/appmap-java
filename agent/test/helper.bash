@@ -85,39 +85,47 @@ find_agent_jar() {
   echo "$PWD/build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')"
 }
 
+# Start a PetClinic server. Note that the output from the printf's in this
+# function don't get redirected, to make it easier to use from a shell. When you
+# run it from a setup function, you should redirect fd 3.
 start_petclinic() {
   mkdir -p test/petclinic/classes
   javac -d test/petclinic/classes test/petclinic/Props.java
 
-  export LOG_DIR=build/log
+  export LOG_DIR=$PWD/build/log
   mkdir -p ${LOG_DIR}
 
-  export LOG=build/fixtures/spring-petclinic/petclinic.log
+  export LOG=$PWD/build/fixtures/spring-petclinic/petclinic.log
   export WS_URL="http://localhost:8080"
 
-  printf 'checking for running Petclinic server' >&3
+  printf 'checking for running Petclinic server\n'
   
   if ! curl -Isf "${WS_URL}" >/dev/null 2>&1; then
     if [ $? -eq 7 ]; then
-      printf 'server already running' >&3
+      printf '  server already running\n'
       exit 1
     fi
   fi
 
-  printf 'getting set up' >&3
-  java -ea -Dappmap.debug -Dappmap.debug.file=${LOG_DIR}/petclinic-appmap.log -Dappmap.debug.hooks -Dappmap.config.file=test/petclinic/appmap.yml -javaagent:$(find_agent_jar) -jar build/fixtures/spring-petclinic/target/$(ls build/fixtures/spring-petclinic/target | grep 'spring-petclinic-[[:digit:]].*\.jar$') &> $LOG &
+  printf '  starting PetClinic\n'
+  WD=$PWD
+  AGENT_JAR="$(find_agent_jar)"
+
+  pushd build/fixtures/spring-petclinic >/dev/null
+  ./mvnw -Dspring-boot.run.agents=$AGENT_JAR -Dspring-boot.run.jvmArguments="-Dappmap.config.file=$WD/test/petclinic/appmap.yml -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005" spring-boot:run &>$LOG  3>&- &
+  popd >/dev/null
+
   export JVM_PID=$!
   while ! curl -Isf "${WS_URL}" >/dev/null; do
   if ! kill -0 "${JVM_PID}" 2> /dev/null; then
-    printf '. failed!\n\nprocess exited unexpectedly:\n' >&3
-    cat $LOG >&3
+    printf '  failed!\n\nprocess exited unexpectedly:\n'
+    cat $LOG 
     exit 1
   fi
 
-  printf '.' >&3
   sleep 1
   done
-  printf ' ok\n\n' >&3
+  printf '  ok\n\n'
 }
 
 stop_petclinic() {
