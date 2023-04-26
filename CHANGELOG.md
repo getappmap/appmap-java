@@ -1,3 +1,11 @@
+## [1.17.1](https://github.com/getappmap/appmap-java/compare/v1.17.0...v1.17.1) (2023-04-26)
+
+
+### Bug Fixes
+
+* don't set "shallow: true" by default ([f61a19d](https://github.com/getappmap/appmap-java/commit/f61a19d8197fcd20da72ebfc7e4dbb57709ea6f5))
+* set attributes of http_client_request ([3f14082](https://github.com/getappmap/appmap-java/commit/3f14082ae4dc4b8f79902065e31ccd0edbc267f0))
+
 # [1.17.0](https://github.com/getappmap/appmap-java/compare/v1.16.0...v1.17.0) (2023-04-18)
 
 
