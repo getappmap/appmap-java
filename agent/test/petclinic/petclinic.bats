@@ -11,7 +11,7 @@ load '../../build/bats/bats-assert/load'
 load '../helper'
 
 setup_file() {
-  start_petclinic
+  start_petclinic >&3
 }
 
 teardown_file() {

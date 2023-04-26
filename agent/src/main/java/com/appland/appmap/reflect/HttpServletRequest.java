@@ -13,7 +13,7 @@ public class HttpServletRequest extends ReflectiveType implements HttpHeaders {
   private final String GET_PARAMETER_MAP = "getParameterMap";
   private final String GET_ATTRIBUTE = "getAttribute";
   private final String SET_ATTRIBUTE = "setAttribute";
-  private final String GET_ATTRIBUTE_NAMES = "getAttributerNames";
+  private final String GET_ATTRIBUTE_NAMES = "getAttributeNames";
 
   public HttpServletRequest(Object self) {
     super(self);

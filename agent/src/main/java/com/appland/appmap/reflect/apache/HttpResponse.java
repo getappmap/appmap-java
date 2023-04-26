@@ -17,7 +17,12 @@ public class HttpResponse extends ReflectiveType {
   }
 
   public String getContentType() {
-    HttpEntity he = new HttpEntity(invokeObjectMethod(GET_ENTITY));
+    Object obj = invokeObjectMethod(GET_ENTITY);
+    if (obj == null) {
+      return "";
+    }
+
+    HttpEntity he = new HttpEntity(obj);
 
     return he.getContentType();
   }
