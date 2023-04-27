@@ -1,5 +1,13 @@
 package com.appland.appmap.process.hooks;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.reflect.apache.HttpResponse;
@@ -9,8 +17,6 @@ import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookClass;
 import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.transform.annotations.Unique;
-
-import okhttp3.HttpUrl;
 
 @Unique("http_client_request")
 public class HttpClientRequest {
@@ -26,20 +32,19 @@ public class HttpClientRequest {
   @HookClass(value = "org.apache.http.client.HttpClient")
   public static void execute(Event event, Object[] args) {
     HttpUriRequest req = new HttpUriRequest(args[0]);
-    HttpUrl url = HttpUrl.get(req.getURI());
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUri(req.getURI());
 
-    // Create a copy of the original URL, remove the query:
-    HttpUrl noQuery = url.newBuilder().query(null).build();
+    UriComponents withQuery = builder.build(true);
+    UriComponents noQuery = builder.replaceQuery(null).build(true);
+
     event.setHttpClientRequest(req.getMethod(), noQuery.toString());
+
     event.setParameters(null);
-
-    for (int i = 0, size = url.querySize(); i < size; i++) {
-      final String name = url.queryParameterName(i);
-      final String value = url.queryParameterValue(i);
-
-      // In practice, name doesn't ever seem to be null. The doc says it can be,
-      // though, so just to be safe....
-      event.addMessageParam(name != null ? name : "", value != null ? value : "");
+    Set<Entry<String, List<String>>> entrySet = withQuery.getQueryParams().entrySet();
+    for (Map.Entry<String, List<String>> param : entrySet) {
+      List<String> allValues = param.getValue();
+      String[] values = allValues.toArray(new String[0]);
+      event.addMessageParam(param.getKey(), values.length > 0 ? values[0] : "");
     }
 
     recorder.add(event);
