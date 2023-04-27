@@ -20,12 +20,20 @@ import com.appland.appmap.util.Logger;
  */
 @Unique("http_server_request")
 public class HttpServerRequest {
+  // With the inclusion of org.springframework:spring-web as a dependency, both
+  // BEST_MATCHING_PATTERN_ATTRIBUTE and URI_TEMPLATE_VARIABLES_ATTRIBUTE now
+  // need to be generated at runtime. This works around the string-rewriting
+  // issue described in https://github.com/johnrengelman/shadow/issues/232 .
+
   // Needs to match
   // org.springframework.web.servlet.HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE
-  private static final String BEST_MATCHING_PATTERN_ATTRIBUTE = "org.springframework.web.servlet.HandlerMapping.bestMatchingPattern";
+  private static final String BEST_MATCHING_PATTERN_ATTRIBUTE = "org:springframework:web:servlet:HandlerMapping:bestMatchingPattern"
+      .replace(':', '.');
   // Needs to match
   // org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE
-  private static final String URI_TEMPLATE_VARIABLES_ATTRIBUTE = "org.springframework.web.servlet.HandlerMapping.uriTemplateVariables";
+  private static final String URI_TEMPLATE_VARIABLES_ATTRIBUTE = "org:springframework:web:servlet:HandlerMapping:uriTemplateVariables"
+      .replace(':', '.');
+
   private static final String LAST_EVENT_KEY = "com.appland.appmap.lastEvent";
   private static final Recorder recorder = Recorder.getInstance();
 

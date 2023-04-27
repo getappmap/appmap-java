@@ -53,7 +53,7 @@ dependencies {
   implementation 'org.slf4j:slf4j-nop:1.7.30'
   implementation 'info.picocli:picocli:4.6.1'
   implementation 'org.apache.httpcomponents:httpcore-nio:4.4.15'
-  implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+  implementation 'org.springframework:spring-web:5.3.27'
 
   
   // We have to refer to annotations by name (for example, see CodeObject), so
