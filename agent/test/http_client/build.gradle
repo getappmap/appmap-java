@@ -41,7 +41,7 @@ dependencies {
 }
 
 application {
-  mainClass = 'http_client.HttpClientTest'
+  mainClassName = project.hasProperty("mainClass") ? project.getProperty("mainClass") : "NULL"
   applicationDefaultJvmArgs = [
     "-javaagent:${appmapJar}", 
     "-Dappmap.config.file=appmap.yml", 

@@ -18,7 +18,7 @@ teardown_file() {
 }
 
 @test "request without query" {
-  run ./gradlew -q run ${DEBUG} --args "${WS_URL}/vets"
+  run ./gradlew -q -PmainClass=http_client.HttpClientTest run ${DEBUG} --args "${WS_URL}/vets"
 
   assert_json_eq '.events[1].http_client_request.request_method' "GET"
   assert_json_eq '.events[1].http_client_request.url' "${WS_URL}/vets"
@@ -29,7 +29,9 @@ teardown_file() {
 }
 
 @test "request with query" {
-  run ./gradlew -q run ${DEBUG} --args "${WS_URL}/owners?lastName=davis"
+  run ./gradlew -q -PmainClass=http_client.HttpClientTest run ${DEBUG} --args "${WS_URL}/owners?lastName=davis"
+
+  printf "${WS_URL}\n" >&3
 
   assert_json_eq '.events[1].http_client_request.url' "${WS_URL}/owners"
   assert_json_eq '.events[1].message | length' 1
@@ -39,8 +41,18 @@ teardown_file() {
 }
 
 @test "request without Content-Type" {
-  run ./gradlew --no-daemon -q run ${DEBUG} --args "${WS_URL}/no-content"
+  run ./gradlew -q -PmainClass=http_client.HttpClientTest run ${DEBUG} --args "${WS_URL}/no-content"
 
   assert_json_eq '.events[1].http_client_request.url' "${WS_URL}/no-content"
+  assert_json_eq '.events[2].http_client_response.status' "200"
+}
+
+@test "request with HttpHost" {
+  run ./gradlew -q -PmainClass=http_client.HttpHostTest run ${DEBUG} --args "${WS_HOST} ${WS_PORT} /owners?lastName=davis"
+  
+  assert_json_eq '.events[1].http_client_request.url' "${WS_URL}/owners"
+  assert_json_eq '.events[1].message | length' 1
+  assert_json_eq '.events[1].message[0] | "\(.name) \(.value)"' "lastName davis"
+  
   assert_json_eq '.events[2].http_client_response.status' "200"
 }

@@ -96,7 +96,8 @@ start_petclinic() {
   mkdir -p ${LOG_DIR}
 
   export LOG=$PWD/build/fixtures/spring-petclinic/petclinic.log
-  export WS_URL="http://localhost:8080"
+  export WS_SCHEME="http" WS_HOST="localhost" WS_PORT="8080"
+  export WS_URL="${WS_SCHEME}://${WS_HOST}:${WS_PORT}"
 
   printf 'checking for running Petclinic server\n'
   
@@ -112,7 +113,7 @@ start_petclinic() {
   AGENT_JAR="$(find_agent_jar)"
 
   pushd build/fixtures/spring-petclinic >/dev/null
-  ./mvnw -Dspring-boot.run.agents=$AGENT_JAR -Dspring-boot.run.jvmArguments="-Dappmap.config.file=$WD/test/petclinic/appmap.yml -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005" spring-boot:run &>$LOG  3>&- &
+  ./mvnw -Dspring-boot.run.agents=$AGENT_JAR -Dspring-boot.run.jvmArguments="-Dappmap.config.file=$WD/test/petclinic/appmap.yml -Dappmap.debug" spring-boot:run &>$LOG  3>&- &
   popd >/dev/null
 
   export JVM_PID=$!
