@@ -2,6 +2,8 @@ package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.util.Logger;
+
+import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
 
@@ -70,5 +72,16 @@ class CtClassUtil {
 
   interface ClassAccessor<V> {
     V navigate() throws NotFoundException;
+  }
+
+  public static Boolean isChildOf(String childClassName, CtClass parentClass) {
+    ClassPool cp = ClassPool.getDefault();
+    try {
+      CtClass childClass = cp.get(childClassName);
+      return isChildOf(childClass, parentClass.getName());
+    } catch (NotFoundException e) {
+      Logger.println(e);
+    }
+    return false;
   }
 }

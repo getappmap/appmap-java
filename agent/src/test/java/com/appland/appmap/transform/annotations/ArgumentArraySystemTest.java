@@ -90,6 +90,8 @@ public class ArgumentArraySystemTest {
       hooks.add(hook);
     }
 
+    assertTrue("No hooks?", hooks.size() > 0);
+
     for (CtBehavior behavior : targetClass.getDeclaredBehaviors()) {
       Map<String, Object> matchResult = new HashMap<String, Object>();
       hooks.stream()
