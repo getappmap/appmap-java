@@ -18,13 +18,13 @@ sourceSets {
 // TODO: look at consolidating this with the gradle config in httpcore
 def appmapJar = fileTree('../../build/libs').matching {
       include {
-        it.file.name ==~ /.*appmap-[0-9.]*.jar$/
+        it.file.name ==~ /.*appmap-[0-9.]*(-SNAPSHOT)*.jar$/
       }
     }.getFiles()[0]
 
 def annotationJar = fileTree('../../../annotation/build/libs').matching {
       include {
-        it.file.name ==~ /.*annotation-[0-9.]*.jar$/
+        it.file.name ==~ /.*annotation-[0-9.]*(-SNAPSHOT)*.jar$/
       }
     }.getFiles()[0]
 
@@ -41,12 +41,13 @@ dependencies {
 }
 
 application {
+  // mainClass = 'http_client.HttpClientTest'
   mainClassName = project.hasProperty("mainClass") ? project.getProperty("mainClass") : "NULL"
   applicationDefaultJvmArgs = [
     "-javaagent:${appmapJar}", 
     "-Dappmap.config.file=appmap.yml", 
-    // "-Dappmap.debug=true", 
-    // "-Dappmap.debug.file=../../build/logs/httpclient-appmap.log"
+    //"-Dappmap.debug=true", 
+    //"-Dappmap.debug.file=../../build/log/httpclient-appmap.log"
   ]
 
 }

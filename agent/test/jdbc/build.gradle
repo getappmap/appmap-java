@@ -22,7 +22,7 @@ dependencies {
 
 def appmapJar = fileTree('../../build/libs').matching {
       include {
-        it.file.name ==~ /.*appmap-[0-9.]*.jar$/
+        it.file.name ==~ /.*appmap-[0-9.]*(-SNAPSHOT)*.jar$/
       }
     }.getFiles()[0]
 
@@ -32,6 +32,6 @@ test {
 		"-javaagent:${appmapJar}", 
     "-Dappmap.config.file=appmap.yml", 
     // "-Dappmap.debug=true", 
-    "-Dappmap.debug.file=../../build/logs/jdbc-appmap.log"
+    "-Dappmap.debug.file=../../build/log/jdbc-appmap.log"
 	]
 }
