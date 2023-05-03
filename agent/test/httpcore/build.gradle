@@ -17,13 +17,13 @@ sourceSets {
 
 def appmapJar = fileTree('../../build/libs').matching {
       include {
-        it.file.name ==~ /.*appmap-[0-9.]*.jar$/
+        it.file.name ==~ /.*appmap-[0-9.]*(-SNAPSHOT)*.jar$/
       }
     }.getFiles()[0]
 
 def annotationJar = fileTree('../../../annotation/build/libs').matching {
       include {
-        it.file.name ==~ /.*annotation-[0-9.]*.jar$/
+        it.file.name ==~ /.*annotation-[0-9.]*(-SNAPSHOT)*.jar$/
       }
     }.getFiles()[0]
 
