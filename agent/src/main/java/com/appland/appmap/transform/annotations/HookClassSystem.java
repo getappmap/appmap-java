@@ -61,10 +61,8 @@ public class HookClassSystem extends SourceMethodSystem {
       if (signatures != null || signature != null) {
         types = new ArrayList<Signature>();
         if (signatures != null) {
-          Logger.println("Found signatures");
           Collections.addAll(types, signatures);
         } else if (signature != null) {
-          Logger.println("Found single signature");
           types.add(signature);
         }
       }

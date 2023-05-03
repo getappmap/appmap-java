@@ -10,12 +10,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.Recorder;
+import com.appland.appmap.reflect.apache.HttpHost;
+import com.appland.appmap.reflect.apache.HttpRequest;
 import com.appland.appmap.reflect.apache.HttpResponse;
 import com.appland.appmap.reflect.apache.HttpUriRequest;
 import com.appland.appmap.transform.annotations.ArgumentArray;
 import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookClass;
 import com.appland.appmap.transform.annotations.MethodEvent;
+import com.appland.appmap.transform.annotations.Signature;
 import com.appland.appmap.transform.annotations.Unique;
 
 @Unique("http_client_request")
@@ -30,14 +33,34 @@ public class HttpClientRequest {
   @ArgumentArray
   @ExcludeReceiver
   @HookClass(value = "org.apache.http.client.HttpClient")
+  @Signature({ "org.apache.http.client.methods.HttpUriRequest" })
+  @Signature({ "org.apache.http.client.methods.HttpUriRequest", "org.apache.http.protocol.HttpContext" })
   public static void execute(Event event, Object[] args) {
     HttpUriRequest req = new HttpUriRequest(args[0]);
     UriComponentsBuilder builder = UriComponentsBuilder.fromUri(req.getURI());
+    execute(event, req.getMethod(), builder);
+  }
+
+  @ArgumentArray
+  @ExcludeReceiver
+  @HookClass(value = "org.apache.http.client.HttpClient", method = "execute")
+  @Signature({ "org.apache.http.HttpHost", "org.apache.http.HttpRequest" })
+  @Signature({ "org.apache.http.HttpHost", "org.apache.http.HttpRequest", "org.apache.http.protocol.HttpContext" })
+  public static void executeOnHost(Event event, Object[] args) {
+    HttpHost host = new HttpHost(args[0]);
+    HttpRequest req = new HttpRequest(args[1]);
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(req.getUri());
+    UriComponentsBuilder hostBuilder = UriComponentsBuilder.fromUriString(host.toURI());
+    builder.uriComponents(hostBuilder.build());
+    execute(event, req.getMethod(), builder);
+  }
+
+  private static void execute(Event event, String method, UriComponentsBuilder builder) {
 
     UriComponents withQuery = builder.build(true);
     UriComponents noQuery = builder.replaceQuery(null).build(true);
 
-    event.setHttpClientRequest(req.getMethod(), noQuery.toString());
+    event.setHttpClientRequest(method, noQuery.toString());
 
     event.setParameters(null);
     Set<Entry<String, List<String>>> entrySet = withQuery.getQueryParams().entrySet();
@@ -53,8 +76,11 @@ public class HttpClientRequest {
   @ArgumentArray
   @ExcludeReceiver
   @HookClass(value = "org.apache.http.client.HttpClient", methodEvent = MethodEvent.METHOD_RETURN)
+  @Signature({ "org.apache.http.client.methods.HttpUriRequest" })
+  @Signature({ "org.apache.http.client.methods.HttpUriRequest", "org.apache.http.protocol.HttpContext" })
+  @Signature({ "org.apache.http.HttpHost", "org.apache.http.HttpRequest" })
+  @Signature({ "org.apache.http.HttpHost", "org.apache.http.HttpRequest", "org.apache.http.protocol.HttpContext" })
   public static void execute(Event event, Object ret, Object[] args) {
-
     HttpResponse res = new HttpResponse(ret);
     event.setHttpClientResponse(res.getStatusCode(), res.getContentType());
     event.setParameters(null);
