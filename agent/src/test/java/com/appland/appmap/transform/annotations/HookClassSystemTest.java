@@ -79,7 +79,10 @@ public class HookClassSystemTest {
     for (CtMethod behavior : hookClass.getDeclaredMethods()) {
       Hook hook = Hook.from(behavior);
       assertNotNull(hook);
+      hooks.add(hook);
     }
+
+    assertTrue("No hooks?", hooks.size() > 0);
 
     for (CtBehavior behavior : targetClass.getDeclaredBehaviors()) {
       Map<String, Object> matchResult = new HashMap<String, Object>();
