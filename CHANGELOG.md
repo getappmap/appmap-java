@@ -1,3 +1,10 @@
+## [1.17.2](https://github.com/getappmap/appmap-java/compare/v1.17.1...v1.17.2) (2023-05-09)
+
+
+### Bug Fixes
+
+* hook other HttpClient.execute overloads ([f8d3533](https://github.com/getappmap/appmap-java/commit/f8d35339a7e529aae4ad6edccfe313e4396d8ec4))
+
 ## [1.17.1](https://github.com/getappmap/appmap-java/compare/v1.17.0...v1.17.1) (2023-04-26)
 
 
