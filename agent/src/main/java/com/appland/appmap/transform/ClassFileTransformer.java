@@ -1,26 +1,41 @@
 package com.appland.appmap.transform;
 
-import com.appland.appmap.config.Properties;
+import java.io.ByteArrayInputStream;
+import java.lang.instrument.IllegalClassFormatException;
+import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.NoSourceAvailableException;
 import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
 import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.Logger;
-import javassist.*;
-import javassist.bytecode.Descriptor;
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 
-import java.io.ByteArrayInputStream;
-import java.lang.instrument.IllegalClassFormatException;
-import java.security.ProtectionDomain;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import javassist.ClassPool;
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.LoaderClassPath;
+import javassist.Modifier;
+import javassist.NotFoundException;
+import javassist.bytecode.Descriptor;
 
 /**
  * The ClassFileTransformer is responsible for loading and caching hooks during {@link com.appland.appmap.Agent}
@@ -29,6 +44,8 @@ import java.util.stream.Stream;
  * hooks to each behavior declared by that class.
  */
 public class ClassFileTransformer implements java.lang.instrument.ClassFileTransformer {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   private static final List<Hook> unkeyedHooks = new ArrayList<>();
   private static final Map<String, List<Hook>> keyedHooks = new HashMap<>();
 
@@ -62,8 +79,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
     String key = hook.getKey();
 
-    if (Properties.DebugHooks)
-      Logger.printf("%s: %s\n", key, hook);
+    logger.trace("{}: {}", key, hook);
 
     if (key == null) {
       unkeyedHooks.add(hook);
@@ -104,8 +120,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       this.addHook(hook);
 
-      if (Properties.DebugHooks)
-        Logger.printf("registered hook %s\n", hook.toString());
+      logger.trace("registered hook {}", hook);
     }
   }
 
@@ -123,10 +138,10 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       Hook.apply(behavior, hookSites);
 
-      if (Properties.DebugHooks) {
+      if (logger.isDebugEnabled()) {
         for (HookSite hookSite : hookSites) {
           final Hook hook = hookSite.getHook();
-          Logger.printf("hooked %s.%s%s on (%s,%d) with %s\n",
+          logger.debug("hooked {}.{}{} on ({},{}) with {}",
                         behavior.getDeclaringClass().getName(),
                         behavior.getName(),
                         behavior.getMethodInfo().getDescriptor(),
@@ -145,7 +160,9 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           String className,
                           Class<?> redefiningClass,
                           ProtectionDomain domain,
-                          byte[] bytes) throws IllegalClassFormatException {
+      byte[] bytes) throws IllegalClassFormatException {
+
+    // Logger.println("ClassFileTransformer.transform, loader: " + loader);
     ClassPool classPool = new ClassPool();
     classPool.appendClassPath(new LoaderClassPath(loader));
 
@@ -174,6 +191,10 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       for (CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
         if (ignoreMethod(behavior)) {
           continue;
+        }
+
+        if (behavior.getName().equals("doFilter")) {
+          Logger.println("=== " + behavior.getLongName());
         }
 
         this.applyHooks(behavior);

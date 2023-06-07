@@ -1,0 +1,2 @@
+org.tinylog.writers.ConsoleWriter
+org.tinylog.writers.FileWriter

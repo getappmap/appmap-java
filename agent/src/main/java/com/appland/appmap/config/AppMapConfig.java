@@ -20,19 +20,28 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import org.tinylog.Logger;
+import org.tinylog.TaggedLogger;
+import org.tinylog.configuration.Configuration;
+
 import com.appland.appmap.cli.CLI;
 import com.appland.appmap.util.FullyQualifiedName;
-import com.appland.appmap.util.Logger;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppMapConfig {
+  private static final TaggedLogger logger = configureLogging();
+
   public File configFile;  // the configFile used
   public String name;
   public AppMapPackage[] packages = new AppMapPackage[0];
   private static AppMapConfig singleton = new AppMapConfig();
+
+  public static org.tinylog.TaggedLogger getLogger(String tag) {
+    return org.tinylog.Logger.tag(tag);
+  }
 
   static File findConfig(File configFile, boolean mustExist) throws FileNotFoundException {
     if (configFile.exists()) {
@@ -60,8 +69,7 @@ public class AppMapConfig {
 
       return configFile;
     } catch (IOException e) {
-      Logger.error("Failed to create default config\n");
-      Logger.error(e);
+      logger.error(e, "Failed to create default config");
     }
 
     throw new FileNotFoundException(configFile.toString());
@@ -81,15 +89,13 @@ public class AppMapConfig {
 
     try {
       configFile = AppMapConfig.findConfig(configFile, mustExist);
-      Logger.println(String.format("using config file -> %s",
+      logger.debug(String.format("using config file -> {}",
                                    configFile.getAbsolutePath()));
       inputStream = new FileInputStream(configFile);
     } catch (FileNotFoundException e) {
       String expectedConfig = configFile.getAbsolutePath();
-      Logger.println(String.format("error: file not found -> %s",
-                                   expectedConfig));
-      Logger.error(String.format("error: file not found -> %s",
-                                 expectedConfig));
+      logger.error("error: file not found -> {}",
+          expectedConfig);
       return null;
     }
 
@@ -97,7 +103,7 @@ public class AppMapConfig {
     try {
       singleton = mapper.readValue(inputStream, AppMapConfig.class);
     } catch (IOException e) {
-      Logger.error("AppMap: encountered syntax error in appmap.yml " + e.getMessage());
+      logger.error("AppMap: encountered syntax error in appmap.yml {}", e.getMessage());
       System.exit(1);
     }
     singleton.configFile = configFile;
@@ -236,5 +242,25 @@ public class AppMapConfig {
       pw.println("# - path: org.otherstuff.pkg");
     }
     return sw.toString();
+  }
+
+  public static TaggedLogger configureLogging() {
+    // Make sure the app's instance of tinylog (if it has one) doesn't install a
+    // shutdown hook. We'll take care of it.
+    System.setProperty("tinylog.autoshutdown", "false");
+
+    // tinylog freezes its configuration after the first call to any of its
+    // methods other than those in Configuration. So, get everything ready
+    // before returning the logger for this class;
+    if (Properties.Debug) {
+      Configuration.set("level", "debug");
+    }
+
+    if (Properties.DebugFile != null) {
+      Configuration.set("writer", "file");
+      Configuration.set("writer.file", Properties.DebugFile);
+    }
+
+    return Logger.tag(null);
   }
 }

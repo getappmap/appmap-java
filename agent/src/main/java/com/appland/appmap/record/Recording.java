@@ -17,10 +17,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.util.Logger;
 
 public class Recording {
+    private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
     private final Path outputDirectory;
     private final File file;
 

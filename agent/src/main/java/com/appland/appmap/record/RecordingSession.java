@@ -15,12 +15,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.tinylog.TaggedLogger;
+
 import com.alibaba.fastjson.JSON;
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.util.Logger;
 
 public class RecordingSession {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
   private final HashSet<String> classReferences = new HashSet<>();
   private boolean eventReceived = false;

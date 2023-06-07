@@ -42,6 +42,8 @@ def parameterizedDescription = findProperty('appMapAgentDescription') ?: default
 version = parameterizedVersion ?: ( travisVersionValid ? travisVersion : defaultVersion )
 group = publishGroupId
 
+final tinylogVersion = '2.6.2'
+
 dependencies {
   implementation 'com.alibaba:fastjson:1.2.83'
   implementation 'org.javassist:javassist:3.29.2-GA'
@@ -55,7 +57,9 @@ dependencies {
   implementation 'org.apache.httpcomponents:httpcore-nio:4.4.15'
   implementation 'org.springframework:spring-web:5.3.27'
 
-  
+  implementation "org.tinylog:tinylog-api:${tinylogVersion}"
+  implementation "org.tinylog:tinylog-impl:${tinylogVersion}"
+
   // We have to refer to annotations by name (for example, see CodeObject), so
   // there's no need for a compile-time dependency on
   // com.appland.appmap.annotation.
@@ -87,7 +91,10 @@ apply plugin: 'com.github.johnrengelman.shadow'
 shadowJar {
   baseName = 'appmap'
   classifier = ''
-  minimize()
+  minimize() {
+    exclude(dependency('org.tinylog:.*:.*'))
+  }
+
   dependencies {
     exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
     exclude(dependency('org.apache.httpcomponents:.*:.*'))

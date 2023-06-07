@@ -5,6 +5,9 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.util.Logger;
 
 /* ReflectiveType implements some simple ducking typing. As long as self
@@ -15,6 +18,8 @@ import com.appland.appmap.util.Logger;
  * jakarta.servlet.http.HttpServletRequest. 
  */
 public class ReflectiveType {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   private Map<String, Method> methods = new HashMap<String, Method>();
 
   protected Object self;
