@@ -1,4 +1,4 @@
-package com.appland.appmap.process.hooks;
+package com.appland.appmap.process.hooks.http;
 
 import java.util.List;
 import java.util.Map;

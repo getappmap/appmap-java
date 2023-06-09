@@ -1,4 +1,4 @@
-package com.appland.appmap.process.hooks;
+package com.appland.appmap.process.hooks.http;
 
 import java.util.Map;
 
@@ -85,14 +85,14 @@ public class HttpServerRequest {
       return;
     }
 
-    req.setAttribute(LAST_EVENT_KEY, null); 
+    req.setAttribute(LAST_EVENT_KEY, null);
   }
 
   public static void recordHttpServerResponse(Event event, HttpServletRequest req, int status,
       Map<String, String> headers) {
     event.setHttpServerResponse(status, headers);
     event.setParameters(null);
-      
+
     clearLastEvent(req, event);
     recorder.add(event);
   }
@@ -263,9 +263,9 @@ public class HttpServerRequest {
   }
 
   private static void addSpringPath(HttpServletRequest req) {
-    final String uri = (String)req.getRequestURI();
+    final String uri = (String) req.getRequestURI();
     if (uri != null) {
-      final Event lastEvent = (Event)req.getAttribute(LAST_EVENT_KEY);
+      final Event lastEvent = (Event) req.getAttribute(LAST_EVENT_KEY);
       if (lastEvent == null || lastEvent.httpServerRequest == null) {
         return;
       }
