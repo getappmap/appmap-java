@@ -245,10 +245,6 @@ public class AppMapConfig {
   }
 
   public static TaggedLogger configureLogging() {
-    // Make sure the app's instance of tinylog (if it has one) doesn't install a
-    // shutdown hook. We'll take care of it.
-    System.setProperty("tinylog.autoshutdown", "false");
-
     // tinylog freezes its configuration after the first call to any of its
     // methods other than those in Configuration. So, get everything ready
     // before returning the logger for this class;

@@ -10,6 +10,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +22,6 @@ import com.alibaba.fastjson.JSON;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.util.Logger;
 
 public class RecordingSession {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
@@ -32,16 +32,22 @@ public class RecordingSession {
   private AppMapSerializer serializer;
   private final Recorder.Metadata metadata;
   private final Map<Integer, Event>eventUpdates = new HashMap<Integer, Event>();
+  private Instant startTime;
 
-  RecordingSession(Recorder.Metadata metadata) {
+  public RecordingSession(Recorder.Metadata metadata) {
     this.tmpPath = null;
     this.metadata = metadata;
+    this.startTime = Instant.now();
 
     start();
   }
 
   public Recorder.Metadata getMetadata() {
     return this.metadata;
+  }
+
+  public Instant getStartTime() {
+    return startTime;
   }
 
   public synchronized void add(Event event) {
@@ -66,7 +72,7 @@ public class RecordingSession {
   }
 
   public synchronized void addEventUpdate(Event event) {
-    Logger.println("addEventUpdate, event: " + JSON.toJSONString(event));
+    logger.trace("addEventUpdate, event: {}", () -> JSON.toJSONString(event));
     this.eventUpdates.put(event.id, event);
   }
 
@@ -109,8 +115,8 @@ public class RecordingSession {
       throw new RuntimeException(e);
     }
 
-    Logger.printf("AppMap: Recording flushed at checkpoint\n");
-    Logger.printf("AppMap: Wrote recording to file %s\n", targetPath);
+    logger.debug("Recording flushed at checkpoint");
+    logger.debug("Wrote recording to file {}", targetPath);
 
     return new Recording(this.metadata.recorderName, targetPath.toFile());
   }
@@ -133,8 +139,8 @@ public class RecordingSession {
     this.serializer = null;
     this.tmpPath = null;
 
-    Logger.printf("AppMap: Recording finished\n");
-    Logger.printf("AppMap: Wrote recording to file %s\n", file.getPath());
+    logger.debug("Recording finished");
+    logger.debug("Wrote recording to file {}", file.getPath());
 
     return new Recording(metadata.recorderName, file);
   }

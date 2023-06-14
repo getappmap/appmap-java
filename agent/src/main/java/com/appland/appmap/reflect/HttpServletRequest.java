@@ -4,6 +4,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.appland.appmap.process.hooks.http.ServletContext;
+
 public class HttpServletRequest extends ReflectiveType implements HttpHeaders {
   private final HttpHeaderDelegate headerDelegate;
 
@@ -14,12 +16,13 @@ public class HttpServletRequest extends ReflectiveType implements HttpHeaders {
   private final String GET_ATTRIBUTE = "getAttribute";
   private final String SET_ATTRIBUTE = "setAttribute";
   private final String GET_ATTRIBUTE_NAMES = "getAttributeNames";
+  private final String GET_SERVLET_CONTEXT = "getServletContext";
 
   public HttpServletRequest(Object self) {
     super(self);
     this.headerDelegate = new HttpHeaderDelegate(self);
     
-    addMethods(GET_METHOD, GET_REQUEST_URI, GET_PROTOCOL, GET_PARAMETER_MAP, GET_ATTRIBUTE_NAMES);
+    addMethods(GET_METHOD, GET_REQUEST_URI, GET_PROTOCOL, GET_PARAMETER_MAP, GET_ATTRIBUTE_NAMES, GET_SERVLET_CONTEXT);
     addMethod(GET_ATTRIBUTE, String.class);
     addMethod(SET_ATTRIBUTE, String.class, Object.class);
   }
@@ -51,6 +54,10 @@ public class HttpServletRequest extends ReflectiveType implements HttpHeaders {
   @SuppressWarnings("unchecked")
   public Enumeration<String> getAttributeNames() {
     return (Enumeration<String>) invokeObjectMethod(GET_ATTRIBUTE_NAMES);
+  }
+
+  public ServletContext getServletContext() {
+    return new ServletContext(invokeObjectMethod(GET_SERVLET_CONTEXT));
   }
 
   @Override

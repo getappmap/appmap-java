@@ -191,6 +191,7 @@ ownerId'
 
   assert_json_eq '.events[] | .http_server_response | .headers["Content-Type"]' "text/html;charset=UTF-8"
 }
+
 @test "recordings capture elapsed time" {
   start_recording
   run _curl -XGET "${WS_URL}"
@@ -203,4 +204,16 @@ ownerId'
   # and that the elapsed times are parseable by JavaScript
   run xargs -L1 node -e 'console.log(Number(process.argv[1]))' <<< "$output"
   refute_output --partial 'NaN'
+}
+
+@test "requests are recorded by default" {
+  run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
+  assert_success 
+  local dir='build/fixtures/spring-petclinic/tmp/appmap/request_recording'
+  
+  run bash -o pipefail -c "ls -t ${dir}/*owners_1_pets_1_edit.appmap.json | head -1"
+  assert_success
+
+  output="$(<${output})"
+  assert_json_eq '.events[] | .http_server_request | .path_info' '/owners/1/pets/1/edit' 
 }

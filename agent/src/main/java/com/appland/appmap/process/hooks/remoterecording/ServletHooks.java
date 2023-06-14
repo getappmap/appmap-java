@@ -139,8 +139,7 @@ public class ServletHooks {
 
   private static void stopRecording(Event event, Boolean succeeded, Throwable exception) {
     Logger.printf("Recording stopped for %s\n", canonicalName(event));
-    String filePath = String.join("_", event.definedClass, event.methodId)
-        .replaceAll("[^a-zA-Z0-9-_]", "_");
+    String filePath = Recorder.sanitizeFilename(String.join("_", event.definedClass, event.methodId));
     filePath += ".appmap.json";
     if ( succeeded != null ) {
       recorder.getMetadata().testSucceeded = succeeded;

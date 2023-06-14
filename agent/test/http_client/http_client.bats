@@ -31,8 +31,6 @@ teardown_file() {
 @test "request with query" {
   run ./gradlew -q -PmainClass=http_client.HttpClientTest run ${DEBUG} --args "${WS_URL}/owners?lastName=davis"
 
-  printf "${WS_URL}\n" >&3
-
   assert_json_eq '.events[1].http_client_request.url' "${WS_URL}/owners"
   assert_json_eq '.events[1].message | length' 1
   assert_json_eq '.events[1].message[0] | "\(.name) \(.value)"' "lastName davis"

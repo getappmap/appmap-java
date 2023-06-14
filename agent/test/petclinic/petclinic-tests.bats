@@ -1,6 +1,12 @@
 setup_file() {
   mkdir -p test/petclinic/classes
   javac -d test/petclinic/classes test/petclinic/Props.java
+
+  # When PetClinic updated to Spring Boot 3, they changed the name of the
+  # integration tests from PetclinicIntegrationTests to
+  # PetClinicIntegrationTests. The tests here need to support both, so use a
+  # pattern that matches them.
+  export TEST_NAME="Pet?linicIntegrationTests"
 }
 
 setup() {
@@ -15,23 +21,24 @@ setup() {
   cd build/fixtures/spring-petclinic
 }
 
+
 run_petclinic_test() {
   local cfg="${1:-appmap.yml}"
 
   run ./mvnw \
-    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/${cfg} -Dappmap.debug -Dappmap.debug.file=appmap.log" \
-    test -Dtest="PetclinicIntegrationTests#testOwnerDetails"
+    -DargLine="@{argLine} -Dcheckstyle.skip=true -javaagent:${AGENT_JAR} -Dappmap.record.requests=false -Dappmap.config.file=../../../test/petclinic/${cfg} -Dappmap.log.writingThread=false -Dappmap.log.level=debug -Dappmap.log.level@com.appland.appmap.transform.annotations.HookSite=trace -Dappmap.log.level@com.appland.appmap.output.v1.Event=trace -Dappmap.log.writer=file -Dappmap.log.writer.file=appmap.log" \
+    test -Dtest="${TEST_NAME}#testOwnerDetails"
   assert_success
 }
 
 @test "hooked functions are ordered correctly" {
   run_petclinic_test
-  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_PetclinicIntegrationTests_testOwnerDetails.appmap.json
+  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_testOwnerDetails.appmap.json
   assert_success
 
-  assert_json_eq '.events[] | select(.id == 150) | .event' "call"
-  assert_json_eq '.events[] | select(.id == 150) | .method_id' "testOwnerDetails"
-  assert_json_eq '.events[] | select(.id == 168) | .parent_id' "150"
+  # Thread 1 is the test runner's main thread. Check to make sure that parent_id
+  # of the "return" event matches the id of the "call" event.
+  assert_json_eq '.events | map(select(.thread_id == 1)) | ((.[0].event == "call" and .[1].event == "return") and (.[1].parent_id == .[0].id))' "true"
 }
 
 @test "extra properties in appmap.yml are ignored when config is loaded" {
@@ -46,7 +53,7 @@ run_petclinic_test() {
 @test "log methods are labeled" {
   run_petclinic_test appmap-labels.yml
 
-  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_PetclinicIntegrationTests_testOwnerDetails.appmap.json
+  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_testOwnerDetails.appmap.json
 
   assert_json_eq '.classMap[0] | recurse(.children[]?) | select(.type? == "function" and .name? == "info").labels[0]' 'log'
 }
