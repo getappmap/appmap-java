@@ -124,7 +124,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
   }
 
-  private void applyHooks(CtBehavior behavior) {
+  private boolean applyHooks(CtBehavior behavior) {
     try {
       final List<HookSite> hookSites = this.getHooks(behavior.getName())
           .stream()
@@ -133,7 +133,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           .collect(Collectors.toList());
 
       if (hookSites.size() < 1) {
-        return;
+        logger.trace("no hook sites");
+        return false;
       }
 
       Hook.apply(behavior, hookSites);
@@ -142,17 +143,21 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         for (HookSite hookSite : hookSites) {
           final Hook hook = hookSite.getHook();
           logger.debug("hooked {}.{}{} on ({},{}) with {}",
-                        behavior.getDeclaringClass().getName(),
-                        behavior.getName(),
-                        behavior.getMethodInfo().getDescriptor(),
-                        hook.getMethodEvent().getEventString(),
-                        hook.getPosition(),
-                        hook);
+              behavior.getDeclaringClass().getName(),
+              behavior.getName(),
+              behavior.getMethodInfo().getDescriptor(),
+              hook.getMethodEvent().getEventString(),
+              hook.getPosition(),
+              hook);
         }
       }
+      return true;
+
     } catch (NoSourceAvailableException e) {
       Logger.println(e);
     }
+
+    return false;
   }
 
   @Override
@@ -162,7 +167,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           ProtectionDomain domain,
       byte[] bytes) throws IllegalClassFormatException {
 
-    // Logger.println("ClassFileTransformer.transform, loader: " + loader);
+    className = className.replaceAll("/", ".");
+    logger.trace("className: {}", className);
     ClassPool classPool = new ClassPool();
     classPool.appendClassPath(new LoaderClassPath(loader));
 
@@ -180,36 +186,41 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         // ctClass.defrost();
         //
         // For now, just skip this class
-        Logger.printf("Skipping class %s, failed making a new one: %s\n", className, e.getMessage());
-        return bytes;
+        logger.debug(e, "Skipping class {}, failed making a new one");
+        return null;
       }
 
       if (ctClass.isInterface()) {
-        return bytes;
+        logger.trace("{} is an interface", className);
+        return null;
       }
 
+      boolean hookApplied = false;
       for (CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
+        logger.trace("behavior: {} ", behavior.getLongName());
         if (ignoreMethod(behavior)) {
+          logger.trace("ignored");
           continue;
         }
 
-        if (behavior.getName().equals("doFilter")) {
-          Logger.println("=== " + behavior.getLongName());
+        if (this.applyHooks(behavior)) {
+          hookApplied = true;
         }
-
-        this.applyHooks(behavior);
       }
 
-      return ctClass.toBytecode();
+      if (hookApplied) {
+        logger.trace("hook(s) applied to {}", className);
+        return ctClass.toBytecode();
+      }
+
+      logger.trace("no hooks applied to {}", className);
     } catch (Exception e) {
       // Don't allow this exception to propagate out of this method, because it will be swallowed
       // by sun.instrument.TransformerManager.
-      Logger.println("An error occurred transforming class " + className);
-      Logger.println(e.getClass() + ": " + e.getMessage());
-      e.printStackTrace(System.err);
+      logger.warn(e, "An error occurred transforming class {}");
     }
 
-    return bytes;
+    return null;
   }
 
   private boolean ignoreMethod(CtBehavior behavior) {

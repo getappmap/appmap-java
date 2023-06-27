@@ -26,7 +26,7 @@ run_petclinic_test() {
   local cfg="${1:-appmap.yml}"
 
   run ./mvnw \
-    -DargLine="@{argLine} -Dcheckstyle.skip=true -javaagent:${AGENT_JAR} -Dappmap.record.requests=false -Dappmap.config.file=../../../test/petclinic/${cfg} -Dappmap.log.writingThread=false -Dappmap.log.level=debug -Dappmap.log.level@com.appland.appmap.transform.annotations.HookSite=trace -Dappmap.log.level@com.appland.appmap.output.v1.Event=trace -Dappmap.log.writer=file -Dappmap.log.writer.file=appmap.log" \
+    -DargLine="@{argLine} -Dcheckstyle.skip=true -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/${cfg} -Dappmap.debug  -Dappmap.debug.file=appmap.log" \
     test -Dtest="${TEST_NAME}#testOwnerDetails"
   assert_success
 }
