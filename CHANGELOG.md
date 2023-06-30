@@ -1,3 +1,16 @@
+# [1.18.0](https://github.com/getappmap/appmap-java/compare/v1.17.2...v1.18.0) (2023-06-30)
+
+
+### Bug Fixes
+
+* add tinylog for logging ([fe1a05a](https://github.com/getappmap/appmap-java/commit/fe1a05abb601ee46d9fe41644eb1b0b28af7cd35))
+* update ClassFileTransformer.transform ([cc673ef](https://github.com/getappmap/appmap-java/commit/cc673ef1507298b19e814885cf04c395aded6b55))
+
+
+### Features
+
+* add request recording ([066a316](https://github.com/getappmap/appmap-java/commit/066a316c702397e0ef5b3dae2e53e4361d6f0f43))
+
 ## [1.17.2](https://github.com/getappmap/appmap-java/compare/v1.17.1...v1.17.2) (2023-05-09)
 
 
