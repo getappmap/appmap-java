@@ -1,7 +1,11 @@
-package com.appland.appmap.process.hooks;
+package com.appland.appmap.process.hooks.http;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Map;
 
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.hooks.remoterecording.RemoteRecordingManager;
 import com.appland.appmap.record.Recorder;
@@ -12,7 +16,6 @@ import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookClass;
 import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.transform.annotations.Unique;
-import com.appland.appmap.util.Logger;
 
 /**
  * Hooks to capture @{code http_server_request} and @{code http_server_response}
@@ -20,6 +23,10 @@ import com.appland.appmap.util.Logger;
  */
 @Unique("http_server_request")
 public class HttpServerRequest {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+  private static final String PACKAGE_NAME = MethodHandles.lookup().lookupClass().getPackage().getName();
+  static final String STATUS_ATTRIBUTE = PACKAGE_NAME + ".status";
+
   // With the inclusion of org.springframework:spring-web as a dependency, both
   // BEST_MATCHING_PATTERN_ATTRIBUTE and URI_TEMPLATE_VARIABLES_ATTRIBUTE now
   // need to be generated at runtime. This works around the string-rewriting
@@ -34,7 +41,7 @@ public class HttpServerRequest {
   private static final String URI_TEMPLATE_VARIABLES_ATTRIBUTE = "org:springframework:web:servlet:HandlerMapping:uriTemplateVariables"
       .replace(':', '.');
 
-  private static final String LAST_EVENT_KEY = "com.appland.appmap.lastEvent";
+  private static final String LAST_EVENT_KEY = PACKAGE_NAME + ".lastEvent";
   private static final Recorder recorder = Recorder.getInstance();
 
   private static void recordHttpServerRequest(Event event, HttpServletRequest req) {
@@ -85,14 +92,17 @@ public class HttpServerRequest {
       return;
     }
 
-    req.setAttribute(LAST_EVENT_KEY, null); 
+    req.setAttribute(LAST_EVENT_KEY, null);
   }
 
   public static void recordHttpServerResponse(Event event, HttpServletRequest req, int status,
       Map<String, String> headers) {
+    if (req != null) {
+      req.setAttribute(STATUS_ATTRIBUTE, Integer.valueOf(status));
+    }
     event.setHttpServerResponse(status, headers);
     event.setParameters(null);
-      
+
     clearLastEvent(req, event);
     recorder.add(event);
   }
@@ -103,6 +113,7 @@ public class HttpServerRequest {
     recorder.add(event);
   }
 
+  /* #region Filter.doFilter */
   @ArgumentArray
   @ExcludeReceiver
   @HookClass("javax.servlet.Filter")
@@ -177,6 +188,10 @@ public class HttpServerRequest {
     recordHttpServerException(event, req, exception);
   }
 
+  /* #endregion Filter.doFilter */
+
+  /* #region HttpServlet.service */
+
   @ArgumentArray
   @ExcludeReceiver
   @HookClass("javax.servlet.http.HttpServlet")
@@ -205,31 +220,30 @@ public class HttpServerRequest {
   @ExcludeReceiver
   @HookClass(value = "javax.servlet.http.HttpServlet", methodEvent = MethodEvent.METHOD_RETURN)
   public static void service(Event event, Object returnValue, Object[] args) {
-    if (args.length != 2) {
-      return;
-    }
-
-    HttpServletRequest req = new HttpServletRequest(args[0]);
-    if (isSpringRequest(req)) {
-      Logger.println("service, isSpringRequest");
-      addSpringPath(req);
-    } else {
-      Logger.println("service, not isSpringRequest");
-    }
-
-    HttpServletResponse res = new HttpServletResponse(args[1]);
-    recordHttpServerResponse(event, req, res);
+    doServiceReturn(event, args);
   }
 
   @ArgumentArray
   @ExcludeReceiver
   @HookClass(value = "jakarta.servlet.http.HttpServlet", method = "service", methodEvent = MethodEvent.METHOD_RETURN)
   public static void serviceJakarta(Event event, Object returnValue, Object[] args) {
+    doServiceReturn(event, args);
+  }
+
+  private static void doServiceReturn(Event event, Object[] args) {
     if (args.length != 2) {
       return;
     }
 
     HttpServletRequest req = new HttpServletRequest(args[0]);
+    if (isSpringRequest(req)) {
+      logger.trace("service, isSpringRequest");
+      addSpringPath(req);
+    } else {
+      logger.trace("service, not isSpringRequest");
+      logger.trace("request attributes: {}", () -> req.getAttributeNames());
+    }
+
     HttpServletResponse res = new HttpServletResponse(args[1]);
     recordHttpServerResponse(event, req, res);
   }
@@ -263,9 +277,9 @@ public class HttpServerRequest {
   }
 
   private static void addSpringPath(HttpServletRequest req) {
-    final String uri = (String)req.getRequestURI();
+    final String uri = (String) req.getRequestURI();
     if (uri != null) {
-      final Event lastEvent = (Event)req.getAttribute(LAST_EVENT_KEY);
+      final Event lastEvent = (Event) req.getAttribute(LAST_EVENT_KEY);
       if (lastEvent == null || lastEvent.httpServerRequest == null) {
         return;
       }

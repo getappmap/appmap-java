@@ -1,26 +1,41 @@
 package com.appland.appmap.transform;
 
-import com.appland.appmap.config.Properties;
+import java.io.ByteArrayInputStream;
+import java.lang.instrument.IllegalClassFormatException;
+import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.NoSourceAvailableException;
 import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
 import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.Logger;
-import javassist.*;
-import javassist.bytecode.Descriptor;
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 
-import java.io.ByteArrayInputStream;
-import java.lang.instrument.IllegalClassFormatException;
-import java.security.ProtectionDomain;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import javassist.ClassPool;
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.LoaderClassPath;
+import javassist.Modifier;
+import javassist.NotFoundException;
+import javassist.bytecode.Descriptor;
 
 /**
  * The ClassFileTransformer is responsible for loading and caching hooks during {@link com.appland.appmap.Agent}
@@ -29,6 +44,8 @@ import java.util.stream.Stream;
  * hooks to each behavior declared by that class.
  */
 public class ClassFileTransformer implements java.lang.instrument.ClassFileTransformer {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   private static final List<Hook> unkeyedHooks = new ArrayList<>();
   private static final Map<String, List<Hook>> keyedHooks = new HashMap<>();
 
@@ -62,8 +79,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
     String key = hook.getKey();
 
-    if (Properties.DebugHooks)
-      Logger.printf("%s: %s\n", key, hook);
+    logger.trace("{}: {}", key, hook);
 
     if (key == null) {
       unkeyedHooks.add(hook);
@@ -104,12 +120,11 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       this.addHook(hook);
 
-      if (Properties.DebugHooks)
-        Logger.printf("registered hook %s\n", hook.toString());
+      logger.trace("registered hook {}", hook);
     }
   }
 
-  private void applyHooks(CtBehavior behavior) {
+  private boolean applyHooks(CtBehavior behavior) {
     try {
       final List<HookSite> hookSites = this.getHooks(behavior.getName())
           .stream()
@@ -118,26 +133,31 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           .collect(Collectors.toList());
 
       if (hookSites.size() < 1) {
-        return;
+        logger.trace("no hook sites");
+        return false;
       }
 
       Hook.apply(behavior, hookSites);
 
-      if (Properties.DebugHooks) {
+      if (logger.isDebugEnabled()) {
         for (HookSite hookSite : hookSites) {
           final Hook hook = hookSite.getHook();
-          Logger.printf("hooked %s.%s%s on (%s,%d) with %s\n",
-                        behavior.getDeclaringClass().getName(),
-                        behavior.getName(),
-                        behavior.getMethodInfo().getDescriptor(),
-                        hook.getMethodEvent().getEventString(),
-                        hook.getPosition(),
-                        hook);
+          logger.debug("hooked {}.{}{} on ({},{}) with {}",
+              behavior.getDeclaringClass().getName(),
+              behavior.getName(),
+              behavior.getMethodInfo().getDescriptor(),
+              hook.getMethodEvent().getEventString(),
+              hook.getPosition(),
+              hook);
         }
       }
+      return true;
+
     } catch (NoSourceAvailableException e) {
       Logger.println(e);
     }
+
+    return false;
   }
 
   @Override
@@ -145,7 +165,10 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           String className,
                           Class<?> redefiningClass,
                           ProtectionDomain domain,
-                          byte[] bytes) throws IllegalClassFormatException {
+      byte[] bytes) throws IllegalClassFormatException {
+
+    className = className.replaceAll("/", ".");
+    logger.trace("className: {}", className);
     ClassPool classPool = new ClassPool();
     classPool.appendClassPath(new LoaderClassPath(loader));
 
@@ -163,32 +186,41 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         // ctClass.defrost();
         //
         // For now, just skip this class
-        Logger.printf("Skipping class %s, failed making a new one: %s\n", className, e.getMessage());
-        return bytes;
+        logger.debug(e, "Skipping class {}, failed making a new one");
+        return null;
       }
 
       if (ctClass.isInterface()) {
-        return bytes;
+        logger.trace("{} is an interface", className);
+        return null;
       }
 
+      boolean hookApplied = false;
       for (CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
+        logger.trace("behavior: {} ", behavior.getLongName());
         if (ignoreMethod(behavior)) {
+          logger.trace("ignored");
           continue;
         }
 
-        this.applyHooks(behavior);
+        if (this.applyHooks(behavior)) {
+          hookApplied = true;
+        }
       }
 
-      return ctClass.toBytecode();
+      if (hookApplied) {
+        logger.trace("hook(s) applied to {}", className);
+        return ctClass.toBytecode();
+      }
+
+      logger.trace("no hooks applied to {}", className);
     } catch (Exception e) {
       // Don't allow this exception to propagate out of this method, because it will be swallowed
       // by sun.instrument.TransformerManager.
-      Logger.println("An error occurred transforming class " + className);
-      Logger.println(e.getClass() + ": " + e.getMessage());
-      e.printStackTrace(System.err);
+      logger.warn(e, "An error occurred transforming class {}");
     }
 
-    return bytes;
+    return null;
   }
 
   private boolean ignoreMethod(CtBehavior behavior) {

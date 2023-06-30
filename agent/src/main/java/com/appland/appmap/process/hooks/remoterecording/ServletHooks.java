@@ -23,6 +23,14 @@ import com.appland.appmap.transform.annotations.HookCondition;
 import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.util.Logger;
 
+/*
+  * ServletHooks installs the hooks that manage remote recording. If there is at
+  * least one filter installed, the hook for Filter.doFilter will handle the
+  * requests for the remote recording endpoint. If there are no filters
+  * installed, the hook for Servlet.service will handle it instead.
+  *
+  * TODO: move the test framework hooks (JUnit, TestNG) somewhere else.
+  */
 
 public class ServletHooks {
   private static final boolean debug = Properties.DebugHttp;
@@ -131,8 +139,7 @@ public class ServletHooks {
 
   private static void stopRecording(Event event, Boolean succeeded, Throwable exception) {
     Logger.printf("Recording stopped for %s\n", canonicalName(event));
-    String filePath = String.join("_", event.definedClass, event.methodId)
-        .replaceAll("[^a-zA-Z0-9-_]", "_");
+    String filePath = Recorder.sanitizeFilename(String.join("_", event.definedClass, event.methodId));
     filePath += ".appmap.json";
     if ( succeeded != null ) {
       recorder.getMetadata().testSucceeded = succeeded;

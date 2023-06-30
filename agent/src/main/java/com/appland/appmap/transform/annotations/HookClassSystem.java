@@ -6,6 +6,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.util.Logger;
 
 import javassist.CtBehavior;
@@ -13,6 +16,8 @@ import javassist.CtClass;
 import javassist.NotFoundException;
 
 public class HookClassSystem extends SourceMethodSystem {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   private final static Boolean IGNORE_CHILDREN_DEFAULT = false;
 
   private String targetClass = null;
@@ -84,7 +89,6 @@ public class HookClassSystem extends SourceMethodSystem {
   @Override
   public Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
     String behaviorClass = behavior.getDeclaringClass().getName();
-
     if (this.ignoresChildren) {
       if (!behaviorClass.equals(this.targetClass)) {
         return false;
@@ -92,8 +96,11 @@ public class HookClassSystem extends SourceMethodSystem {
     } else if (!CtClassUtil.isChildOf(behavior.getDeclaringClass(), this.targetClass)) {
       return false;
     }
+    logger.trace("behaviorClass {} isChildOf targetClass: {}", behaviorClass, targetClass);
 
     String behaviorName = behavior.getName();
+    logger.trace("behavior: {} hookBehavior: {}", behavior.getLongName(), getHookBehavior().getLongName());
+
     if (!behaviorName.equals(this.targetMethod)) {
       return false;
     }
@@ -105,12 +112,15 @@ public class HookClassSystem extends SourceMethodSystem {
             return true;
           }
         }
+        logger.trace("signatures didn't match");
         return false;
       } catch (NotFoundException e) {
         Logger.println("Failed to find type of parameters of " + behaviorClass + "."
             + behaviorName);
         Logger.println(e);
       }
+    } else {
+      logger.trace("no signatures");
     }
 
     return true;

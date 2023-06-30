@@ -5,14 +5,17 @@ import java.lang.instrument.Instrumentation;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.tinylog.TaggedLogger;
+import org.tinylog.provider.ProviderRegistry;
+
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recorder.Metadata;
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.transform.ClassFileTransformer;
-import com.appland.appmap.util.Logger;
 
+import javassist.ClassPool;
 /**
  * Agent is a JVM agent which instruments, records, and prints appmap files
  * for a program. To use the AppMap agent, start the progress with the JVM argument
@@ -24,6 +27,8 @@ import com.appland.appmap.util.Logger;
  * When the agent exits, any un-printed data will be written to the file <code>appmap.json</code>.
  */
 public class Agent {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   /**
    * premain is the entry point for the AppMap Java agent.
    * @param agentArgs agent options
@@ -31,12 +36,13 @@ public class Agent {
    * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html">Package java.lang.instrument</a>
    */
   public static void premain(String agentArgs, Instrumentation inst) {
-    Logger.println("Agent version " + Agent.class.getPackage().getImplementationVersion());
-    Logger.println("System properties: " + System.getProperties().toString());
-    if (Properties.Debug) {
-      Logger.whereAmI();
-    }
-    
+    logger.debug("Agent version {}", Agent.class.getPackage().getImplementationVersion());
+    logger.debug("System properties: {}", System.getProperties());
+    logger.debug(new Exception(), "whereAmI");
+
+    logger.trace("Agent.class class loader: {}", Agent.class.getClassLoader());
+    logger.trace("ClassPool.getDefault(): {}", ClassPool.getDefault());
+
     inst.addTransformer(new ClassFileTransformer());
 
     // If the user explicitly specified a config file, but the file doesn't
@@ -44,9 +50,19 @@ public class Agent {
     boolean configSpecified = Properties.ConfigFile != null;
     String configFile = !configSpecified ? "appmap.yml" : Properties.ConfigFile;
     if (AppMapConfig.load(new File(configFile), configSpecified) == null) {
-      Logger.error("failed to load config %s\n", Properties.ConfigFile);
+      logger.error("failed to load config {}", Properties.ConfigFile);
       System.exit(1);
     }
+
+    Runnable logShutdown = () -> {
+      try {
+        ProviderRegistry.
+
+            getLoggingProvider().shutdown();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    };
 
     if (Properties.RecordingAuto) {
       String appmapName = Properties.RecordingName;
@@ -73,8 +89,14 @@ public class Agent {
 
         Recording recording = recorder.stop();
         recording.moveTo(fileName);
+
+        logShutdown.run();
       }));
+    } else {
+      Runtime.getRuntime().addShutdownHook(new Thread(logShutdown));
     }
   }
+
+
 
 }

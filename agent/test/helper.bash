@@ -89,6 +89,8 @@ find_agent_jar() {
 # function don't get redirected, to make it easier to use from a shell. When you
 # run it from a setup function, you should redirect fd 3.
 start_petclinic() {
+  local jvmargs="$@"
+
   mkdir -p test/petclinic/classes
   javac -d test/petclinic/classes test/petclinic/Props.java
 
@@ -113,7 +115,7 @@ start_petclinic() {
   AGENT_JAR="$(find_agent_jar)"
 
   pushd build/fixtures/spring-petclinic >/dev/null
-  ./mvnw -Dspring-boot.run.agents=$AGENT_JAR -Dspring-boot.run.jvmArguments="-Dappmap.config.file=$WD/test/petclinic/appmap.yml -Dappmap.debug" spring-boot:run &>$LOG  3>&- &
+  ./mvnw -Dspring-boot.run.agents=$AGENT_JAR -Dspring-boot.run.jvmArguments="-Dappmap.config.file=$WD/test/petclinic/appmap.yml -Dappmap.debug $jvmargs" spring-boot:run &>$LOG  3>&- &
   popd >/dev/null
 
   export JVM_PID=$!

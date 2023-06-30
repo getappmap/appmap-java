@@ -17,10 +17,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
-import com.appland.appmap.util.Logger;
 
 public class Recording {
+    private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
     private final Path outputDirectory;
     private final File file;
 
@@ -34,10 +38,13 @@ public class Recording {
     }
 
     public Path moveTo(String filePath) {
-        Path sourcePath = Paths.get(this.file.getPath());
-        final Path targetPath = outputDirectory.resolve(filePath);
+        return moveTo(outputDirectory.resolve(filePath));
+    }
 
-        Logger.printf("Moving %s to %s\n", sourcePath, targetPath);
+    public Path moveTo(Path targetPath) {
+        Path sourcePath = Paths.get(this.file.getPath());
+
+        logger.debug("Moving {} to {}", sourcePath, targetPath);
 
         Function<FileMover, FileMover.Result> tryMove = mover -> {
             IOException exception = null;

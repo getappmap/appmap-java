@@ -32,7 +32,7 @@ public class SqlQuery {
   }
 
   private static boolean isMock(Object o) {
-    final Class c = o.getClass();
+    final Class<?> c = o.getClass();
     final Package p = c.getPackage();
     if (p == null) {
       // If there's no package info, it's not a Mockito object.

@@ -1,6 +1,8 @@
 package com.appland.appmap.transform.annotations;
 
-import com.appland.appmap.config.Properties;
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.util.Logger;
 
 import javassist.ClassPool;
@@ -11,6 +13,8 @@ import javassist.NotFoundException;
  * Utility methods for working with CtClass and related types.
  */
 class CtClassUtil {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   /**
    * Checks whether or not two types are equal or related via class hierarchy or interface
    * implementation.
@@ -21,7 +25,7 @@ class CtClassUtil {
    * Otherwise, {@code false}.
    */
   public static Boolean isChildOf(CtClass candidateChildClass, String parentClassName) {
-    // System.err.println("candidateChildClass: " + candidateChildClass.getName() + ", parentClassName: " + parentClassName);
+    logger.trace("candidateChildClass: {}, parentClassName: {}", candidateChildClass.getName(), parentClassName);
 
     if (candidateChildClass.getName().equals(parentClassName)) {
       return true;
@@ -30,7 +34,8 @@ class CtClassUtil {
     CtClass[] interfaces = tryClass(candidateChildClass, "interfaces", candidateChildClass::getInterfaces);
     if ( interfaces != null ) {
       for (CtClass superType : interfaces) {
-        //System.err.println("interface: " + superType.getName());
+        logger.trace("interface: {}", superType.getName());
+
         if (superType.getName().equals(parentClassName)) {
           return true;
         } else {
@@ -63,9 +68,7 @@ class CtClassUtil {
     try {
       return accessor.navigate();
     } catch (NotFoundException e) {
-      if (Properties.DebugHooks) {
-        Logger.printf("NotFoundException resolving %s of class %s: %s\n", member, cls.getName(), e.getMessage());
-      }
+      logger.trace(e, "Resolving {} of class {}", member, cls.getName());
       return null;
     }
   }

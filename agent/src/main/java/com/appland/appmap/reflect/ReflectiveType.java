@@ -5,7 +5,9 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.appland.appmap.util.Logger;
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 
 /* ReflectiveType implements some simple ducking typing. As long as self
  * implements the methods required by subclasses of ReflectiveType, the actual
@@ -15,12 +17,28 @@ import com.appland.appmap.util.Logger;
  * jakarta.servlet.http.HttpServletRequest. 
  */
 public class ReflectiveType {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   private Map<String, Method> methods = new HashMap<String, Method>();
 
   protected Object self;
 
   public ReflectiveType(Object self) {
     this.self = self;
+    addMethods("hashCode", "toString");
+    addMethod("equals", Object.class);
+  }
+
+  public int hashCode() {
+    return invokeIntMethod("hashCode");
+  }
+
+  public String toString() {
+    return invokeStringMethod("toString");
+  }
+
+  public boolean equals(Object other) {
+    return invokeMethod("equals", Boolean.FALSE, other);
   }
 
   /* Add no-argument methods that can be called on self */
@@ -40,23 +58,28 @@ public class ReflectiveType {
     try {
       return cls.getMethod(name, parameterTypes);
     } catch (Exception e) {
-      Logger.printf("failed to get method %s.%s: %s\n", cls.getName(), name, e.getMessage());
+      logger.warn(e, "failed to get method {}.{}", cls.getName(), name);
       return null;
     }
+  }
+
+  protected void addMethod(String name, String... parameterTypes) {
+    this.methods.put(name, getMethodByClassNames(name, parameterTypes));
   }
 
   protected Object invokeWrappedMethod(Method method, Object... parameters) {
     try {
       method.setAccessible(true);
+      logger.trace("method: {} parameters: {}", method, parameters);
       return method.invoke(self, parameters);
     } catch (InvocationTargetException e) {
-      Throwable thrown = e.getTargetException();
-      final String msg = String.format("%s.%s threw an exception, %s\n", self.getClass().getName(), method.getName(),
-          thrown != null ? thrown.getMessage() : "<no msg>");
-      Logger.println(msg);
-      throw new Error(msg, thrown);
+      logger.warn(e, "{}.{} threw an exception", self.getClass().getName(), method.getName());
+      throw new Error(e);
     } catch (Exception e) {
-      Logger.printf("failed invoking %s.%s, %s\n", self.getClass().getName(), method.getName(), e.getMessage());
+      logger.warn(e, "failed invoking {}.{}", self.getClass().getName(), method.getName());
+      if (e.getCause() != null) {
+        logger.warn(e.getCause());
+      }
     }
     return null;
   }
@@ -72,7 +95,7 @@ public class ReflectiveType {
     return invokeMethod(name, "", parameters);
   }
 
-  protected int invokeIntMethod(String name, Object... parameters) {
+  protected Integer invokeIntMethod(String name, Object... parameters) {
     return invokeMethod(name, -1, parameters);
   }
 
@@ -80,6 +103,9 @@ public class ReflectiveType {
     return invokeMethod(name, null, parameters);
   }
 
+  protected void invokeVoidMethod(String name, Object... parameters) {
+    invokeMethod(name, null, parameters);
+  }
   /**
    * Looks up a method signature by class names.
    * @param name Method name
@@ -89,29 +115,34 @@ public class ReflectiveType {
   protected Method getMethodByClassNames(String name, String... parameterTypes) {
     Method[] methods;
 
+    logger.trace("self.getClass(): {}", self.getClass());
+
     try {
       methods = this.self.getClass().getMethods();
     } catch (Exception e) {
-      Logger.printf("failed to get method %s: %s\n", name, e.getMessage());
+      logger.warn(e, "failed to get methods for {}", this.self.getClass().getName());
       return null;
     }
 
     for (Method method : methods) {
+      logger.trace("method: {}", method.getName());
       if (!method.getName().equals(name)) {
         continue;
       }
 
       final Class<?>[] methodParamTypes = method.getParameterTypes();
       if (methodParamTypes.length != parameterTypes.length) {
+        logger.trace("parameter type lengths don't match");
         continue;
       }
 
       boolean match = true;
       for (int i = 0; i < methodParamTypes.length; i++) {
-        final String a = methodParamTypes[i].getName();
-        final String b = parameterTypes[i];
+        final String actual = methodParamTypes[i].getName();
+        final String expected = parameterTypes[i];
+        logger.trace("actual: \"{}\" expected: \"{}\"", actual, expected);
 
-        if (!a.equals(b)) {
+        if (!actual.equals(expected)) {
           match = false;
           break;
         }
@@ -122,6 +153,7 @@ public class ReflectiveType {
       }
     }
 
+    logger.warn("No match for method {}", name);
     return null;
   }
 }

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
+
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
@@ -23,6 +24,10 @@ public class Recorder {
   private final ActiveSession activeSession = new ActiveSession();
   private final CodeObjectTree globalCodeObjects = new CodeObjectTree();
   private final Map<Long, ThreadState> threadState = new ConcurrentHashMap<>();
+
+  public static String sanitizeFilename(String filename) {
+    return filename.replaceAll("[^a-zA-Z0-9-_]", "_");
+  }
 
   /**
    * Data structure for reporting AppMap metadata.
@@ -60,6 +65,7 @@ public class Recorder {
 
   static class ActiveSession {
     private RecordingSession activeSession = null;
+    private ThreadLocal<RecordingSession> threadSession = new ThreadLocal<RecordingSession>();
 
     synchronized RecordingSession get() throws ActiveSessionException {
       if (activeSession == null) {
@@ -70,7 +76,7 @@ public class Recorder {
     }
 
     boolean exists() {
-      return activeSession != null;
+      return activeSession != null || threadSession.get() != null;
     }
 
     synchronized RecordingSession release() throws ActiveSessionException {
@@ -91,15 +97,43 @@ public class Recorder {
       activeSession = session;
     }
 
+    void setThread(RecordingSession session) throws ActiveSessionException {
+      if (threadSession.get() != null) {
+        throw new ActiveSessionException(ERROR_SESSION_PRESENT);
+      }
+
+      threadSession.set(session);
+    }
+
+    RecordingSession getThread() throws ActiveSessionException {
+      if (threadSession.get() == null) {
+        throw new ActiveSessionException(ERROR_NO_SESSION);
+      }
+
+      return threadSession.get();
+    }
+
+    RecordingSession releaseThread() throws ActiveSessionException {
+      RecordingSession ret = getThread();
+      threadSession.remove();
+      return ret;
+    }
+
     synchronized void addEvent(Event event) {
       if (activeSession != null) {
         activeSession.add(event);
+      }
+      if (threadSession.get() != null) {
+        threadSession.get().add(event);
       }
     }
 
     synchronized void addEventUpdate(Event event) {
       if (activeSession != null) {
         activeSession.addEventUpdate(event);
+      }
+      if (threadSession.get() != null) {
+        threadSession.get().addEventUpdate(event);
       }
     }
   }
@@ -127,6 +161,10 @@ public class Recorder {
     activeSession.set(session);
   }
 
+  public void setThreadSession(RecordingSession session) throws ActiveSessionException {
+    activeSession.setThread(session);
+  }
+
   public boolean hasActiveSession() {
     return activeSession.exists();
   }
@@ -152,6 +190,10 @@ public class Recorder {
     return activeSession.release().stop();
   }
 
+  public Recording stopThread() {
+    flush();
+    return activeSession.releaseThread().stop();
+  }
   /**
    * Record an {@link Event} to the active session.
    *
@@ -259,7 +301,7 @@ public class Recorder {
    * Record the execution of a Runnable and write the scenario to a file
    */
   public void record(String name, Runnable fn) throws ActiveSessionException, IOException {
-    final String fileName = name.replaceAll("[^a-zA-Z0-9-_]", "_");
+    final String fileName = sanitizeFilename(name);
     final Metadata metadata = new Metadata("java", "process");
     metadata.scenarioName = name;
 

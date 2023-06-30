@@ -38,6 +38,9 @@ public class Properties {
   public static final Boolean RecordPrivate = resolveProperty(
       "appmap.record.private", Boolean::valueOf, false);
       
+  public static final Boolean RecordRequests = resolveProperty(
+      "appmap.record.requests", Boolean::valueOf, true);
+
   private static String resolveProperty(String propName, String defaultValue) {
     String value = defaultValue;
     try {
