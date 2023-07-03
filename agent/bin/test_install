@@ -1,34 +1,55 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex
 
 fixture_dir=$PWD/build/fixtures
 mkdir -p build/fixtures
 
-(
-cd build/fixtures
 source "$JAVA_HOME/release"
+export JAVA_VERSION
 
-rm -rf spring-petclinic
-git clone https://github.com/spring-projects/spring-petclinic.git
-cd spring-petclinic
+function install_petclinic (
+  local repo="$1"; shift
+  local oldVersion="$1"
+  local pkg="$(basename $repo)"
 
-echo "${JAVA_VERSION}"
-case "${JAVA_VERSION}" in
-  1.8*)
-    ;&
-  11.*)
-    # PetClinic now requires Java 17. When we're testing older JDKs, use the
-    # last version that supported 1.8 (and 11). Note that they don't tag
-    # versions, so we just use the commit SHA. (We don't use the full hash,
-    # though, because Travis detects that as a secret. :( 8 digits should be
-    # enough to make a collision extremely unlikely.)
-    git checkout 9cb8dde9
-    ;;
-esac
-./mvnw -q package -Dmaven.test.skip=true
+  cd build/fixtures
+
+  rm -rf "${pkg}"
+  git clone https://github.com/"${repo}".git
+  cd "${pkg}"
+
+  echo "${JAVA_VERSION}"
+  if [[ ! -z $oldVersion ]]; then 
+    case "${JAVA_VERSION}" in
+      1.8*)
+        ;&
+      11.*)
+        git checkout "${oldVersion}" 
+        ;;
+    esac
+    ./mvnw package -Dmaven.test.skip=true
+  else
+    case "${JAVA_VERSION}" in
+      1.8*)
+        ;&
+      11.*)
+        echo "No old version, not packaging in ${pkg}"
+        ;;
+      17.*)
+        ./mvnw package -Dmaven.test.skip=true
+        ;;
+    esac
+  fi
 )
 
+# PetClinic now requires Java 17. When we're testing older JDKs, use the last
+# version that supported 1.8 (and 11). Note that spring-projects/petclinic
+# doesn't tag versions, so we just use the commit SHA. (We don't use the full
+# hash, though, because Travis detects that as a secret. :( 8 digits should be
+# enough to make a collision extremely unlikely.)
+install_petclinic "spring-projects/spring-petclinic" 9cb8dde9
+install_petclinic "spring-petclinic/spring-framework-petclinic"
 export BATS_DIR=$PWD/build/bats
 mkdir -p build/bats
 

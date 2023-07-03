@@ -102,9 +102,12 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
   }
 
   private void processClass(CtClass ctClass) {
+    logger.trace(() -> ctClass.getName());
     for (CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
+      logger.trace(() -> behavior.getLongName());
       Hook hook = Hook.from(behavior);
       if (hook == null) {
+        logger.trace("{}, no hooks", () -> behavior.getLongName());
         continue;
       }
 
@@ -113,8 +116,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       try {
         hook.validate();
       } catch (HookValidationException e) {
-        Logger.println("failed to validate hook");
-        Logger.println(e);
+        logger.debug(e, "failed to validate hook");
         continue;
       }
 
