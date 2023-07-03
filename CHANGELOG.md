@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/getappmap/appmap-java/compare/v1.18.0...v1.18.1) (2023-07-03)
+
+
+### Bug Fixes
+
+* don't depend on spring-web ([ad75e17](https://github.com/getappmap/appmap-java/commit/ad75e17a441d25ca72bc81252aed0fbe7b39fa81))
+
 # [1.18.0](https://github.com/getappmap/appmap-java/compare/v1.17.2...v1.18.0) (2023-06-30)
 
 
