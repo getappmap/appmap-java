@@ -88,6 +88,8 @@ public class HookClassSystem extends SourceMethodSystem {
 
   @Override
   public Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
+    logger.trace(() -> behavior.getLongName());
+
     String behaviorClass = behavior.getDeclaringClass().getName();
     if (this.ignoresChildren) {
       if (!behaviorClass.equals(this.targetClass)) {
@@ -99,7 +101,9 @@ public class HookClassSystem extends SourceMethodSystem {
     logger.trace("behaviorClass {} isChildOf targetClass: {}", behaviorClass, targetClass);
 
     String behaviorName = behavior.getName();
-    logger.trace("behavior: {} hookBehavior: {}", behavior.getLongName(), getHookBehavior().getLongName());
+    if (logger.isTraceEnabled()) {
+      logger.trace("behavior: {} hookBehavior: {}", behavior.getLongName(), getHookBehavior().getLongName());
+    }
 
     if (!behaviorName.equals(this.targetMethod)) {
       return false;

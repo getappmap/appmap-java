@@ -59,7 +59,6 @@ dependencies {
   implementation 'org.slf4j:slf4j-nop:1.7.30'
   implementation 'info.picocli:picocli:4.6.1'
   implementation 'org.apache.httpcomponents:httpcore-nio:4.4.15'
-  implementation 'org.springframework:spring-web:5.3.27'
 
   implementation "org.tinylog:tinylog-api:${tinylogVersion}"
   implementation "org.tinylog:tinylog-impl:${tinylogVersion}"
@@ -96,6 +95,8 @@ shadowJar {
   baseName = 'appmap'
   classifier = ''
   minimize() {
+    // tinylog computes the dependencies it needs at runtime, so don't exclude
+    // anything.
     exclude(dependency('org.tinylog:.*:.*'))
   }
 

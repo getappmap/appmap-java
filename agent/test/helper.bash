@@ -30,7 +30,7 @@ print_debug() {
     echo >&3
     echo "query: ${query}" >&3
     echo >&3
-    echo "output: '${output}'" >&3
+    echo "output:\n'${output}'" >&3
     echo >&3
     echo "result: '${result}'" >&3
     echo >&3
@@ -85,6 +85,30 @@ find_agent_jar() {
   echo "$PWD/build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')"
 }
 
+check_pc_running() {
+  printf 'checking for running Petclinic server\n'
+
+  if ! curl -Isf "${WS_URL}" >/dev/null 2>&1; then
+    if [ $? -eq 7 ]; then
+      printf '  server already running\n'
+      exit 1
+    fi
+  fi
+}
+
+wait_for_pc() {
+  while ! curl -Isf "${WS_URL}" >/dev/null; do
+  if ! kill -0 "${JVM_PID}" 2> /dev/null; then
+    printf '  failed!\n\nprocess exited unexpectedly:\n'
+    cat $LOG 
+    exit 1
+  fi
+
+  sleep 1
+  done
+  printf '  ok\n\n'
+}
+
 # Start a PetClinic server. Note that the output from the printf's in this
 # function don't get redirected, to make it easier to use from a shell. When you
 # run it from a setup function, you should redirect fd 3.
@@ -101,14 +125,7 @@ start_petclinic() {
   export WS_SCHEME="http" WS_HOST="localhost" WS_PORT="8080"
   export WS_URL="${WS_SCHEME}://${WS_HOST}:${WS_PORT}"
 
-  printf 'checking for running Petclinic server\n'
-  
-  if ! curl -Isf "${WS_URL}" >/dev/null 2>&1; then
-    if [ $? -eq 7 ]; then
-      printf '  server already running\n'
-      exit 1
-    fi
-  fi
+  check_pc_running
 
   printf '  starting PetClinic\n'
   WD=$PWD
@@ -119,16 +136,35 @@ start_petclinic() {
   popd >/dev/null
 
   export JVM_PID=$!
-  while ! curl -Isf "${WS_URL}" >/dev/null; do
-  if ! kill -0 "${JVM_PID}" 2> /dev/null; then
-    printf '  failed!\n\nprocess exited unexpectedly:\n'
-    cat $LOG 
-    exit 1
-  fi
 
-  sleep 1
+  wait_for_pc
+}
+
+start_petclinic_fw() {
+  export LOG_DIR=$PWD/build/log
+  mkdir -p ${LOG_DIR}
+
+  export LOG=$PWD/build/fixtures/spring-framework-petclinic/petclinic.log
+  export WS_SCHEME="http" WS_HOST="localhost" WS_PORT="8080"
+  export WS_URL="${WS_SCHEME}://${WS_HOST}:${WS_PORT}"
+
+  check_pc_running
+
+  printf '  starting PetClinic (framework)\n'
+  WD=$PWD
+  AGENT_JAR="$(find_agent_jar)"
+
+  pushd build/fixtures/spring-framework-petclinic >/dev/null
+  ./mvnw -DskipTests -Djetty.deployMode=FORK -Djetty.jvmArgs="-javaagent:$AGENT_JAR -Dappmap.config.file=$WD/test/petclinic/appmap.yml -Dappmap.debug" clean jetty:run-war &>$LOG  3>&- &
+  local mvn_pid=$!
+  popd >/dev/null
+
+  while ! pgrep -P $mvn_pid; do
+    sleep 1
   done
-  printf '  ok\n\n'
+  export JVM_PID=$(pgrep -P $mvn_pid)
+
+  wait_for_pc
 }
 
 stop_petclinic() {

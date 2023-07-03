@@ -14,6 +14,9 @@ report_failure() {
 trap 'report_failure $LINENO' ERR
 
 ./test/petclinic/test
+if [[ $JAVA_VERSION == 17.* ]]; then
+  ./test/petclinic-fw/test
+fi
 ./test/httpcore/test
 ./test/http_client/test
 ./test/agent_cli/test
