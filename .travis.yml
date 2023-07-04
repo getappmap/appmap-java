@@ -1,27 +1,69 @@
-language: java
-install: true
 os: linux
 dist: jammy
-jdk:
-- openjdk17
-- openjdk8
-- openjdk11
+language: minimal
 
 before_cache:
-  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 
 cache:
   directories:
-    - '$HOME/.gradle/caches/'
-    - '$HOME/.gradle/wrapper/'
-    - '$HOME/.m2/'
+  - '$HOME/.gradle/caches/'
+  - '$HOME/.gradle/wrapper/'
+  - '$HOME/.m2/'
+  - '$HOME/.asdf/'
+
+before_install:
+- |
+  if [ ! -d $HOME/.asdf/plugins ]; then
+    git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.12.0
+    source "$HOME/.asdf/asdf.sh"
+    asdf plugin add java
+    asdf plugin add prune https://github.com/apotterri/asdf-prune.git
+  fi
+  source "$HOME/.asdf/asdf.sh"
+  asdf update
+  asdf plugin update --all
+
+jobs:
+  include:
+  - name: jdk 8
+    env:
+    - JDK=8
+    install:
+    - |
+      source "$HOME/.asdf/asdf.sh"
+      asdf install java latest:adoptopenjdk-8
+      asdf prune java adoptopenjdk-8
+      asdf local java latest:adoptopenjdk-8
+
+  - name: jdk 11
+    env:
+    - JDK=11
+    install:
+    - |
+      source "$HOME/.asdf/asdf.sh"
+      asdf install java latest:adoptopenjdk-11
+      asdf prune java adoptopenjdk-11
+      asdf local java latest:adoptopenjdk-11
+  - name: jdk 17
+    env:
+    - JDK=17
+    install:
+    - |
+      source "$HOME/.asdf/asdf.sh"
+      asdf install java latest:adoptopenjdk-17
+      asdf prune java adoptopenjdk-17
+      asdf local java latest:adoptopenjdk-17
 
 script:
-- java -version
-- ./gradlew check
-- ./gradlew integrationTest
-- ./bin/test
+- |
+  source "$HOME/.asdf/asdf.sh"
+  source $HOME/.asdf/plugins/java/set-java-home.bash
+  java -version
+  ./gradlew check
+  ./gradlew integrationTest
+  ./bin/test
 
 before_deploy:
   - nvm install lts/*
@@ -38,4 +80,4 @@ deploy:
     script: semantic-release
     on:
       branch: master
-      jdk: openjdk8
+      condition: $JDK = 8
