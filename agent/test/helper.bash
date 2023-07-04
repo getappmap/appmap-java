@@ -47,7 +47,8 @@ assert_json() {
   local result=$(jq -r "${query}" <<< "${output}")
 
   print_debug "${query}" "${result}"
-  refute [ -z "${result}" ]
+
+  assert_not_equal "${result}" "" >&3
 }
 
 assert_json_eq() {
@@ -59,7 +60,7 @@ assert_json_eq() {
 
   print_debug "${query}" "${result}"
 
-  assert [ "${result}" == "${expected_value}" ]
+  assert_equal "${result}" "${expected_value}" >&3
 }
 
 assert_json_contains() {
