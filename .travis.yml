@@ -59,7 +59,9 @@ jobs:
 script:
 - |
   source "$HOME/.asdf/asdf.sh"
-  source $HOME/.asdf/plugins/java/set-java-home.bash
+  export JAVA_HOME="$(dirname $(dirname $(asdf which java)))"
+  export JDK_HOME="$JAVA_HOME"
+  export | grep JAVA_HOME
   java -version
   ./gradlew check
   ./gradlew integrationTest

@@ -126,8 +126,9 @@ teardown_file() {
   stop_recording
 
   eval $(java -cp test/petclinic/classes petclinic.Props java.vm.version java.vm.name)
+  echo "JAVA_VM_VERSION: $JAVA_VM_VERSION JAVA_VM_NAME: $JAVA_VM_NAME" >&3
   assert_json_eq '.metadata.language.name' 'java'
-  assert_json_eq '.metadata.language.version' "${JAVA_VM_VERSION}"
+  DEBUG_JSON=true assert_json_eq '.metadata.language.version' "${JAVA_VM_VERSION}"
   assert_json_eq '.metadata.language.engine' "${JAVA_VM_NAME}"
 }
 

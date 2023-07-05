@@ -30,7 +30,7 @@ print_debug() {
     echo >&3
     echo "query: ${query}" >&3
     echo >&3
-    echo "output:\n'${output}'" >&3
+    echo -e "output:\n'${output}'" >&3
     echo >&3
     echo "result: '${result}'" >&3
     echo >&3
@@ -133,7 +133,7 @@ start_petclinic() {
   AGENT_JAR="$(find_agent_jar)"
 
   pushd build/fixtures/spring-petclinic >/dev/null
-  ./mvnw -Dspring-boot.run.agents=$AGENT_JAR -Dspring-boot.run.jvmArguments="-Dappmap.config.file=$WD/test/petclinic/appmap.yml -Dappmap.debug $jvmargs" spring-boot:run &>$LOG  3>&- &
+  ./mvnw -DskipTests -Dcheckstyle.skip=true -Dspring-boot.run.agents=$AGENT_JAR -Dspring-boot.run.jvmArguments="-Dappmap.config.file=$WD/test/petclinic/appmap.yml -Dappmap.debug $jvmargs" spring-boot:run &>$LOG  3>&- &
   popd >/dev/null
 
   export JVM_PID=$!
