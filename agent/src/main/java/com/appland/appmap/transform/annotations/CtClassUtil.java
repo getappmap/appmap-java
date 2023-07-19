@@ -1,9 +1,11 @@
 package com.appland.appmap.transform.annotations;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import org.tinylog.TaggedLogger;
 
 import com.appland.appmap.config.AppMapConfig;
-import com.appland.appmap.util.Logger;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -24,51 +26,52 @@ class CtClassUtil {
    * @return {@code true} if the parent class is a super class of the child or equal to the child.
    * Otherwise, {@code false}.
    */
-  public static Boolean isChildOf(CtClass candidateChildClass, String parentClassName) {
-    logger.trace("candidateChildClass: {}, parentClassName: {}", candidateChildClass.getName(), parentClassName);
+  public static Boolean isChildOf(CtClass candidateChildClass, CtClass parentClass) {
+    String childClassName = candidateChildClass.getName();
+    String parentClassName = parentClass.getName();
 
-    if (candidateChildClass.getName().equals(parentClassName)) {
+    if (childClassName.equals(parentClassName)) {
       return true;
     }
 
     CtClass[] interfaces = tryClass(candidateChildClass, "interfaces", candidateChildClass::getInterfaces);
-    if ( interfaces != null ) {
+    logger.trace("interfaces: {}",
+        () -> Arrays.asList(interfaces).stream().map(c -> c.getName()).collect(Collectors.joining(",")));
+
+    if (interfaces != null && interfaces.length > 0) {
       for (CtClass superType : interfaces) {
-        logger.trace("interface: {}", superType.getName());
+        logger.trace(() -> String.format("interface: %s", superType.getName()));
 
         if (superType.getName().equals(parentClassName)) {
           return true;
-        } else {
-          if (isChildOf(superType, parentClassName)) {
-            return true;
-          }
+        }
+
+        if (isChildOf(superType, parentClass)) {
+          return true;
         }
       }
     }
 
-    CtClass superClass = tryClass(candidateChildClass, "superclass", candidateChildClass::getSuperclass);
-    while (superClass != null) {
-      if (superClass.getName().equals(parentClassName)) {
-        return true;
+      CtClass superClass = tryClass(candidateChildClass, "superclass", candidateChildClass::getSuperclass);
+      logger.trace("superClass: {}", () -> superClass != null ? superClass.getName() : "null");
+      if (superClass == null) {
+        return false;
       }
-      /*
-      else if (isChildOf(superClass, parentClassName)) {
-        return true;
+      // When we get to the top of the hierarchy, check to see if the parent is
+      // java.lang.Object. If so, we've got a match, but either way, we're done
+      // scanning.
+      if (superClass.getName().equals("java.lang.Object")) {
+        return parentClassName.equals("java.lang.Object");
       }
-      */
-      
-      final CtClass cls = superClass;
-      superClass = tryClass(cls, "superclass", cls::getSuperclass);
-    }
 
-    return false;
-  }
+      return isChildOf(superClass, parentClass);
+    }
 
   private static <V> V tryClass(CtClass cls, String member, ClassAccessor<V> accessor) {
     try {
       return accessor.navigate();
     } catch (NotFoundException e) {
-      logger.trace(e, "Resolving {} of class {}", member, cls.getName());
+      logger.trace(e, () -> String.format("Resolving %s of class %s", member, cls.getName()));
       return null;
     }
   }
@@ -81,10 +84,57 @@ class CtClassUtil {
     ClassPool cp = ClassPool.getDefault();
     try {
       CtClass childClass = cp.get(childClassName);
-      return isChildOf(childClass, parentClass.getName());
+
+      Boolean ret = isChildOf(childClass, parentClass);
+      logger.debug(() -> String.format("childClassName: %s, parentClassName: %s ret: %s", childClassName,
+          parentClass.getName(), ret));
+      return ret;
     } catch (NotFoundException e) {
-      Logger.println(e);
+      logger.trace(e);
     }
     return false;
+  }
+
+  public static Boolean isChildOf(CtClass childClass, String parentClassName) {
+    ClassPool cp = ClassPool.getDefault();
+    try {
+      CtClass parentClass = cp.get(parentClassName);
+
+      Boolean ret = isChildOf(childClass, parentClass);
+      logger.debug(() -> String.format("childClassName: %s, parentClassName: %s ret: %s", childClass.getName(),
+          parentClassName, ret));
+      return ret;
+    } catch (NotFoundException e) {
+      logger.trace(e);
+    }
+    return false;
+  }
+
+  public static Boolean isChildOf(String childClassName, String parentClassName) {
+    ClassPool cp = ClassPool.getDefault();
+    try {
+      CtClass parentClass = cp.get(parentClassName);
+
+      Boolean ret = isChildOf(childClassName, parentClass);
+      logger.debug(
+          () -> String.format("childClassName: %s, parentClassName: %s ret: %s", childClassName, parentClassName, ret));
+      return ret;
+    } catch (NotFoundException e) {
+      logger.trace(e);
+    }
+    return false;
+  }
+
+  /*
+   * Trying to diagnose problems with isChildOf when instrumenting an app is
+   * hard -- the huge number of classes loaded makes the log really noisy.
+   * Having an entrypoint here allows us to investigate the relationship between
+   * a single child class and a potential parent.
+   */
+  public static void main(String[] argv) {
+    String child = argv[0];
+    String parent = argv[1];
+    logger.info("{} {}", child, parent);
+    System.out.println(String.format("isChildOf(%s, %s): %b", child, parent, isChildOf(child, parent)));
   }
 }

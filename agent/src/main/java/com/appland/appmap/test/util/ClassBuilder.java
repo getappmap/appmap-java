@@ -1,11 +1,11 @@
 package com.appland.appmap.test.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Dynamically create Classes.
@@ -18,8 +18,17 @@ public class ClassBuilder {
    * Begins building a dynamic class.
    * @param className The name of the new class to be loaded
    */
+  private ClassBuilder() {
+  }
+
   public ClassBuilder(String className) {
     this.myClass = ClassPool.getDefault().makeClass(className);
+  }
+
+  public static ClassBuilder buildInterface(String interfaceName) {
+    ClassBuilder ret = new ClassBuilder();
+    ret.myClass = ClassPool.getDefault().makeInterface(interfaceName);
+    return ret;
   }
 
   /**
