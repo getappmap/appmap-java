@@ -30,6 +30,12 @@ class CtClassUtil {
     String childClassName = candidateChildClass.getName();
     String parentClassName = parentClass.getName();
 
+    // It's important to do this check here (and in all the overloads below, of
+    // course). isChildOf gets called during the initial transformation of the
+    // class (i.e. before it gets added to the ClassPool), to decide whether the
+    // its methods are eligible for hooking. Without this check, we'll try to
+    // find it in the ClassPool. When that fails, none of its methods will get
+    // hooked.
     if (childClassName.equals(parentClassName)) {
       return true;
     }
@@ -81,6 +87,11 @@ class CtClassUtil {
   }
 
   public static Boolean isChildOf(String childClassName, CtClass parentClass) {
+    String parentClassName = parentClass.getName();
+    boolean namesEqual = childClassName.equals(parentClassName);
+    if (namesEqual)
+      return true;
+
     ClassPool cp = ClassPool.getDefault();
     try {
       CtClass childClass = cp.get(childClassName);
@@ -96,6 +107,11 @@ class CtClassUtil {
   }
 
   public static Boolean isChildOf(CtClass childClass, String parentClassName) {
+    String childClassName = childClass.getName();
+    boolean namesEqual = childClassName.equals(parentClassName);
+    if (namesEqual)
+      return true;
+
     ClassPool cp = ClassPool.getDefault();
     try {
       CtClass parentClass = cp.get(parentClassName);
@@ -111,6 +127,10 @@ class CtClassUtil {
   }
 
   public static Boolean isChildOf(String childClassName, String parentClassName) {
+    boolean namesEqual = childClassName.equals(parentClassName);
+    if (namesEqual)
+      return true;
+
     ClassPool cp = ClassPool.getDefault();
     try {
       CtClass parentClass = cp.get(parentClassName);

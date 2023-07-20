@@ -25,7 +25,7 @@ import com.appland.appmap.transform.annotations.Unique;
 public class HttpServerRequest {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
   private static final String PACKAGE_NAME = MethodHandles.lookup().lookupClass().getPackage().getName();
-  static final String STATUS_ATTRIBUTE = PACKAGE_NAME + ".status";
+  public static final String STATUS_ATTRIBUTE = PACKAGE_NAME + ".status";
 
   // With the inclusion of org.springframework:spring-web as a dependency, both
   // BEST_MATCHING_PATTERN_ATTRIBUTE and URI_TEMPLATE_VARIABLES_ATTRIBUTE now
@@ -113,83 +113,6 @@ public class HttpServerRequest {
     recorder.add(event);
   }
 
-  /* #region Filter.doFilter */
-  @ArgumentArray
-  @ExcludeReceiver
-  @HookClass("javax.servlet.Filter")
-  public static void doFilter(Event event, Object[] args) {
-    if (args.length != 3) {
-      return;
-    }
-
-    HttpServletRequest req = new HttpServletRequest(args[0]);
-    recordHttpServerRequest(event, req);
-  }
-
-  @ArgumentArray
-  @ExcludeReceiver
-  @HookClass(value = "jakarta.servlet.Filter", method = "doFilter")
-  public static void doFilterJakarta(Event event, Object[] args) {
-    if (args.length != 3) {
-      return;
-    }
-
-    HttpServletRequest req = new HttpServletRequest(args[0]);
-    recordHttpServerRequest(event, req);
-  }
-
-  @ArgumentArray
-  @ExcludeReceiver
-  @HookClass(value = "javax.servlet.Filter", methodEvent = MethodEvent.METHOD_RETURN)
-  public static void doFilter(Event event, Object returnValue, Object[] args) {
-    if (args.length != 3) {
-      return;
-    }
-
-    HttpServletRequest req = new HttpServletRequest(args[0]);
-    HttpServletResponse res = new HttpServletResponse(args[1]);
-    recordHttpServerResponse(event, req, res);
-  }
-
-  @ArgumentArray
-  @ExcludeReceiver
-  @HookClass(value = "jakarta.servlet.Filter", method = "doFilter", methodEvent = MethodEvent.METHOD_RETURN)
-  public static void doFilterJakarta(Event event, Object returnValue, Object[] args) {
-    if (args.length != 3) {
-      return;
-    }
-
-    HttpServletRequest req = new HttpServletRequest(args[0]);
-    HttpServletResponse res = new HttpServletResponse(args[1]);
-    recordHttpServerResponse(event, req, res);
-  }
-
-  @ArgumentArray
-  @ExcludeReceiver
-  @HookClass(value = "javax.servlet.Filter", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void doFilter(Event event, Exception exception, Object[] args) {
-    if (args.length != 3) {
-      return;
-    }
-
-    HttpServletRequest req = new HttpServletRequest(args[0]);
-    recordHttpServerException(event, req, exception);
-  }
-
-  @ArgumentArray
-  @ExcludeReceiver
-  @HookClass(value = "jakarta.servlet.Filter", method = "doFilter", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void doFilterJakarta(Event event, Exception exception, Object[] args) {
-    if (args.length != 3) {
-      return;
-    }
-
-    HttpServletRequest req = new HttpServletRequest(args[0]);
-    recordHttpServerException(event, req, exception);
-  }
-
-  /* #endregion Filter.doFilter */
-
   /* #region HttpServlet.service */
 
   @ArgumentArray
@@ -271,6 +194,8 @@ public class HttpServerRequest {
     HttpServletRequest req = new HttpServletRequest(args[0]);
     recordHttpServerException(event, req, exception);
   }
+
+  /* #endregion HttpServlet.service */
 
   private static boolean isSpringRequest(HttpServletRequest req) {
     return req.getAttribute(BEST_MATCHING_PATTERN_ATTRIBUTE) != null;

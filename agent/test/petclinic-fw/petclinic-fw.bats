@@ -12,8 +12,26 @@ teardown_file() {
   stop_petclinic
 }
 
+@test "remote recording works" { 
+  run _curl -sXGET "${WS_URL}/_appmap/record"
+  assert_success
+  assert_json_eq '.enabled' 'false'
+
+  run _curl -sXPOST "${WS_URL}/_appmap/record"
+  assert_success
+
+  _curl -sXGET "${WS_URL}"
+
+  run _curl -sXDELETE "${WS_URL}/_appmap/record"
+  assert_success
+
+  assert_json '.events'
+  assert_json '.metadata'
+  assert_json '.classMap'
+}
+
 @test "requests are recorded by default" {
-  run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
+  run _curl -sXGET "${WS_URL}/owners/1/pets/1/edit"
   assert_success 
   local dir='build/fixtures/spring-framework-petclinic/tmp/appmap/request_recording'
   

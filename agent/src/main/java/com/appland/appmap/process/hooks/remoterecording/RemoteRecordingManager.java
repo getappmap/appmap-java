@@ -1,12 +1,13 @@
 package com.appland.appmap.process.hooks.remoterecording;
 
+import java.io.IOException;
+
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.process.ExitEarly;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.reflect.HttpServletResponse;
 import com.appland.appmap.util.Logger;
-import java.io.IOException;
 
 interface RemoteRecordingRequest {
   String getRequestURI();
@@ -98,7 +99,7 @@ public class RemoteRecordingManager {
     }
   }
 
-  static boolean service(RemoteRecordingRequest req) {
+  public static boolean service(RemoteRecordingRequest req) {
     boolean handled = false;
     if (debug) {
       Logger.printf(
