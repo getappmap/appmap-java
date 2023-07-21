@@ -3,7 +3,6 @@ package com.appland.appmap.process.hooks.http;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.time.format.DateTimeFormatter;
 
 import org.tinylog.TaggedLogger;
 
@@ -14,7 +13,6 @@ import com.appland.appmap.reflect.ServletRequestEvent;
 
 public class ServletListener implements InvocationHandler {
   public static final TaggedLogger logger = AppMapConfig.getLogger(null);
-  public static final DateTimeFormatter RECORDING_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
   private static final String PACKAGE_NAME = MethodHandles.lookup().lookupClass().getPackage().getName();
   public static final String RECORDING_ATTRIBUTE = PACKAGE_NAME + ".recording";
 

@@ -62,7 +62,7 @@ public class RequestRecording {
     LocalDateTime localStart = LocalDateTime.ofInstant(startTime, ZoneId.systemDefault());
 
     String appMapName = String.format("%s %s (%s) - %s", req.getMethod(), req.getRequestURI(), status,
-        localStart.format(ServletListener.RECORDING_TIME_FORMATTER));
+        localStart.format(Recording.RECORDING_TIME_FORMATTER));
     recordingSession.getMetadata().scenarioName = appMapName;
 
     Recording recording = Recorder.getInstance().stopThread();

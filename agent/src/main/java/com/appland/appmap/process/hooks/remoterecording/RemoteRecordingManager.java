@@ -1,6 +1,7 @@
 package com.appland.appmap.process.hooks.remoterecording;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
 
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.process.ExitEarly;
@@ -63,6 +64,8 @@ public class RemoteRecordingManager {
     }
 
     Recorder.Metadata metadata = new Recorder.Metadata("remote_recording", "remote");
+    metadata.scenarioName = String.format("Remote Recording - %s",
+        Recording.RECORDING_TIME_FORMATTER.format(OffsetDateTime.now()));
     recorder.start(metadata);
     req.setStatus(HttpServletResponse.SC_OK);
   }

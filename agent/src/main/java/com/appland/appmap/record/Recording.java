@@ -13,6 +13,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -27,6 +28,8 @@ public class Recording {
 
     private final Path outputDirectory;
     private final File file;
+
+    public static final DateTimeFormatter RECORDING_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 
     public Recording(String recorderName, File file) {
         this.outputDirectory = Paths.get(Properties.getOutputDirectory().toString(), recorderName);
