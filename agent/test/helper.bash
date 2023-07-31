@@ -132,7 +132,9 @@ start_petclinic() {
   AGENT_JAR="$(find_agent_jar)"
 
   pushd build/fixtures/spring-petclinic >/dev/null
-  ./mvnw -Dspring-boot.run.agents=$AGENT_JAR -Dspring-boot.run.jvmArguments="-Dappmap.config.file=$WD/test/petclinic/appmap.yml -Dappmap.debug $jvmargs" spring-boot:run &>$LOG  3>&- &
+  ./mvnw --quiet -DskipTests -Dcheckstyle.skip=true \
+    -Dspring-boot.run.agents=$AGENT_JAR -Dspring-boot.run.jvmArguments="-Dappmap.config.file=$WD/test/petclinic/appmap.yml $jvmargs" \
+    spring-boot:run &>$LOG  3>&- &
   popd >/dev/null
 
   export JVM_PID=$!
@@ -155,7 +157,9 @@ start_petclinic_fw() {
   AGENT_JAR="$(find_agent_jar)"
 
   pushd build/fixtures/spring-framework-petclinic >/dev/null
-  ./mvnw -DskipTests -Djetty.deployMode=FORK -Djetty.jvmArgs="-javaagent:$AGENT_JAR -Dappmap.config.file=$WD/test/petclinic/appmap.yml -Dappmap.debug" clean jetty:run-war &>$LOG  3>&- &
+  ./mvnw --quiet -DskipTests -Dcheckstyle.skip=true \
+    -Djetty.deployMode=FORK -Djetty.jvmArgs="-javaagent:$AGENT_JAR -Dappmap.config.file=$WD/test/petclinic/appmap.yml" \
+    jetty:run-war &>$LOG  3>&- &
   local mvn_pid=$!
   popd >/dev/null
 
