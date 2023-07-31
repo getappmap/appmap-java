@@ -175,3 +175,12 @@ start_petclinic_fw() {
 stop_ws() {
   kill ${JVM_PID}
 }
+
+wait_for_glob() {
+  local glob="$1"
+  for i in {1..10}; do
+    if compgen -G "$glob" >/dev/null; then
+      break;
+    fi
+  done
+}

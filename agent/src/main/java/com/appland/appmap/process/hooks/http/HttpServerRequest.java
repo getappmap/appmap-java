@@ -44,7 +44,7 @@ public class HttpServerRequest {
   private static final String LAST_EVENT_KEY = PACKAGE_NAME + ".lastEvent";
   private static final Recorder recorder = Recorder.getInstance();
 
-  private static void recordHttpServerRequest(Event event, HttpServletRequest req) {
+  public static void recordHttpServerRequest(Event event, HttpServletRequest req) {
     if (req.getRequestURI().endsWith(RemoteRecordingManager.RecordRoute)) {
       return;
     }
@@ -83,7 +83,7 @@ public class HttpServerRequest {
     recorder.add(event);
   }
 
-  private static void recordHttpServerResponse(Event event, HttpServletRequest req, HttpServletResponse res) {
+  public static void recordHttpServerResponse(Event event, HttpServletRequest req, HttpServletResponse res) {
     recordHttpServerResponse(event, req, res.getStatus(), res.getHeaders());
   }
 

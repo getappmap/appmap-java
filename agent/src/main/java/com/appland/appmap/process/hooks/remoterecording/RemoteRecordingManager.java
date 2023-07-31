@@ -3,12 +3,13 @@ package com.appland.appmap.process.hooks.remoterecording;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 
-import com.appland.appmap.config.Properties;
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.process.ExitEarly;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.reflect.HttpServletResponse;
-import com.appland.appmap.util.Logger;
 
 interface RemoteRecordingRequest {
   String getRequestURI();
@@ -19,16 +20,14 @@ interface RemoteRecordingRequest {
 }
 
 public class RemoteRecordingManager {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
-  private static final boolean debug = Properties.DebugHttp;
   private static final Recorder recorder = Recorder.getInstance();
   public static final String RecordRoute = "/_appmap/record";
   public static final String CheckpointRoute = "/_appmap/record/checkpoint";
 
   private static void doDelete(RemoteRecordingRequest req) throws IOException {
-    if (debug) {
-      Logger.println("RemoteRecordingManager.doDelete");
-    }
+    logger.trace("req: {}", req);
 
     if (!recorder.hasActiveSession()) {
       req.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -41,9 +40,7 @@ public class RemoteRecordingManager {
   }
 
   private static void doGet(RemoteRecordingRequest req) throws IOException {
-    if (debug) {
-      Logger.println("RemoteRecordingManager.doGet");
-    }
+    logger.trace("req: {}", req);
 
     String responseJson = String.format(
       "{\"enabled\":%b}",
@@ -54,11 +51,10 @@ public class RemoteRecordingManager {
   }
 
   private static void doPost(RemoteRecordingRequest req) {
-    if (debug) {
-      Logger.println("RemoteRecordingManager.doPost");
-    }
+    logger.trace("req: {}", req);
 
     if (recorder.hasActiveSession()) {
+      logger.trace("recording in progress");
       req.setStatus(HttpServletResponse.SC_CONFLICT);
       return;
     }
@@ -68,13 +64,12 @@ public class RemoteRecordingManager {
         Recording.RECORDING_TIME_FORMATTER.format(OffsetDateTime.now()));
     recorder.start(metadata);
     req.setStatus(HttpServletResponse.SC_OK);
+    logger.trace("recording started");
   }
 
   private static void doCheckpoint(RemoteRecordingRequest req)
     throws IOException {
-    if (debug) {
-      Logger.println("RemoteRecordingManager.doCheckpoint");
-    }
+    logger.trace("req: {}");
 
     if (!recorder.hasActiveSession()) {
       req.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -104,36 +99,28 @@ public class RemoteRecordingManager {
 
   public static boolean service(RemoteRecordingRequest req) {
     boolean handled = false;
-    if (debug) {
-      Logger.printf(
-        "RemoteRecordingManager.service - handling appmap request for %s\n",
-        req
-      );
-    }
-    Logger.println("service, ret.getRequestUri(): " + req.getRequestURI());
-    if (req.getRequestURI().endsWith(CheckpointRoute)) {
-      if (req.getMethod().equals("GET")) {
+    String method = req.getMethod();
+    String requestURI = req.getRequestURI();
+    logger.debug("req: {}", () -> String.format("%s %s", method, requestURI));
+    if (requestURI.endsWith(CheckpointRoute)) {
+      if (method.equals("GET")) {
         handleRecordRequest(req, RemoteRecordingManager::doCheckpoint);
         handled = true;
       }
-    } else if (req.getRequestURI().endsWith(RecordRoute)) {
-      if (req.getMethod().equals("GET")) {
+    } else if (requestURI.endsWith(RecordRoute)) {
+      if (method.equals("GET")) {
         handleRecordRequest(req, RemoteRecordingManager::doGet);
         handled = true;
-      } else if (req.getMethod().equals("POST")) {
+      } else if (method.equals("POST")) {
         handleRecordRequest(req, RemoteRecordingManager::doPost);
         handled = true;
-      } else if (req.getMethod().equals("DELETE")) {
+      } else if (method.equals("DELETE")) {
         handleRecordRequest(req, RemoteRecordingManager::doDelete);
         handled = true;
       }
     }
 
-    if (debug) {
-      Logger.println(
-        "RemoteRecordingManager.service - handled appmap request? " + handled
-      );
-    }
+    logger.debug("handled appmap request? {}", handled);
 
     return handled;
   }

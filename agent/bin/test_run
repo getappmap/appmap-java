@@ -22,3 +22,4 @@ fi
 ./test/agent_cli/test
 ./test/access/test
 ./test/jdbc/test
+./test/spark/test

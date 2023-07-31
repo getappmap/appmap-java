@@ -1,0 +1,4 @@
+name: sparkexample
+appmap_dir: app/build/tmp/appmap
+packages:
+- path: com.appland.appmap.sparkexample

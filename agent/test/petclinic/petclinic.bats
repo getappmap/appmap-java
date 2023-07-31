@@ -12,10 +12,15 @@ load '../helper'
 
 setup_file() {
   start_petclinic >&3
+  export FIXTURE_DIR="build/fixtures/spring-petclinic"
 }
 
 teardown_file() {
   stop_ws
+}
+
+setup() {
+  rm -rf "${FIXTURE_DIR}/tmp/appmap/request_recording"
 }
 
 @test "the recording status reports disabled when not recording" {
@@ -212,7 +217,8 @@ ownerId'
   assert_success 
   local dir='build/fixtures/spring-petclinic/tmp/appmap/request_recording'
   
-  run bash -o pipefail -c "ls -t ${dir}/*owners_1_pets_1_edit.appmap.json | head -1"
+  wait_for_glob "${FIXTURE_DIR}/tmp/appmap/request_recording/*owners_1_pets_1_edit.appmap.json"
+  run bash -c "compgen -G ${dir}/*owners_1_pets_1_edit.appmap.json"
   assert_success
 
   output="$(<${output})"
