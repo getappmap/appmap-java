@@ -17,7 +17,7 @@ setup_file() {
 }
 
 teardown_file() {
-  stop_petclinic
+  stop_ws
 }
 
 @test "the user can disable request recording" {

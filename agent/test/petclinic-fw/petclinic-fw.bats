@@ -9,7 +9,7 @@ setup_file() {
 }
 
 teardown_file() {
-  stop_petclinic
+  stop_ws
 }
 
 @test "remote recording works" { 

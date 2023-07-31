@@ -30,7 +30,7 @@ print_debug() {
     echo >&3
     echo "query: ${query}" >&3
     echo >&3
-    echo "output:\n'${output}'" >&3
+    echo -e "output:\n'${output}'" >&3
     echo >&3
     echo "result: '${result}'" >&3
     echo >&3
@@ -47,7 +47,8 @@ assert_json() {
   local result=$(jq -r "${query}" <<< "${output}")
 
   print_debug "${query}" "${result}"
-  refute [ -z "${result}" ]
+
+  assert_not_equal "${result}" ""
 }
 
 assert_json_eq() {
@@ -59,7 +60,7 @@ assert_json_eq() {
 
   print_debug "${query}" "${result}"
 
-  assert [ "${result}" == "${expected_value}" ]
+  assert_equal "${result}" "${expected_value}"
 }
 
 assert_json_contains() {
@@ -85,8 +86,8 @@ find_agent_jar() {
   echo "$PWD/build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')"
 }
 
-check_pc_running() {
-  printf 'checking for running Petclinic server\n'
+check_ws_running() {
+  printf 'checking for running web server\n'
 
   if ! curl -Isf "${WS_URL}" >/dev/null 2>&1; then
     if [ $? -eq 7 ]; then
@@ -96,7 +97,7 @@ check_pc_running() {
   fi
 }
 
-wait_for_pc() {
+wait_for_ws() {
   while ! curl -Isf "${WS_URL}" >/dev/null; do
   if ! kill -0 "${JVM_PID}" 2> /dev/null; then
     printf '  failed!\n\nprocess exited unexpectedly:\n'
@@ -125,7 +126,7 @@ start_petclinic() {
   export WS_SCHEME="http" WS_HOST="localhost" WS_PORT="8080"
   export WS_URL="${WS_SCHEME}://${WS_HOST}:${WS_PORT}"
 
-  check_pc_running
+  check_ws_running
 
   printf '  starting PetClinic\n'
   WD=$PWD
@@ -139,7 +140,7 @@ start_petclinic() {
 
   export JVM_PID=$!
 
-  wait_for_pc
+  wait_for_ws
 }
 
 start_petclinic_fw() {
@@ -150,7 +151,7 @@ start_petclinic_fw() {
   export WS_SCHEME="http" WS_HOST="localhost" WS_PORT="8080"
   export WS_URL="${WS_SCHEME}://${WS_HOST}:${WS_PORT}"
 
-  check_pc_running
+  check_ws_running
 
   printf '  starting PetClinic (framework)\n'
   WD=$PWD
@@ -168,9 +169,9 @@ start_petclinic_fw() {
   done
   export JVM_PID=$(pgrep -P $mvn_pid)
 
-  wait_for_pc
+  wait_for_ws
 }
 
-stop_petclinic() {
+stop_ws() {
   kill ${JVM_PID}
 }

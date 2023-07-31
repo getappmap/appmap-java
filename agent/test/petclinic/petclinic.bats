@@ -15,7 +15,7 @@ setup_file() {
 }
 
 teardown_file() {
-  stop_petclinic
+  stop_ws
 }
 
 @test "the recording status reports disabled when not recording" {
