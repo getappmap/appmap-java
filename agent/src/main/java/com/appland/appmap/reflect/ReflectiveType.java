@@ -2,7 +2,9 @@ package com.appland.appmap.reflect;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.tinylog.TaggedLogger;
@@ -24,6 +26,10 @@ public class ReflectiveType {
   protected Object self;
 
   public ReflectiveType(Object self) {
+    if (self == null) {
+      throw new InternalError("self must not be null");
+    }
+
     this.self = self;
     addMethods("hashCode", "toString");
     addMethod("equals", Object.class);
@@ -48,9 +54,19 @@ public class ReflectiveType {
     }
   }
 
-  /* Add a method that takes parameters that can be called on self */
-  protected void addMethod(String name, Class<?>... parameterTypes) {
-    this.methods.put(name, getMethod(name, parameterTypes));
+  /**
+   * Add a method by name and parameter types
+   *
+   * @return {@code true} if the method was found in self
+   */
+  protected boolean addMethod(String name, Class<?>... parameterTypes) {
+    Method m = getMethod(name, parameterTypes);
+    if (m != null) {
+      this.methods.put(name, m);
+      return true;
+    }
+
+    return false;
   }
 
   protected Method getMethod(String name, Class<?>... parameterTypes) {
@@ -58,13 +74,27 @@ public class ReflectiveType {
     try {
       return cls.getMethod(name, parameterTypes);
     } catch (Exception e) {
-      logger.warn(e, "failed to get method {}.{}", cls.getName(), name);
+      logger.debug(e, "failed to get method {}.{}", cls.getName(), name);
       return null;
     }
   }
 
-  protected void addMethod(String name, String... parameterTypes) {
-    this.methods.put(name, getMethodByClassNames(name, parameterTypes));
+  /**
+   * Add a method by name and parameter types, also by name
+   *
+   * @return {@code true} if the method was found in self
+   */
+  protected boolean addMethod(String name, String... parameterTypes) {
+    Method m = getMethodByClassNames(name, parameterTypes);
+    if (m != null) {
+      this.methods.put(name, m);
+      return true;
+    }
+    return false;
+  }
+
+  protected boolean hasMethod(String name) {
+    return this.methods.get(name) != null;
   }
 
   protected Object invokeWrappedMethod(Method method, Object... parameters) {
@@ -87,6 +117,9 @@ public class ReflectiveType {
   @SuppressWarnings("unchecked")
   protected <T> T invokeMethod(String name, T defaultValue, Object... parameters) {
     Method m = methods.get(name);
+    if (m == null) {
+      logger.warn("method {} not found in {}, did you forget to call addMethod?", name, self.getClass().getName());
+    }
     return m != null ? (T) invokeWrappedMethod(m, parameters)
         : defaultValue;
   }
@@ -106,54 +139,27 @@ public class ReflectiveType {
   protected void invokeVoidMethod(String name, Object... parameters) {
     invokeMethod(name, null, parameters);
   }
+
   /**
    * Looks up a method signature by class names.
-   * @param name Method name
-   * @param parameterTypes Fully qualified class names of all parameters
+   * 
+   * @param name               Method name
+   * @param parameterTypeNames Fully qualified class names of all parameters
    * @return Matching method if found. Otherwise, null.
    */
-  protected Method getMethodByClassNames(String name, String... parameterTypes) {
-    Method[] methods;
-
+  protected Method getMethodByClassNames(String name, String... parameterTypeNames) {
     logger.trace("self.getClass(): {}", self.getClass());
 
     try {
-      methods = this.self.getClass().getMethods();
-    } catch (Exception e) {
-      logger.warn(e, "failed to get methods for {}", this.self.getClass().getName());
-      return null;
+      final List<Class<?>> parameterTypes = new ArrayList<Class<?>>();
+      for (String typeName : parameterTypeNames) {
+        parameterTypes.add(Class.forName(typeName));
+      }
+      return self.getClass().getMethod(name, parameterTypes.toArray(new Class<?>[0]));
+    } catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+      logger.debug(e, "No match for method {}", name);
     }
 
-    for (Method method : methods) {
-      logger.trace("method: {}", method.getName());
-      if (!method.getName().equals(name)) {
-        continue;
-      }
-
-      final Class<?>[] methodParamTypes = method.getParameterTypes();
-      if (methodParamTypes.length != parameterTypes.length) {
-        logger.trace("parameter type lengths don't match");
-        continue;
-      }
-
-      boolean match = true;
-      for (int i = 0; i < methodParamTypes.length; i++) {
-        final String actual = methodParamTypes[i].getName();
-        final String expected = parameterTypes[i];
-        logger.trace("actual: \"{}\" expected: \"{}\"", actual, expected);
-
-        if (!actual.equals(expected)) {
-          match = false;
-          break;
-        }
-      }
-
-      if (match) {
-        return method;
-      }
-    }
-
-    logger.warn("No match for method {}", name);
     return null;
   }
 }

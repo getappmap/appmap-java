@@ -1,28 +1,47 @@
 package com.appland.appmap.transform.annotations;
 
-import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.test.util.ClassBuilder;
-import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.test.util.ClassBuilder;
+
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtMethod;
 
 public class HookClassSystemTest {
-  private final static String TargetClassName = "HookClassSystemTest.TargetClass";
-  private final static String HookClassName = "HookClassSystemTest.HookClass";
-  private final static Integer UNUSED_PARAMETER = -1;
+  private static final String PackageName = "HookClassSystemTest";
+  private static final String SuperclassName = PackageName + ".Super";
+  private static final String InterfaceName = PackageName + ".IFace";
+  private static final String TargetClassName = PackageName + ".TargetClass";
+  private static final String HookClassName = PackageName + ".HookClass";
+  private static final Integer UNUSED_PARAMETER = -1;
   private CtClass targetClass;
 
   @Before
   public void initializeTestClasses() throws Exception {
+    CtClass iface = ClassBuilder.buildInterface(InterfaceName)
+        .beginMethod()
+        .setName("requiredMethod")
+          .endMethod()
+        .ctClass();
+
+    CtClass[] ifaces = { iface };
+    CtClass superClass = new ClassBuilder(SuperclassName).ctClass();
+    superClass.setInterfaces(ifaces);
+
     targetClass = new ClassBuilder(TargetClassName)
         .beginMethod()
           .setName("methodNoArgs")
@@ -39,7 +58,11 @@ public class HookClassSystemTest {
           .addParameter(CtClass.intType, "y")
           .addAnnotation(Test.class.getName())
         .endMethod()
+        .beginMethod()
+          .setName("requiredMethod")
+        .endMethod()
         .ctClass();
+    targetClass.setSuperclass(superClass);
   }
 
   @Test
@@ -74,6 +97,14 @@ public class HookClassSystemTest {
             .setMember("value", TargetClassName)
           .endAnnotation()
         .endMethod()
+        .beginMethod()
+          .setName("requiredMethod")
+          .addParameter(Event.class.getName(), "event")
+          .addParameter(TargetClassName, "receiver")
+          .beginAnnotation(HookClass.class.getName())
+            .setMember("value", InterfaceName)
+          .endAnnotation()
+        .endMethod()
         .ctClass();
 
     for (CtMethod behavior : hookClass.getDeclaredMethods()) {
@@ -97,5 +128,9 @@ public class HookClassSystemTest {
                                    .validate(hookBinding);
       assertTrue(isValid);
     }
+
+    int bindingsSize = bindings.size();
+    assertEquals("Wrong number of hooks", 4, bindingsSize);
+    assertEquals(bindings.get(bindingsSize - 1).getTargetBehavior().getName(), "requiredMethod");
   }
 }

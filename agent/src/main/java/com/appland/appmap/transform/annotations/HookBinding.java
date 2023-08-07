@@ -1,6 +1,7 @@
 package com.appland.appmap.transform.annotations;
 
 import com.appland.appmap.output.v1.Parameters;
+
 import javassist.CtBehavior;
 
 /**
@@ -27,5 +28,9 @@ public class HookBinding {
 
   public Parameters getTargetParameters() {
     return this.targetParameters;
+  }
+
+  public String toString() {
+    return hook + " " + targetBehavior.getLongName();
   }
 }

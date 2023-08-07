@@ -1,5 +1,9 @@
 package com.appland.appmap.process.hooks;
 
+import static com.appland.appmap.util.ClassUtil.safeClassForName;
+
+import java.util.EnumSet;
+
 import org.tinylog.TaggedLogger;
 
 import com.appland.appmap.config.AppMapConfig;
@@ -7,11 +11,11 @@ import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.hooks.http.ServletContext;
 import com.appland.appmap.process.hooks.http.ServletListener;
+import com.appland.appmap.process.hooks.remoterecording.RemoteRecordingFilter;
 import com.appland.appmap.reflect.ReflectiveType;
 import com.appland.appmap.transform.annotations.ArgumentArray;
 import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookClass;
-
 public class SpringBoot {
   private static final String LISTENER_BEAN = "appmap.listener";
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
@@ -54,7 +58,7 @@ public class SpringBoot {
   @ArgumentArray
   @HookClass(value = "org.springframework.boot.SpringApplication")
   public static void applyInitializers(Event event, Object receiver, Object[] args) {
-    if (!Properties.RecordRequests) {
+    if (!Properties.RecordingRequests) {
       logger.debug("request recording disabled");
       return;
     }
@@ -65,13 +69,16 @@ public class SpringBoot {
     logger.trace(new Exception(), "ctx: {}", ctx);
     ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();
     if (beanFactory.getSingleton(LISTENER_BEAN) == null) {
-      Object bean = ServletListener.build();
+      Object remoteRecordingFilter = RemoteRecordingFilter.build();
+      Object servletListener = ServletListener.build();
 
-      if (bean != null) {
-        beanFactory.registerSingleton(LISTENER_BEAN, bean);
-        logger.trace("registered {}", bean);
+      if (remoteRecordingFilter != null && servletListener != null) {
+        beanFactory.registerSingleton(LISTENER_BEAN + ".remoteRecordingFilter", remoteRecordingFilter);
+        beanFactory.registerSingleton(LISTENER_BEAN, servletListener);
+        logger.trace("registered beans");
       } else {
-        logger.trace("bean is null");
+        logger.trace("a bean is null, remoteRecordingFilter: {} servletListener: {}", remoteRecordingFilter,
+            servletListener);
       }
 
       logger.trace("initialized context");
@@ -86,6 +93,30 @@ public class SpringBoot {
   public static void onStartup(Event event, Object[] args) {
     ServletContext ctx = new ServletContext(args[1]);
     ctx.addListener(ServletListener.build());
+      ServletContext.FilterRegistration fr = ctx.addFilter("com.appland.appmap.RemoteRecordingFilter",
+          RemoteRecordingFilter.build());
+      fr.addMappingForUrlPatterns(requestEnumSet(), true, "/_appmap/record");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static EnumSet<?> requestEnumSet() {
+      Class<?> dispatcherType;
+
+      if ((dispatcherType = safeClassForName("javax.servlet.DispatcherType")) == null
+          && (dispatcherType = safeClassForName("jakarta.servlet.DispatcherType")) == null) {
+        throw new InternalError("no DispatcherType class");
+      }
+
+      return requestEnumSet(dispatcherType.asSubclass(Enum.class));
+    }
+
+    private static <E extends Enum<E>> EnumSet<E> requestEnumSet(Class<E> enumClass) {
+      try {
+        E requestValue = Enum.valueOf(enumClass, "REQUEST");
+        return EnumSet.of(requestValue);
+      } catch (IllegalArgumentException e) {
+        throw new InternalError("failed to fetch DispatcherType.REQUEST", e);
+      }
   }
 
 }

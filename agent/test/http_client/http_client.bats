@@ -14,7 +14,7 @@ setup_file() {
 teardown_file() {
   popd
 
-  stop_petclinic
+  stop_ws
 }
 
 @test "request without query" {

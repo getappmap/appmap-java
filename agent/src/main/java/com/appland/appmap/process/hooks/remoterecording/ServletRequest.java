@@ -2,15 +2,16 @@ package com.appland.appmap.process.hooks.remoterecording;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.reflect.HttpServletRequest;
 import com.appland.appmap.reflect.HttpServletResponse;
 
-class ServletRequest implements RemoteRecordingRequest {
+public class ServletRequest implements RemoteRecordingRequest {
   private HttpServletRequest req;
   private HttpServletResponse res;
 
-  ServletRequest(HttpServletRequest req, HttpServletResponse res) {
+  public ServletRequest(HttpServletRequest req, HttpServletResponse res) {
     this.req = req;
     this.res = res;
   }

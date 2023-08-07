@@ -4,111 +4,28 @@ import static com.appland.appmap.util.StringUtil.canonicalName;
 import static com.appland.appmap.util.StringUtil.decapitalize;
 import static com.appland.appmap.util.StringUtil.identifierToSentence;
 
-import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.process.ExitEarly;
 import com.appland.appmap.process.conditions.RecordCondition;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recording;
-import com.appland.appmap.reflect.FilterChain;
-import com.appland.appmap.reflect.HttpServletRequest;
-import com.appland.appmap.reflect.HttpServletResponse;
 import com.appland.appmap.transform.annotations.ArgumentArray;
-import com.appland.appmap.transform.annotations.ContinueHooking;
 import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookAnnotated;
-import com.appland.appmap.transform.annotations.HookClass;
 import com.appland.appmap.transform.annotations.HookCondition;
 import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.util.Logger;
 
 /*
-  * ServletHooks installs the hooks that manage remote recording. If there is at
-  * least one filter installed, the hook for Filter.doFilter will handle the
-  * requests for the remote recording endpoint. If there are no filters
-  * installed, the hook for Servlet.service will handle it instead.
-  *
   * TODO: move the test framework hooks (JUnit, TestNG) somewhere else.
   */
 
 public class ServletHooks {
-  private static final boolean debug = Properties.DebugHttp;
   private static final Recorder recorder = Recorder.getInstance();
 
   private static final String JUNIT_NAME = "junit";
   private static final String TESTNG_NAME = "testng";
   private static final String TEST_RECORDER_TYPE = "tests";
-
-  private static void service(Object[] args) throws ExitEarly {
-    if (args.length != 2) {
-      return;
-    }
-
-    final HttpServletRequest req = new HttpServletRequest(args[0]);
-    final HttpServletResponse res = new HttpServletResponse(args[1]);
-
-    if (RemoteRecordingManager.service(new ServletRequest(req, res))) {
-      throw new ExitEarly();
-    }
-  }
-
-  private static void skipFilterChain(Object[] args) throws ExitEarly {
-    if (args.length != 3) {
-      if (debug) {
-        Logger.println("ToggleRecord.skipFilterChain - invalid arg length");
-      }
-      return;
-    }
-
-    final HttpServletRequest req = new HttpServletRequest(args[0]);
-    if (!req.getRequestURI().endsWith(RemoteRecordingManager.RecordRoute)) {
-      return;
-    }
-
-    if (debug) {
-      Logger.println("ToggleRecord.skipFilterChain - skipping filter chain");
-    }
-
-    final FilterChain chain = new FilterChain(args[2]);
-    chain.doFilter(args[0], args[1]);
-
-    if (debug) {
-      Logger.println("ToggleRecord.skipFilterChain - successfully skipped, exiting early");
-    }
-
-    throw new ExitEarly();
-  }
-
-  @ExcludeReceiver
-  @ArgumentArray
-  @HookClass("javax.servlet.http.HttpServlet")
-  public static void service(Event event, Object[] args) throws ExitEarly {
-    service(args);
-  }
-
-  @ExcludeReceiver
-  @ArgumentArray
-  @HookClass(value = "jakarta.servlet.http.HttpServlet", method = "service")
-  public static void serviceJakarta(Event event, Object[] args) throws ExitEarly {
-    service(args);
-  }
-
-  @ContinueHooking
-  @ExcludeReceiver
-  @ArgumentArray
-  @HookClass("javax.servlet.Filter")
-  public static void doFilter(Event event, Object[] args) throws ExitEarly {
-    skipFilterChain(args);
-  }
-
-  @ContinueHooking
-  @ExcludeReceiver
-  @ArgumentArray
-  @HookClass(value = "jakarta.servlet.Filter", method = "doFilter")
-  public static void doFilterJakarta(Event event, Object[] args) throws ExitEarly {
-    skipFilterChain(args);
-  }
 
   private static void startRecording(Event event, String recorderName, String recorderType) {
     Logger.printf("Recording started for %s\n", canonicalName(event));

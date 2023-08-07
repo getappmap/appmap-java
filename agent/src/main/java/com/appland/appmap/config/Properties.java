@@ -18,6 +18,10 @@ public class Properties {
       "appmap.recording.name", (String)null);
   public static final String RecordingFile = resolveProperty(
       "appmap.recording.file", (String)null);
+  public static final Boolean RecordingRemote = resolveProperty(
+      "appmap.recording.remote", Boolean::valueOf, true);
+  public static final Boolean RecordingRequests = resolveProperty(
+      "appmap.recording.requests", Boolean::valueOf, true);
 
   public static final String DefaultOutputDirectory = "./tmp/appmap";
   public static final String OutputDirectory = resolveProperty(
@@ -37,9 +41,6 @@ public class Properties {
 
   public static final Boolean RecordPrivate = resolveProperty(
       "appmap.record.private", Boolean::valueOf, false);
-      
-  public static final Boolean RecordRequests = resolveProperty(
-      "appmap.record.requests", Boolean::valueOf, true);
 
   private static String resolveProperty(String propName, String defaultValue) {
     String value = defaultValue;

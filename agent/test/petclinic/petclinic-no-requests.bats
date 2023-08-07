@@ -11,13 +11,13 @@ load '../../build/bats/bats-assert/load'
 load '../helper'
 
 setup_file() {
-  start_petclinic -Dappmap.record.requests=false >&3
+  start_petclinic -Dappmap.recording.requests=false >&3
 
   rm -rf build/fixtures/spring-petclinic/tmp
 }
 
 teardown_file() {
-  stop_petclinic
+  stop_ws
 }
 
 @test "the user can disable request recording" {

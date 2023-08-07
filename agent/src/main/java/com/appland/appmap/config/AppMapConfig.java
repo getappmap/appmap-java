@@ -89,8 +89,7 @@ public class AppMapConfig {
 
     try {
       configFile = AppMapConfig.findConfig(configFile, mustExist);
-      logger.debug(String.format("using config file -> {}",
-                                   configFile.getAbsolutePath()));
+      logger.debug("using config file -> {}", configFile.getAbsolutePath());
       inputStream = new FileInputStream(configFile);
     } catch (FileNotFoundException e) {
       String expectedConfig = configFile.getAbsolutePath();

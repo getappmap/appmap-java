@@ -226,9 +226,13 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
   }
 
   private boolean ignoreMethod(CtBehavior behavior) {
-    if ( !(behavior instanceof CtMethod) ) {
+    if (!(behavior instanceof CtMethod)) {
       return false;
     }
+    if ((behavior.getModifiers() & Modifier.ABSTRACT) != 0) {
+      return true;
+    }
+
     CtMethod method = (CtMethod) behavior;
     try {
       return behavior.getMethodInfo2().isConstructor() ||

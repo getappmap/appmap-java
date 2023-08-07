@@ -6,8 +6,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+
 import com.alibaba.fastjson.annotation.JSONField;
 import com.appland.appmap.util.FullyQualifiedName;
+
 import javassist.CtBehavior;
 
 /**
@@ -94,15 +96,23 @@ public class Event {
    * @param master The event to copy information from
    */
   public static Event functionCallEvent(Event master) {
-    return new Event()
-      .fqn(master.fqn)
-      .setEvent("call")
-      .setThreadId(Thread.currentThread().getId())
-      .setDefinedClass(master.definedClass)
-      .setMethodId(master.methodId)
-      .setPath(master.path)
-      .setLineNumber(master.lineNumber)
-      .setStatic(master.isStatic);
+    Event ret = new Event()
+        .setEvent("call")
+        .setThreadId(Thread.currentThread().getId());
+    if (master != null) {
+      ret.fqn(master.fqn)
+          .setDefinedClass(master.definedClass)
+          .setMethodId(master.methodId)
+          .setPath(master.path)
+          .setLineNumber(master.lineNumber)
+          .setStatic(master.isStatic);
+    }
+
+    return ret;
+  }
+
+  public static Event functionCallEvent() {
+    return functionCallEvent(null);
   }
 
   /**
@@ -113,12 +123,20 @@ public class Event {
     // In some cases, such as naming the file output, this information is relied upon.
     // It will be stripped before the event is written.
     // Consider this technical debt...
-    return new Event()
-      .setEvent("return")
-      .fqn(master.fqn)
-      .setDefinedClass(master.definedClass)
-      .setStatic(master.isStatic)
-      .setMethodId(master.methodId);
+    Event ret = new Event()
+        .setEvent("return");
+    if (master != null) {
+      ret.fqn(master.fqn)
+          .setDefinedClass(master.definedClass)
+          .setStatic(master.isStatic)
+          .setMethodId(master.methodId);
+    }
+
+    return ret;
+  }
+
+  public static Event functionReturnEvent() {
+    return functionReturnEvent(null);
   }
 
   /**

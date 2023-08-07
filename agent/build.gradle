@@ -143,6 +143,7 @@ test {
   dependsOn shadowJar
   dependsOn cleanTest
   exclude 'com/appland/appmap/integration/**'
+  // systemProperty "appmap.log.level", "debug"
 }
 
 task relocateShadowJar(type: ShadowRelocation) {

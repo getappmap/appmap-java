@@ -5,6 +5,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+
+import org.tinylog.TaggedLogger;
 
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.CodeObject;
@@ -12,10 +15,41 @@ import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.util.Logger;
 
 /**
+ * Keep track of what's going on in the current thread.
+ */
+class ThreadState {
+  // Provides the last event on the current thread, which is used in some cases to
+  // update the event post facto.
+  private Event lastGlobalEvent;
+  private Event lastThreadEvent;
+
+  void setLastGlobalEvent(Event e) {
+    lastGlobalEvent = e;
+  }
+
+  Event getLastGlobalEvent() {
+    return lastGlobalEvent;
+  }
+
+  void setLastThreadEvent(Event e) {
+    lastThreadEvent = e;
+  }
+
+  Event getLastThreadEvent() {
+    return lastThreadEvent;
+  }
+
+  // Avoid accepting new events on a thread that's already processing an event.
+  boolean isProcessing;
+  Stack<Event> callStack = new Stack<>();
+}
+/**
  * Recorder is a singleton responsible for managing recording sessions and routing events to any
  * active session. It also maintains a code object tree containing every known package/class/method.
  */
 public class Recorder {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   private static final String ERROR_SESSION_PRESENT = "an active recording session already exists";
   private static final String ERROR_NO_SESSION = "there is no active recording session";
 
@@ -51,50 +85,43 @@ public class Recorder {
     }
   }
 
-  /**
-   * Keep track of what's going on in the current thread.
-   */
-  static class ThreadState {
-    // Provides the last event on the current thread, which is used in some cases to
-    // update the event post facto.
-    Event lastEvent;
-    // Avoid accepting new events on a thread that's already processing an event.
-    boolean isProcessing;
-    Stack<Event> callStack = new Stack<>();
-  }
+
 
   static class ActiveSession {
-    private RecordingSession activeSession = null;
+    // All events get added to the global session
+    private RecordingSession globalSession = null;
+
+    // Only events for a specific thread will get added to the thread session
     private ThreadLocal<RecordingSession> threadSession = new ThreadLocal<RecordingSession>();
 
     synchronized RecordingSession get() throws ActiveSessionException {
-      if (activeSession == null) {
+      if (globalSession == null) {
         throw new ActiveSessionException(ERROR_NO_SESSION);
       }
 
-      return activeSession;
+      return globalSession;
     }
 
     boolean exists() {
-      return activeSession != null || threadSession.get() != null;
+      return globalSession != null || threadSession.get() != null;
     }
 
     synchronized RecordingSession release() throws ActiveSessionException {
-      if (activeSession == null) {
+      if (globalSession == null) {
         throw new ActiveSessionException(ERROR_NO_SESSION);
       }
 
-      RecordingSession result = activeSession;
-      activeSession = null;
+      RecordingSession result = globalSession;
+      globalSession = null;
       return result;
     }
 
     synchronized void set(RecordingSession session) throws ActiveSessionException {
-      if (activeSession != null) {
+      if (globalSession != null) {
         throw new ActiveSessionException(ERROR_SESSION_PRESENT);
       }
 
-      activeSession = session;
+      globalSession = session;
     }
 
     void setThread(RecordingSession session) throws ActiveSessionException {
@@ -119,21 +146,33 @@ public class Recorder {
       return ret;
     }
 
+    /**
+     * Add an event to both the global session and thread's session
+     */
     synchronized void addEvent(Event event) {
-      if (activeSession != null) {
-        activeSession.add(event);
-      }
-      if (threadSession.get() != null) {
-        threadSession.get().add(event);
-      }
+      addGlobalEvent(event);
+      addThreadEvent(event);
     }
 
     synchronized void addEventUpdate(Event event) {
-      if (activeSession != null) {
-        activeSession.addEventUpdate(event);
+      if (globalSession != null) {
+        globalSession.addEventUpdate(event);
       }
       if (threadSession.get() != null) {
         threadSession.get().addEventUpdate(event);
+      }
+    }
+
+    synchronized void addGlobalEvent(Event event) {
+      if (globalSession != null) {
+        globalSession.add(event);
+      }
+    }
+
+    synchronized void addThreadEvent(Event event) {
+      RecordingSession session = threadSession.get();
+      if (session != null) {
+        session.add(event);
       }
     }
   }
@@ -191,7 +230,7 @@ public class Recorder {
   }
 
   public Recording stopThread() {
-    flush();
+    flushThread();
     return activeSession.releaseThread().stop();
   }
   /**
@@ -251,18 +290,26 @@ public class Recorder {
         throw new IllegalArgumentException("Event should be 'call' or 'return', got " + event.event);
       }
 
-      Event previousEvent = ts.lastEvent;
-      ts.lastEvent = event;
+      Event previousGlobalEvent = ts.getLastGlobalEvent();
+      ts.setLastGlobalEvent(event);
+      addPreviousEvent(previousGlobalEvent, activeSession::addGlobalEvent);
 
-      // The previous event is given until now to get all its properties.
-      if ( previousEvent != null && !previousEvent.ignored() ) {
-        // This is the line that can generate re-entrant events, apparently.
-        previousEvent.freeze();
-        activeSession.addEvent(previousEvent);
-      }
+      Event previousThreadEvent = ts.getLastThreadEvent();
+      ts.setLastThreadEvent(event);
+      addPreviousEvent(previousThreadEvent, activeSession::addThreadEvent);
+
     } finally {
       ts.isProcessing = false;
     }
+  }
+
+  private void addPreviousEvent(Event previousEvent, Consumer<Event> eventAdder) {
+    if (previousEvent == null || previousEvent.ignored()) {
+      return;
+    }
+
+    previousEvent.freeze();
+    eventAdder.accept(previousEvent);
   }
 
   /**
@@ -282,10 +329,11 @@ public class Recorder {
   }
 
   /**
-   * Retrieve the last event (of any kind) recorded for this thread.
+   * Retrieve the last event (of any kind) recorded for this thread. Only used
+   * for testing.
    */
-  public Event getLastEvent() {
-    return threadState().lastEvent;
+  Event getLastEvent() {
+    return threadState().getLastGlobalEvent();
   }
 
   /**
@@ -332,21 +380,42 @@ public class Recorder {
   // until the next event on the same thread is received.
   private void flush() {
     getThreadStateIterator().forEachRemaining((ts) -> {
-      if (ts.lastEvent == null) {
+      if (ts.getLastGlobalEvent() == null) {
         return;
       }
 
       ts.isProcessing = true;
       try {
-        Event event = ts.lastEvent;
-        ts.lastEvent = null;
+        Event event = ts.getLastGlobalEvent();
+        ts.setLastGlobalEvent(null);
 
         event.freeze();
-        activeSession.addEvent(event);
+        activeSession.addGlobalEvent(event);
+        event.defrost();
       } finally {
         ts.isProcessing = false;
       }
     });
+  }
+
+  private void flushThread() {
+    ThreadState ts = threadState();
+
+    if (ts.getLastThreadEvent() == null) {
+      return;
+    }
+
+    ts.isProcessing = true;
+    try {
+      Event event = ts.getLastThreadEvent();
+      ts.setLastThreadEvent(null);
+
+      event.freeze();
+      activeSession.addThreadEvent(event);
+      event.defrost();
+    } finally {
+      ts.isProcessing = false;
+    }
   }
 
   public void addEventUpdate(Event event) {
