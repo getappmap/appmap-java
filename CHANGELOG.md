@@ -1,3 +1,20 @@
+# [1.19.0](https://github.com/getappmap/appmap-java/compare/v1.18.1...v1.19.0) (2023-08-07)
+
+
+### Bug Fixes
+
+* CtClassUtil.isChildOf checks all interfaces ([2b30bbf](https://github.com/getappmap/appmap-java/commit/2b30bbf6cf18b2a334ef3545b9ac5522907b7ae1))
+* ignore abstract methods when instrumenting ([ab7de0a](https://github.com/getappmap/appmap-java/commit/ab7de0a2e3511a9926ffb9ec13f2bae502327b14))
+* make sure events are flushed correctly ([e876ab5](https://github.com/getappmap/appmap-java/commit/e876ab554020e305bfed4bb090288ec58e8266e0))
+* print the path to the config on startup ([e37df71](https://github.com/getappmap/appmap-java/commit/e37df719ce6f9c41b98f7f60fe758e83c0d9b4d3))
+* set the name of a remote recording ([bc2e8a8](https://github.com/getappmap/appmap-java/commit/bc2e8a8623b9cf303e15f30264db63469295a1b0))
+
+
+### Features
+
+* add support for Spark Framework ([051ccca](https://github.com/getappmap/appmap-java/commit/051ccca52fd8e16ec43c16f395fdcf29db13285a))
+* use a filter to manage remote recording ([b955ac8](https://github.com/getappmap/appmap-java/commit/b955ac8790c4d25cf255918016d0dae717cb8c9f))
+
 ## [1.18.1](https://github.com/getappmap/appmap-java/compare/v1.18.0...v1.18.1) (2023-07-03)
 
 
