@@ -215,9 +215,9 @@ ownerId'
 @test "requests are recorded by default" {
   run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
   assert_success 
-  local dir='build/fixtures/spring-petclinic/tmp/appmap/request_recording'
+  local dir='build/fixtures/spring-petclinic/target/tmp/appmap/request_recording'
   
-  wait_for_glob "${FIXTURE_DIR}/tmp/appmap/request_recording/*owners_1_pets_1_edit.appmap.json"
+  wait_for_glob "${dir}/*owners_1_pets_1_edit.appmap.json"
   run bash -c "compgen -G ${dir}/*owners_1_pets_1_edit.appmap.json"
   assert_success
 

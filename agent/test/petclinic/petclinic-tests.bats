@@ -33,7 +33,7 @@ run_petclinic_test() {
 
 @test "hooked functions are ordered correctly" {
   run_petclinic_test
-  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_testOwnerDetails.appmap.json
+  run cat ./target/tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_testOwnerDetails.appmap.json
   assert_success
 
   # Thread 1 is the test runner's main thread. Check to make sure that parent_id
@@ -53,7 +53,7 @@ run_petclinic_test() {
 @test "log methods are labeled" {
   run_petclinic_test appmap-labels.yml
 
-  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_testOwnerDetails.appmap.json
+  run cat ./target/tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_testOwnerDetails.appmap.json
 
   assert_json_eq '.classMap[0] | recurse(.children[]?) | select(.type? == "function" and .name? == "info").labels[0]' 'log'
 }

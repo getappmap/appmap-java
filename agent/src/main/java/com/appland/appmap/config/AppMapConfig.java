@@ -1,5 +1,7 @@
 package com.appland.appmap.config;
 
+import static com.appland.appmap.config.Properties.APPMAP_OUTPUT_DIRECTORY_KEY;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,6 +29,7 @@ import com.appland.appmap.Agent;
 import com.appland.appmap.cli.CLI;
 import com.appland.appmap.util.FullyQualifiedName;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
@@ -37,6 +40,14 @@ public class AppMapConfig {
   public Path configFile; // the configFile used
   public String name;
   public AppMapPackage[] packages = new AppMapPackage[0];
+
+  private String appmapDir;
+
+  @JsonProperty("appmap_dir")
+  String getAppmapDir() {
+    return appmapDir;
+  }
+
   private static AppMapConfig singleton = new AppMapConfig();
 
   public static org.tinylog.TaggedLogger getLogger(String tag) {
@@ -268,6 +279,18 @@ public class AppMapConfig {
       System.exit(1);
     }
 
-    Properties.ensureOutputDirectory(fs);
+    Path outdirPath = Properties.ensureOutputDirectory(fs);
+    if (outdirPath != null) {
+      String outputDirectory = outdirPath.toString();
+      if (singleton.appmapDir != null) {
+        if (!outputDirectory.equals(singleton.appmapDir)) {
+          Agent.logger.warn("{} specified, and appmap.yml contains appmap_dir. Using {} as output directory.",
+              APPMAP_OUTPUT_DIRECTORY_KEY, outputDirectory);
+          singleton.appmapDir = outputDirectory;
+        }
+      } else {
+        singleton.appmapDir = outputDirectory.toString();
+      }
+    }
   }
 }

@@ -89,6 +89,14 @@ public class AppMapConfigTest {
         assertEquals(expected, AppMapConfig.get().configFile);
     }
 
+    @Test
+    public void hasAppmapDir() throws Exception {
+        Path configFile = tmpdir.newFile("appmap.yml").toPath();
+        final String contents = "appmap_dir: /appmap\n";
+        Files.write(configFile, contents.getBytes());
+        AppMapConfig.load(configFile, true);
+        assertEquals("/appmap", AppMapConfig.get().getAppmapDir());
+    }
 }
 
 
