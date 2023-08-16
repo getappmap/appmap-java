@@ -1,5 +1,7 @@
 package com.appland.appmap.process.hooks;
 
+import static com.appland.appmap.util.ClassUtil.safeClassForName;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -59,14 +61,14 @@ public class Spark {
 
     static Object build(Object handler) {
       try {
-        Object wrapper = Class.forName("org.eclipse.jetty.server.handler.HandlerWrapper")
+        Object wrapper = safeClassForName("org.eclipse.jetty.server.handler.HandlerWrapper")
             .getConstructor()
             .newInstance();
         new HandlerWrapper(wrapper)
             .setHandler(handler);
         return DynamicReflectiveType.build(new Handler(wrapper), "org.eclipse.jetty.server.Handler");
       } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-          | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+          | InvocationTargetException | NoSuchMethodException | SecurityException e) {
         // Should never happen
         logger.error(e);
         throw new InternalError(e);

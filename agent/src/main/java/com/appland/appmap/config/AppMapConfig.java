@@ -34,7 +34,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 public class AppMapConfig {
   private static final TaggedLogger logger = configureLogging();
 
-  public File configFile;  // the configFile used
+  public Path configFile; // the configFile used
   public String name;
   public AppMapPackage[] packages = new AppMapPackage[0];
   private static AppMapConfig singleton = new AppMapConfig();

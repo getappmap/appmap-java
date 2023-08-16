@@ -152,8 +152,9 @@ public class ReflectiveType {
 
     try {
       final List<Class<?>> parameterTypes = new ArrayList<Class<?>>();
+      ClassLoader cl = Thread.currentThread().getContextClassLoader();
       for (String typeName : parameterTypeNames) {
-        parameterTypes.add(Class.forName(typeName));
+        parameterTypes.add(cl.loadClass(typeName));
       }
       return self.getClass().getMethod(name, parameterTypes.toArray(new Class<?>[0]));
     } catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {

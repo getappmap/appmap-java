@@ -1,6 +1,7 @@
 package com.appland.appmap.config;
 
-import java.io.File;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.util.function.Function;
 
 import com.appland.appmap.util.Logger;
@@ -103,5 +104,9 @@ public class Properties {
 
   public static String[] getRecords() {
     return Records;
+  }
+
+  private static Path findDefaultOutputDirectory(FileSystem fs) {
+    return fs.getPath("tmp/appmap");
   }
 }
