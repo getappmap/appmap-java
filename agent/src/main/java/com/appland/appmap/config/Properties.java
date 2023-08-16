@@ -63,7 +63,7 @@ public class Properties {
 
   static Path ensureOutputDirectory(FileSystem fs) throws IOException {
     OutputDirectory = resolveProperty(
-        "appmap.output.directory", fs::getPath, findDefaultOutputDirectory(fs));
+        APPMAP_OUTPUT_DIRECTORY_KEY, fs::getPath, findDefaultOutputDirectory(fs));
     return OutputDirectory;
   }
 

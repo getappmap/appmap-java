@@ -60,8 +60,8 @@ public class RemoteRecordingFilter implements InvocationHandler {
       Class<?> methodClass = method.getDeclaringClass();
       Field highestPrecedence = methodClass.getField("HIGHEST_PRECEDENCE");
       return highestPrecedence.getInt(methodClass);
-    } else if (methodName.equals("init")) {
-      // nothing to do, but needs to be implemented
+    } else if (methodName.equals("init") || methodName.equals("destroy")) {
+      // nothing to do for these, but they need to be implemented
     } else {
       throw new InternalError("unhandled method " + methodName);
     }
