@@ -73,7 +73,8 @@ dependencies {
   testImplementation 'org.junit.vintage:junit-vintage-engine'
   
   testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
-  testImplementation "org.mockito:mockito-core:3.+"
+  testImplementation "org.mockito:mockito-core:[3.4,4)"
+  testImplementation 'com.github.marschall:memoryfilesystem:2.6.1'
 }
 
 compileJava {

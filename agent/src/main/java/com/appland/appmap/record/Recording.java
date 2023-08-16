@@ -32,7 +32,7 @@ public class Recording {
     public static final DateTimeFormatter RECORDING_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 
     public Recording(String recorderName, File file) {
-        this.outputDirectory = Paths.get(Properties.getOutputDirectory().toString(), recorderName);
+        this.outputDirectory = Properties.getOutputDirectory().resolve(recorderName);
         this.file = file;
     }
 

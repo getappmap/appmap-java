@@ -1,5 +1,6 @@
 package com.appland.appmap.cli;
 
+import java.nio.file.FileSystems;
 import java.util.concurrent.Callable;
 
 import com.alibaba.fastjson.JSON;
@@ -29,6 +30,8 @@ public class Init implements Callable<Integer> {
 
   public Integer call() throws Exception {
     System.err.printf("Init AppMap project configuration in directory: %s\n", parent.directory);
+
+    AppMapConfig.initialize(FileSystems.getDefault());
 
     String contents = AppMapConfig.getDefault(parent.directory);
 
