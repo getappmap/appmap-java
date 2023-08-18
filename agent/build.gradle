@@ -52,7 +52,6 @@ dependencies {
   implementation 'com.alibaba:fastjson:1.2.83'
   implementation "org.javassist:javassist:${javassistVersion}"
   implementation 'org.reflections:reflections:0.9.11'
-  implementation 'javax.servlet:javax.servlet-api:4.0.1'
   implementation 'org.apache.commons:commons-lang3:3.10'
   implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2'  
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.2.2'
@@ -102,7 +101,6 @@ shadowJar {
   }
 
   dependencies {
-    exclude(dependency('javax.servlet:javax.servlet-api:4.0.1'))
     exclude(dependency('org.apache.httpcomponents:.*:.*'))
  }
 }
@@ -152,7 +150,6 @@ task relocateShadowJar(type: ShadowRelocation) {
   target = tasks.shadowJar
   prefix = "com.appland.shade"
   excludes = [
-    "javax.",
     "java.",
     "org.apache.http",
   ]
