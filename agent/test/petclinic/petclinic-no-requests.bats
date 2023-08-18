@@ -23,10 +23,10 @@ teardown_file() {
 @test "the user can disable request recording" {
   run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
   assert_success 
-  local dir='build/fixtures/spring-petclinic'
+  local dir='build/fixtures/spring-petclinic/target'
 
   # sanity check
-  assert [ -d ${dir}/target ]
+  assert [ -d ${dir} ]
   
   refute [ -f ${dir}/tmp/appmap/request_recording/*owners_1_pets_1_edit.appmap.json ]
 }

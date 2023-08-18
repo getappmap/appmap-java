@@ -1,7 +1,8 @@
 package com.appland.appmap;
 
-import java.io.File;
+import java.io.IOException;
 import java.lang.instrument.Instrumentation;
+import java.nio.file.FileSystems;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -16,6 +17,7 @@ import com.appland.appmap.record.Recording;
 import com.appland.appmap.transform.ClassFileTransformer;
 
 import javassist.ClassPool;
+
 /**
  * Agent is a JVM agent which instruments, records, and prints appmap files
  * for a program. To use the AppMap agent, start the progress with the JVM argument
@@ -27,7 +29,7 @@ import javassist.ClassPool;
  * When the agent exits, any un-printed data will be written to the file <code>appmap.json</code>.
  */
 public class Agent {
-  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+  public static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
   /**
    * premain is the entry point for the AppMap Java agent.
@@ -45,12 +47,10 @@ public class Agent {
 
     inst.addTransformer(new ClassFileTransformer());
 
-    // If the user explicitly specified a config file, but the file doesn't
-    // exist, raise an error. They've almost certainly made a mistake.
-    boolean configSpecified = Properties.ConfigFile != null;
-    String configFile = !configSpecified ? "appmap.yml" : Properties.ConfigFile;
-    if (AppMapConfig.load(new File(configFile), configSpecified) == null) {
-      logger.error("failed to load config {}", Properties.ConfigFile);
+    try {
+      AppMapConfig.initialize(FileSystems.getDefault());
+    } catch (IOException e) {
+      logger.warn(e, "Initialization failed");
       System.exit(1);
     }
 

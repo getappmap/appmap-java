@@ -1,20 +1,32 @@
 package com.appland.appmap.integration;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.file.FileSystems;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
 import com.alibaba.fastjson.JSON;
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.test.util.MyClass;
-import org.junit.Test;
 
-import java.io.IOException;
-import java.io.StringWriter;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 
 public class RecorderTest {
   private static final Recorder recorder = Recorder.getInstance();
+
+  @BeforeEach
+  public void initialize() throws Exception {
+    AppMapConfig.initialize(FileSystems.getDefault());
+  }
 
   @Test
   public void testRecordBlock() {
@@ -44,7 +56,8 @@ public class RecorderTest {
     JSON.parse(sw.toString());
   }
 
-  @Test(timeout = 5000)
+  @Test
+  @Timeout(5)
   public void testMultiThreadedRecordBlock() throws InterruptedException {
     final int iterations = 1000;
     final MyClass myClass = new MyClass();

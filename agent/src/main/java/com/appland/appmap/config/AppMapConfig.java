@@ -1,13 +1,14 @@
 package com.appland.appmap.config;
 
+import static com.appland.appmap.config.Properties.APPMAP_OUTPUT_DIRECTORY_KEY;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.FileSystem;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,9 +25,11 @@ import org.tinylog.Logger;
 import org.tinylog.TaggedLogger;
 import org.tinylog.configuration.Configuration;
 
+import com.appland.appmap.Agent;
 import com.appland.appmap.cli.CLI;
 import com.appland.appmap.util.FullyQualifiedName;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
@@ -34,17 +37,25 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 public class AppMapConfig {
   private static final TaggedLogger logger = configureLogging();
 
-  public File configFile;  // the configFile used
+  public Path configFile; // the configFile used
   public String name;
   public AppMapPackage[] packages = new AppMapPackage[0];
+
+  private String appmapDir;
+
+  @JsonProperty("appmap_dir")
+  String getAppmapDir() {
+    return appmapDir;
+  }
+
   private static AppMapConfig singleton = new AppMapConfig();
 
   public static org.tinylog.TaggedLogger getLogger(String tag) {
     return org.tinylog.Logger.tag(tag);
   }
 
-  static File findConfig(File configFile, boolean mustExist) throws FileNotFoundException {
-    if (configFile.exists()) {
+  private static Path findConfig(Path configFile, boolean mustExist) throws FileNotFoundException {
+    if (Files.exists(configFile)) {
       return configFile;
     }
 
@@ -52,20 +63,19 @@ public class AppMapConfig {
       throw new FileNotFoundException(configFile.toString());
     }
 
-    Path projectDirectory = configFile.toPath().toAbsolutePath().getParent();
+    Path projectDirectory = configFile.toAbsolutePath().getParent();
     Path parent = projectDirectory;
     while (parent != null) {
       Path c = parent.resolve("appmap.yml");
       if (Files.exists(c)) {
-        return c.toFile();
+        return c;
       }
       parent = parent.getParent();
     }
 
-    try (
-        FileWriter fw = new FileWriter(configFile)) {
+    try {
       Files.createDirectories(projectDirectory);
-      fw.write(getDefault(projectDirectory.toString()));
+      Files.write(configFile, getDefault(projectDirectory.toString()).getBytes());
 
       return configFile;
     } catch (IOException e) {
@@ -84,15 +94,15 @@ public class AppMapConfig {
    *
    * @return The AppMapConfig singleton
    */
-  public static AppMapConfig load(File configFile, boolean mustExist) {
+  static AppMapConfig load(Path configFile, boolean mustExist) {
     InputStream inputStream = null;
 
     try {
       configFile = AppMapConfig.findConfig(configFile, mustExist);
-      logger.debug("using config file -> {}", configFile.getAbsolutePath());
-      inputStream = new FileInputStream(configFile);
-    } catch (FileNotFoundException e) {
-      String expectedConfig = configFile.getAbsolutePath();
+      logger.debug("using config file -> {}", configFile.toAbsolutePath());
+      inputStream = Files.newInputStream(configFile);
+    } catch (IOException e) {
+      Path expectedConfig = configFile.toAbsolutePath();
       logger.error("error: file not found -> {}",
           expectedConfig);
       return null;
@@ -106,7 +116,7 @@ public class AppMapConfig {
       System.exit(1);
     }
     singleton.configFile = configFile;
-
+    logger.debug("config: {}", singleton);
     return singleton;
   }
 
@@ -180,12 +190,12 @@ public class AppMapConfig {
     pw.format("name: %s\n", CLI.projectName(new File(directory)));
 
     // For now, this only works in this type of standardize repo structure.
-    File javaDir = Paths.get(directory).resolve("src/main/java").toFile();
-    if (javaDir.isDirectory()) {
-      int pkgStart = javaDir.toPath().getNameCount();
+    Path javaDir = Paths.get(directory).resolve("src/main/java");
+    if (Files.isDirectory(javaDir)) {
+      int pkgStart = javaDir.getNameCount();
       // Collect package names in src/main/java
       Set<Path> packages = new HashSet<>();
-      Files.walkFileTree(javaDir.toPath(), new SimpleFileVisitor<Path>() {
+      Files.walkFileTree(javaDir, new SimpleFileVisitor<Path>() {
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
           if (file.getFileName().toString().endsWith(".java")) {
@@ -257,5 +267,30 @@ public class AppMapConfig {
     }
 
     return Logger.tag(null);
+  }
+
+  public static void initialize(FileSystem fs) throws IOException {
+    // If the user explicitly specified a config file, but the file doesn't
+    // exist, raise an error. They've almost certainly made a mistake.
+    boolean configSpecified = Properties.ConfigFile != null;
+    String configFile = !configSpecified ? "appmap.yml" : Properties.ConfigFile;
+    if (load(fs.getPath(configFile), configSpecified) == null) {
+      Agent.logger.error("failed to load config {}", Properties.ConfigFile);
+      System.exit(1);
+    }
+
+    Path outdirPath = Properties.ensureOutputDirectory(fs);
+    if (outdirPath != null) {
+      String outputDirectory = outdirPath.toString();
+      if (singleton.appmapDir != null) {
+        if (!outputDirectory.equals(singleton.appmapDir)) {
+          Agent.logger.warn("{} specified, and appmap.yml contains appmap_dir. Using {} as output directory.",
+              APPMAP_OUTPUT_DIRECTORY_KEY, outputDirectory);
+          singleton.appmapDir = outputDirectory;
+        }
+      } else {
+        singleton.appmapDir = outputDirectory.toString();
+      }
+    }
   }
 }

@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
@@ -33,11 +34,12 @@ import java.util.concurrent.Semaphore;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.contrib.java.lang.system.SystemErrRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.SystemErrRule;
 
 import com.alibaba.fastjson.JSON;
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 
 public class RecorderTest {
@@ -47,6 +49,8 @@ public class RecorderTest {
 
   @Before
   public void before() throws Exception {
+    AppMapConfig.initialize(FileSystems.getDefault());
+
     final Recorder.Metadata metadata =
         new Recorder.Metadata("recorder_test", "tests");
 

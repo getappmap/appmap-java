@@ -2,6 +2,8 @@ load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
 
+recording_dir="app/build/tmp/appmap/request_recording"
+
 setup_file() {
   export WS_SCHEME="http" WS_HOST="localhost" WS_PORT="8080"
   export WS_URL="${WS_SCHEME}://${WS_HOST}:${WS_PORT}"
@@ -21,7 +23,7 @@ teardown_file() {
 }
 
 setup() {
-  rm -rf app/tmp/appmap/request_recording
+  rm -rf "$recording_dir"
 }
 
 @test "Spark remote recording works" {
@@ -47,9 +49,9 @@ setup() {
   _curl -sXGET "${WS_URL}"
 
   # Give the server a chance to write the request recording
-  wait_for_glob "app/tmp/appmap/request_recording/*.appmap.json"
+  wait_for_glob "$recording_dir/*.appmap.json"
 
-  run cat app/tmp/appmap/request_recording/*.appmap.json
+  run cat "$recording_dir"/*.appmap.json
   assert_success
 
   assert_json '.classMap'

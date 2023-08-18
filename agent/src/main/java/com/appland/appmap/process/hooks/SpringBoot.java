@@ -92,11 +92,16 @@ public class SpringBoot {
   @HookClass(value = "org.springframework.web.SpringServletContainerInitializer")
   public static void onStartup(Event event, Object[] args) {
     ServletContext ctx = new ServletContext(args[1]);
-    ctx.addListener(ServletListener.build());
-      ServletContext.FilterRegistration fr = ctx.addFilter("com.appland.appmap.RemoteRecordingFilter",
-          RemoteRecordingFilter.build());
-      fr.addMappingForUrlPatterns(requestEnumSet(), true, "/_appmap/record");
+    if (Properties.RecordingRequests) {
+      ctx.addListener(ServletListener.build());
+    } else {
+      logger.debug("request recording disabled");
     }
+
+    ServletContext.FilterRegistration fr = ctx.addFilter("com.appland.appmap.RemoteRecordingFilter",
+        RemoteRecordingFilter.build());
+    fr.addMappingForUrlPatterns(requestEnumSet(), true, "/_appmap/record");
+  }
 
     @SuppressWarnings("unchecked")
     private static EnumSet<?> requestEnumSet() {

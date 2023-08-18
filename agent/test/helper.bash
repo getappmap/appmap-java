@@ -182,5 +182,6 @@ wait_for_glob() {
     if compgen -G "$glob" >/dev/null; then
       break;
     fi
+    sleep .5
   done
 }
