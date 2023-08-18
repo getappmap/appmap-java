@@ -1,3 +1,16 @@
+# [1.20.0](https://github.com/getappmap/appmap-java/compare/v1.19.0...v1.20.0) (2023-08-18)
+
+
+### Bug Fixes
+
+* only add servlet listener when appropriate ([b0aab08](https://github.com/getappmap/appmap-java/commit/b0aab086eb7293dd6fb0064576e4e608f2e79aad))
+* use current thread's class loader ([691edf7](https://github.com/getappmap/appmap-java/commit/691edf7536433b0bda29f98c203538c30750a829))
+
+
+### Features
+
+* add support for appmap_dir ([2e0f4c7](https://github.com/getappmap/appmap-java/commit/2e0f4c7bd76a8d176ee0638ce7fc61fe6494c678))
+
 # [1.19.0](https://github.com/getappmap/appmap-java/compare/v1.18.1...v1.19.0) (2023-08-07)
 
 
