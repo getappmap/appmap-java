@@ -3,7 +3,7 @@
 # Helper methods for tests
 
 _curl() {
-  curl -H 'Accept: application/json' "${@}"
+  curl -sfH 'Accept: application/json,*/*' "${@}"
 }
 
 _appmap() {

@@ -9,6 +9,7 @@ import org.tinylog.TaggedLogger;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.process.hooks.RequestRecording;
 import com.appland.appmap.reflect.DynamicReflectiveType;
+import com.appland.appmap.reflect.HttpServletRequest;
 import com.appland.appmap.reflect.ServletRequestEvent;
 
 public class ServletListener implements InvocationHandler {
@@ -28,9 +29,16 @@ public class ServletListener implements InvocationHandler {
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     String methodName = method.getName();
     if (methodName.equals("requestInitialized")) {
-      RequestRecording.start(new ServletRequestEvent(args[0]).getServletRequest());
+      HttpServletRequest servletRequest = new ServletRequestEvent(args[0]).getServletRequest();
+      RequestRecording.start(servletRequest);
     } else if (methodName.equals("requestDestroyed")) {
-      RequestRecording.stop(new ServletRequestEvent(args[0]).getServletRequest());
+      HttpServletRequest servletRequest = new ServletRequestEvent(args[0]).getServletRequest();
+      if (!servletRequest.isForStaticResource()) {
+        RequestRecording.stop(servletRequest);
+      } else {
+        RequestRecording.abort();
+      }
+
     }
     else {
       throw new InternalError("unhandled method" + methodName);

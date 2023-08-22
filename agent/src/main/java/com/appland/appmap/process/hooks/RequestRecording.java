@@ -71,4 +71,11 @@ public class RequestRecording {
     recording.moveTo(filename);
   }
 
+  /**
+   * abort stops the current thread's recording and throws it away.
+   */
+  public static void abort() {
+    Recorder.getInstance().stopThread();
+  }
+
 }
