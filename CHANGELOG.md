@@ -1,3 +1,10 @@
+## [1.20.1](https://github.com/getappmap/appmap-java/compare/v1.20.0...v1.20.1) (2023-08-22)
+
+
+### Bug Fixes
+
+* don't generate AppMaps for static resources ([8cc322c](https://github.com/getappmap/appmap-java/commit/8cc322c6158bfc67a113bda49e1b8871f7a502d2))
+
 # [1.20.0](https://github.com/getappmap/appmap-java/compare/v1.19.0...v1.20.0) (2023-08-18)
 
 
