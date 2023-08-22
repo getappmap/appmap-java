@@ -20,6 +20,10 @@ teardown_file() {
   stop_ws
 }
 
+setup() {
+  rm -rf "${FIXTURE_DIR}/target/tmp/appmap"
+}
+
 @test "the user can disable request recording" {
   run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
   assert_success 

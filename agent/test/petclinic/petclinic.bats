@@ -10,6 +10,8 @@ load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
 
+load '../petclinic-shared/static-resources.bash'
+
 setup_file() {
   start_petclinic >&3
   export FIXTURE_DIR="build/fixtures/spring-petclinic"
@@ -215,15 +217,10 @@ ownerId'
   refute_output --partial 'NaN'
 }
 
-@test "requests are recorded by default" {
-  run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
-  assert_success 
-  local dir='build/fixtures/spring-petclinic/target/tmp/appmap/request_recording'
-  
-  wait_for_glob "${dir}/*owners_1_pets_1_edit.appmap.json"
-  run bash -c "compgen -G ${dir}/*owners_1_pets_1_edit.appmap.json"
-  assert_success
+@test "requests for non-static resources are recorded by default" {
+  test_requests_for_nonstatic_resources_are_recorded_by_default
+}
 
-  output="$(<${output})"
-  assert_json_eq '.events[] | .http_server_request | .path_info' '/owners/1/pets/1/edit' 
+@test "request for static resources don't generate recordings" {
+  test_request_for_static_resources_dont_generate_recordings
 }
