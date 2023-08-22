@@ -20,12 +20,11 @@ teardown_file() {
 }
 
 setup() {
-  rm -rf "${FIXTURE_DIR}/tmp/appmap/request_recording"
+  rm -rf "${FIXTURE_DIR}/target/tmp/appmap"
 }
 
 @test "the recording status reports disabled when not recording" {
   run _curl -sXGET "${WS_URL}/_appmap/record"
-
   assert_success
 
   assert_json_eq '.enabled' 'false'
@@ -33,7 +32,6 @@ setup() {
 
 @test "successfully start a new recording" {
   run _curl -sIXPOST "${WS_URL}/_appmap/record"
-
   assert_success
   
   echo "${output}" \
@@ -44,8 +42,7 @@ setup() {
   start_recording
   
   run _curl -sIXPOST "${WS_URL}/_appmap/record"
-
-  assert_success
+  assert_failure 22
 
   echo "${output}" \
     | grep "HTTP/1.1 409"
@@ -55,7 +52,6 @@ setup() {
   start_recording
   
   run _curl -sXGET "${WS_URL}/_appmap/record"
-
   assert_success
   assert_json_eq '.enabled' 'true'
 }
@@ -65,19 +61,18 @@ setup() {
 
   _curl -XGET "${WS_URL}"
 
-  run _curl -sXGET "${WS_URL}/_appmap/record/checkpoint"
+  run _curl -fXGET "${WS_URL}/_appmap/record/checkpoint"
+  assert_success
 
   assert_json '.classMap'
   assert_json '.events'
   assert_json '.version'
 
   run _curl -sXGET "${WS_URL}/_appmap/record"
-
   assert_success
   assert_json_eq '.enabled' 'true'
 
   run _curl -sXDELETE "${WS_URL}/_appmap/record"
-
   assert_success
 
   assert_json '.classMap'
@@ -90,7 +85,6 @@ setup() {
   
   _curl -XGET "${WS_URL}"
   run _curl -sXDELETE "${WS_URL}/_appmap/record"
-
   assert_success
 
   assert_json '.classMap'
@@ -101,6 +95,7 @@ setup() {
 @test "recordings capture http request" {
   start_recording
   run _curl -XGET "${WS_URL}"
+  assert_success
   stop_recording
 
   assert_json '.events[] | .http_server_request'
@@ -111,6 +106,7 @@ setup() {
 @test "recordings capture sql queries" {
   start_recording
   run _curl -XGET "${WS_URL}/vets.html"
+  assert_success
   stop_recording
 
   assert_json '.events[] | .sql_query'
@@ -120,6 +116,7 @@ setup() {
 @test "records exceptions" {
   start_recording
   run _curl -XGET "${WS_URL}/oups"
+  assert_failure 22
   stop_recording
 
   assert_json '.events[] | .exceptions'
@@ -128,6 +125,7 @@ setup() {
 @test "recordings have Java metadata" {
   start_recording
   run _curl -XGET "${WS_URL}"
+  assert_success
   stop_recording
 
   eval $(java -cp test/petclinic/classes petclinic.Props java.vm.version java.vm.name)
@@ -140,6 +138,7 @@ setup() {
 @test "message parameters contain path params from a Spring app" {
   start_recording
   run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
+  assert_success
   stop_recording
 
   local appmap="${output}"
@@ -153,6 +152,7 @@ ownerId'
 @test "return events have parent_id and don't have non-essential parameters" {
   start_recording
   run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
+  assert_success
   stop_recording
 
   assert_json_not_contains '.events[] | select(.frozen)'
@@ -171,7 +171,7 @@ ownerId'
   
   # this route seems least likely to be affected by future changes
   run _curl -XGET "${WS_URL}/oups"
-  
+  assert_failure 22
   stop_recording
 
   # Sanity check the events and classmap
@@ -185,6 +185,7 @@ ownerId'
   local basic_auth='Basic YWxhZGRpbjpvcGVuc2VzYW1l'
   start_recording
   run _curl -H "Authorization: $basic_auth" -XGET "${WS_URL}"
+  assert_success
   stop_recording
 
   assert_json_eq '.events[] | .http_server_request | .headers.authorization' "$basic_auth"
@@ -193,6 +194,7 @@ ownerId'
 @test "recordings capture http response headers" {
   start_recording
   run _curl -XGET "${WS_URL}"
+  assert_success
   stop_recording
 
   assert_json_eq '.events[] | .http_server_response | .headers["Content-Type"]' "text/html;charset=UTF-8"
@@ -201,6 +203,7 @@ ownerId'
 @test "recordings capture elapsed time" {
   start_recording
   run _curl -XGET "${WS_URL}"
+  assert_success
   stop_recording
 
   # ensure recordings have elapsed time

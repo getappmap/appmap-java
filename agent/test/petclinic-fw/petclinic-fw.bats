@@ -6,10 +6,15 @@ load '../helper'
 
 setup_file() {
   start_petclinic_fw >&3
+  export FIXTURE_DIR=build/fixtures/spring-framework-petclinic
 }
 
 teardown_file() {
   stop_ws
+}
+
+setup() {
+  rm -rf "${FIXTURE_DIR}/target/tmp/appmap"
 }
 
 @test "remote recording works" { 
@@ -33,7 +38,7 @@ teardown_file() {
 @test "requests are recorded by default" {
   run _curl -sXGET "${WS_URL}/owners/1/pets/1/edit"
   assert_success 
-  local dir='build/fixtures/spring-framework-petclinic/target/tmp/appmap/request_recording'
+  local dir="${FIXTURE_DIR}/target/tmp/appmap/request_recording"
   
   run bash -o pipefail -c "ls -t ${dir}/*owners_1_pets_1_edit.appmap.json | head -1"
   assert_success

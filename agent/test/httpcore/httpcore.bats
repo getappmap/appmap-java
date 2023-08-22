@@ -12,7 +12,6 @@ load '../helper'
 
 @test "the recording status reports disabled when not recording" {
   run _curl -sXGET "${WS_URL}/_appmap/record"
-
   assert_success
 
   assert_json_eq '.enabled' 'false'
@@ -20,7 +19,6 @@ load '../helper'
 
 @test "successfully start a new recording" {
   run _curl -sIXPOST "${WS_URL}/_appmap/record"
-
   assert_success
   
   echo "${output}" \
@@ -33,18 +31,17 @@ load '../helper'
   _curl -XGET "${WS_URL}"
 
   run _curl -sXGET "${WS_URL}/_appmap/record/checkpoint"
+  assert_success
 
   assert_json '.classMap'
   assert_json '.events'
   assert_json '.version'
 
   run _curl -sXGET "${WS_URL}/_appmap/record"
-
   assert_success
   assert_json_eq '.enabled' 'true'
 
   run _curl -sXDELETE "${WS_URL}/_appmap/record"
-
   assert_success
 
   assert_json '.classMap'
@@ -57,7 +54,6 @@ load '../helper'
   
   _curl -XGET "${WS_URL}"
   run _curl -sXDELETE "${WS_URL}/_appmap/record"
-
   assert_success
 
   assert_json '.classMap'

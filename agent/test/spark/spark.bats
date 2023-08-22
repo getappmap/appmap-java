@@ -28,7 +28,6 @@ setup() {
 
 @test "Spark remote recording works" {
   run _curl -sXGET "${WS_URL}/_appmap/record"
-
   assert_success
   assert_json_eq '.enabled' 'false'
 
