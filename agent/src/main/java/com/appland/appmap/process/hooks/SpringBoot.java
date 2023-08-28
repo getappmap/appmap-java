@@ -58,11 +58,6 @@ public class SpringBoot {
   @ArgumentArray
   @HookClass(value = "org.springframework.boot.SpringApplication")
   public static void applyInitializers(Event event, Object receiver, Object[] args) {
-    if (!Properties.RecordingRequests) {
-      logger.debug("request recording disabled");
-      return;
-    }
-
     logger.trace("receiver: {}", receiver);
 
     ApplicationContext ctx = new ApplicationContext(args[0]);
@@ -74,7 +69,9 @@ public class SpringBoot {
 
       if (remoteRecordingFilter != null && servletListener != null) {
         beanFactory.registerSingleton(LISTENER_BEAN + ".remoteRecordingFilter", remoteRecordingFilter);
-        beanFactory.registerSingleton(LISTENER_BEAN, servletListener);
+        if (Properties.RecordingRequests) {
+          beanFactory.registerSingleton(LISTENER_BEAN, servletListener);
+        }
         logger.trace("registered beans");
       } else {
         logger.trace("a bean is null, remoteRecordingFilter: {} servletListener: {}", remoteRecordingFilter,
