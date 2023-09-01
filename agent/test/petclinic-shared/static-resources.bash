@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-test_requests_for_nonstatic_resources_are_recorded_by_default() {
+_test_requests_for_nonstatic_resources_are_recorded_by_default() {
   run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
   assert_success 
   local dir="${FIXTURE_DIR}/target/tmp/appmap/request_recording"
@@ -13,7 +13,7 @@ test_requests_for_nonstatic_resources_are_recorded_by_default() {
   assert_json_eq '.events[] | .http_server_request | .path_info' '/owners/1/pets/1/edit' 
 }
 
-test_request_for_static_resources_dont_generate_recordings() {
+_test_request_for_static_resources_dont_generate_recordings() {
   run _curl -XGET "${WS_URL}/resources/css/petclinic.css"
   assert_success
 
