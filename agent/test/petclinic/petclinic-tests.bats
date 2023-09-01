@@ -26,7 +26,8 @@ run_petclinic_test() {
   local cfg="${1:-appmap.yml}"
 
   run ./mvnw \
-    -DargLine="@{argLine} -Dcheckstyle.skip=true -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/${cfg} -Dappmap.debug  -Dappmap.debug.file=appmap.log" \
+    -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
+    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/${cfg} -Dappmap.debug  -Dappmap.debug.file=appmap.log" \
     test -Dtest="${TEST_NAME}#testOwnerDetails"
   assert_success
 }
