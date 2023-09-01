@@ -28,6 +28,7 @@ before_install:
   source "$HOME/.asdf/asdf.sh"
   asdf update
   asdf plugin update --all
+  nvm install lts/*
 
 jobs:
   include:
@@ -71,7 +72,6 @@ script:
   ./bin/test
 
 before_deploy:
-  - nvm install lts/*
   - |
     npm i -g \
         semantic-release \
