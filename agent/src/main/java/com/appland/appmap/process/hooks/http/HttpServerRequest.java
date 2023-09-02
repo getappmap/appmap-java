@@ -45,21 +45,14 @@ public class HttpServerRequest {
 
     recordHttpServerRequest(event, req,
         req.getMethod(), req.getRequestURI(), req.getProtocol(),
-        req.getHeaders(),
-        req.getParameterMap());
+        req.getHeaders());
   }
-
   private static void recordHttpServerRequest(Event event, HttpServletRequest req,
+
       String method, String uri, String protocol,
-      Map<String, String> headers,
-      Map<String, String[]> params) {
+      Map<String, String> headers) {
     event.setHttpServerRequest(method, uri, protocol, headers);
     event.setParameters(null);
-
-    for (Map.Entry<String, String[]> param : params.entrySet()) {
-      final String[] values = param.getValue();
-      event.addMessageParam(param.getKey(), values.length > 0 ? values[0] : "");
-    }
 
     // Keep track of this event, it may need to be updated after the request is
     // processed.
@@ -153,13 +146,7 @@ public class HttpServerRequest {
     }
 
     HttpServletRequest req = new HttpServletRequest(args[0]);
-    if (isSpringRequest(req)) {
-      logger.trace("service, isSpringRequest");
-      addSpringPath(req);
-    } else {
-      logger.trace("service, not isSpringRequest");
-      logger.trace("request attributes: {}", () -> req.getAttributeNames());
-    }
+    updateLastEvent(req);
 
     HttpServletResponse res = new HttpServletResponse(args[1]);
     recordHttpServerResponse(event, req, res);
@@ -195,34 +182,31 @@ public class HttpServerRequest {
     return req.getAttribute(BEST_MATCHING_PATTERN_ATTRIBUTE) != null;
   }
 
-  private static void addSpringPath(HttpServletRequest req) {
-    final String uri = (String) req.getRequestURI();
-    if (uri != null) {
-      final Event lastEvent = (Event) req.getAttribute(LAST_EVENT_KEY);
-      if (lastEvent == null || lastEvent.httpServerRequest == null) {
-        return;
-      }
-      // Allow updating the event. It'll get frozen again when it gets added to
-      // the session.
-      lastEvent.defrost();
+  public static void updateLastEvent(HttpServletRequest req) {
+    final Event lastEvent = (Event) req.getAttribute(LAST_EVENT_KEY);
+    if (lastEvent == null || lastEvent.httpServerRequest == null) {
+      return;
+    }
+    // Allow updating the event. It'll get frozen again when it gets added to
+    // the session.
+    lastEvent.defrost();
 
+    if (isSpringRequest(req)) {
       Map<String, ?> uriTemplateVariables = getTemplateVariables(req);
       if (uriTemplateVariables != null) {
         // If it has template variables, it's parameterized.
         final String pattern = (String) req.getAttribute(BEST_MATCHING_PATTERN_ATTRIBUTE);
         lastEvent.httpServerRequest.setNormalizedPath(pattern);
-
-        addMessageParams(uriTemplateVariables, lastEvent);
       }
-
-      recorder.addEventUpdate(lastEvent);
     }
-  }
 
-  private static void addMessageParams(Map<String, ?> uriTemplateVariables, final Event lastEvent) {
-    for (Map.Entry<String, ?> param : uriTemplateVariables.entrySet()) {
-      lastEvent.addMessageParam(param.getKey(), param.getValue());
+    Map<String, String[]> params = req.getParameterMap();
+    for (Map.Entry<String, String[]> param : params.entrySet()) {
+      final String[] values = param.getValue();
+      lastEvent.addMessageParam(param.getKey(), values.length > 0 ? values[0] : "");
     }
+
+    recorder.addEventUpdate(lastEvent);
   }
 
   @SuppressWarnings("unchecked")

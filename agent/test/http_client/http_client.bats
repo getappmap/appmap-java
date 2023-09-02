@@ -8,7 +8,7 @@ setup_file() {
   cp test/http_client/NoContentController.java build/fixtures/spring-petclinic/src/main/java/org/springframework/samples/petclinic/system/.
   start_petclinic >&3
 
-  pushd test/http_client
+  pushd test/http_client >/dev/null
 }
 
 teardown_file() {

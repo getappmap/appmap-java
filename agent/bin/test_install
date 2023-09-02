@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -e
 
 fixture_dir=$PWD/build/fixtures
 mkdir -p build/fixtures

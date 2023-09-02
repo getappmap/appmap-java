@@ -5,10 +5,13 @@ load '../../build/bats/bats-assert/load'
 load '../helper'
 
 load '../petclinic-shared/static-resources.bash'
+load '../petclinic-shared/message-params.bash'
 
 setup_file() {
-  start_petclinic_fw >&3
   export FIXTURE_DIR=build/fixtures/spring-framework-petclinic
+  _setup_params
+
+  start_petclinic_fw >&3
 }
 
 teardown_file() {
@@ -38,9 +41,17 @@ setup() {
 }
 
 @test "requests for non-static resources are recorded by default" {
-  test_requests_for_nonstatic_resources_are_recorded_by_default
+  _test_requests_for_nonstatic_resources_are_recorded_by_default
 }
 
 @test "request for static resources don't generate recordings" {
-  test_request_for_static_resources_dont_generate_recordings
+  _test_request_for_static_resources_dont_generate_recordings
+}
+
+@test "form data is recorded as message parameters" {
+  _test_form_data_is_recorded_as_message_parameters
+}
+
+@test "the agent doesn't exhaust the InputStream" {
+  _test_the_agent_doesnt_exhaust_theInputStream
 }
