@@ -1,3 +1,12 @@
+## [1.20.2](https://github.com/getappmap/appmap-java/compare/v1.20.1...v1.20.2) (2023-09-02)
+
+
+### Bug Fixes
+
+* don't read the servlet's InputStream ([f44e4d7](https://github.com/getappmap/appmap-java/commit/f44e4d7d4aa3a57db40a3e530e9f0ae0fe7e0101))
+* enable remote recording appropriately ([ab326f7](https://github.com/getappmap/appmap-java/commit/ab326f77a9faa1fb3312c1d73ced22a2785441b3))
+* only add ServletListener once ([bfe1bd8](https://github.com/getappmap/appmap-java/commit/bfe1bd83570a865fd55aa7f102d7e457ee8b4017))
+
 ## [1.20.1](https://github.com/getappmap/appmap-java/compare/v1.20.0...v1.20.1) (2023-08-22)
 
 
