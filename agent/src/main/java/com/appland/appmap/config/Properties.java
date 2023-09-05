@@ -1,9 +1,5 @@
 package com.appland.appmap.config;
 
-import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.function.Function;
 
@@ -29,7 +25,7 @@ public class Properties {
   public static final Boolean RecordingRequests = resolveProperty(
       "appmap.recording.requests", Boolean::valueOf, true);
 
-  private static Path OutputDirectory;
+  static Path OutputDirectory;
 
   public static final String DefaultConfigFile = "appmap.yml";
   public static final String ConfigFile = resolveProperty(
@@ -60,14 +56,11 @@ public class Properties {
     return value;
   }
 
-
-  static Path ensureOutputDirectory(FileSystem fs) throws IOException {
-    OutputDirectory = resolveProperty(
-        APPMAP_OUTPUT_DIRECTORY_KEY, fs::getPath, findDefaultOutputDirectory(fs));
-    return OutputDirectory;
-  }
-
   public static Path getOutputDirectory() {
+    if (OutputDirectory == null) {
+      throw new InternalError("You must call AppMapConfig.initialize before using OutputDirectory");
+    }
+
     return OutputDirectory;
   }
 
@@ -108,50 +101,5 @@ public class Properties {
 
   public static String[] getRecords() {
     return Records;
-  }
-
-  private static Path findDefaultOutputDirectory(FileSystem fs) {
-    long buildGradleLastModified = 0;
-    long pomXmlLastModified = 0;
-    try {
-      buildGradleLastModified = Files.getLastModifiedTime(fs.getPath("build.gradle")).toMillis();
-    } catch (NoSuchFileException e) {
-      // Can't use logger yet, and this may happen regularly, so just swallow
-      // it.
-    } catch (IOException e) {
-      // This shouldn't happen, though
-      e.printStackTrace();
-    }
-    try {
-      pomXmlLastModified = Files.getLastModifiedTime(fs.getPath("pom.xml")).toMillis();
-    } catch (NoSuchFileException e) {
-      // noop, as above
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-    // Neither exists, use tmp
-    if (buildGradleLastModified == 0 && pomXmlLastModified == 0) {
-      return fs.getPath("tmp/appmap");
-    }
-
-    // Both exist, use newer
-    String gradleDir = "build/tmp/appmap";
-    String mavenDir = "target/tmp/appmap";
-    if (buildGradleLastModified != 0 && pomXmlLastModified != 0) {
-      if (buildGradleLastModified > pomXmlLastModified) {
-        return fs.getPath(gradleDir);
-      } else {
-        return fs.getPath(mavenDir);
-      }
-    }
-
-    // Might be Gradle
-    if (buildGradleLastModified > 0) {
-      return fs.getPath(gradleDir);
-    }
-
-    // Must be Maven
-    return fs.getPath(mavenDir);
   }
 }

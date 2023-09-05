@@ -11,6 +11,7 @@ import java.io.StringWriter;
 import java.nio.file.FileSystem;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
@@ -279,9 +280,12 @@ public class AppMapConfig {
       System.exit(1);
     }
 
-    Path outdirPath = Properties.ensureOutputDirectory(fs);
-    if (outdirPath != null) {
-      String outputDirectory = outdirPath.toString();
+    String outputDirectory = System.getProperty(APPMAP_OUTPUT_DIRECTORY_KEY);
+    if (outputDirectory  == null) {
+      if (singleton.appmapDir == null) {
+        singleton.appmapDir = findDefaultOutputDirectory(fs).toString();
+      }
+    } else {
       if (singleton.appmapDir != null) {
         if (!outputDirectory.equals(singleton.appmapDir)) {
           Agent.logger.warn("{} specified, and appmap.yml contains appmap_dir. Using {} as output directory.",
@@ -289,8 +293,54 @@ public class AppMapConfig {
           singleton.appmapDir = outputDirectory;
         }
       } else {
-        singleton.appmapDir = outputDirectory.toString();
+        singleton.appmapDir = outputDirectory;
       }
     }
+    Properties.OutputDirectory = fs.getPath(singleton.appmapDir);
+  }
+
+  private static Path findDefaultOutputDirectory(FileSystem fs) {
+    long buildGradleLastModified = 0;
+    long pomXmlLastModified = 0;
+    try {
+      buildGradleLastModified = Files.getLastModifiedTime(fs.getPath("build.gradle")).toMillis();
+    } catch (NoSuchFileException e) {
+      // Can't use logger yet, and this may happen regularly, so just swallow
+      // it.
+    } catch (IOException e) {
+      // This shouldn't happen, though
+      e.printStackTrace();
+    }
+    try {
+      pomXmlLastModified = Files.getLastModifiedTime(fs.getPath("pom.xml")).toMillis();
+    } catch (NoSuchFileException e) {
+      // noop, as above
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    // Neither exists, use tmp
+    if (buildGradleLastModified == 0 && pomXmlLastModified == 0) {
+      return fs.getPath("tmp/appmap");
+    }
+
+    // Both exist, use newer
+    String gradleDir = "build/tmp/appmap";
+    String mavenDir = "target/tmp/appmap";
+    if (buildGradleLastModified != 0 && pomXmlLastModified != 0) {
+      if (buildGradleLastModified > pomXmlLastModified) {
+        return fs.getPath(gradleDir);
+      } else {
+        return fs.getPath(mavenDir);
+      }
+    }
+
+    // Might be Gradle
+    if (buildGradleLastModified > 0) {
+      return fs.getPath(gradleDir);
+    }
+
+    // Must be Maven
+    return fs.getPath(mavenDir);
   }
 }

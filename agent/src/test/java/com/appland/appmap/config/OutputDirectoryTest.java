@@ -26,6 +26,8 @@ public class OutputDirectoryTest {
   private FileSystem fs;
   private Path appDir;
 
+  private Path configFile;
+
   @BeforeEach
   void saveProperties() throws IOException {
     origProperties = (java.util.Properties) System.getProperties().clone();
@@ -35,6 +37,12 @@ public class OutputDirectoryTest {
         .build();
     appDir = fs.getPath(cwd);
     Files.createDirectories(appDir);
+
+    String contents = "name: test\n";
+    configFile = Files.createFile(appDir.resolve("appmap.yml"));
+    Files.write(configFile, contents.getBytes());
+
+    System.setProperty("appmap.config.file", configFile.toAbsolutePath().toString());
   }
 
   @AfterEach
@@ -63,12 +71,8 @@ public class OutputDirectoryTest {
         private PrintStream mockedPrintStream;
         private PrintStream origStderr = System.err;
 
-        private Path configFile;
-
         @BeforeEach
         void beforeEach() throws Exception {
-          configFile = Files.createFile(appDir.resolve("appmap.yml"));
-          System.setProperty("appmap.config.file", configFile.toAbsolutePath().toString());
           mockedPrintStream = mock(PrintStream.class);
           System.setErr(mockedPrintStream);
         }
@@ -85,7 +89,7 @@ public class OutputDirectoryTest {
           Files.write(configFile, contents.getBytes());
           AppMapConfig.initialize(fs);
 
-          assertEquals(EXPECTED_APPMAP_DIR, Properties.getOutputDirectory().toString());
+          assertEquals(EXPECTED_APPMAP_DIR, AppMapConfig.get().getAppmapDir().toString());
 
           String actualContents = new String(Files.readAllBytes(configFile));
           assertEquals(contents, actualContents);
@@ -114,6 +118,16 @@ public class OutputDirectoryTest {
     @BeforeEach
     void sanityCheck() {
       assertNull(System.getProperty("appmap.output.directory", null), "appmap.output.directory set?");
+    }
+
+    @Test
+    void configContainsAppMapDir() throws Exception {
+      String configDir = "/config/appmap";
+      final String contents = "appmap_dir: " + configDir + "\n";
+      Files.write(configFile, contents.getBytes());
+      AppMapConfig.initialize(fs);
+
+      assertEquals(configDir, AppMapConfig.get().getAppmapDir().toString());
     }
 
     @Nested
