@@ -1,3 +1,10 @@
+## [1.20.3](https://github.com/getappmap/appmap-java/compare/v1.20.2...v1.20.3) (2023-09-06)
+
+
+### Bug Fixes
+
+* handle unset appmap.output.directory ([c9d1a39](https://github.com/getappmap/appmap-java/commit/c9d1a3957a9901d2c849c935b2c461c931407893))
+
 ## [1.20.2](https://github.com/getappmap/appmap-java/compare/v1.20.1...v1.20.2) (2023-09-02)
 
 
