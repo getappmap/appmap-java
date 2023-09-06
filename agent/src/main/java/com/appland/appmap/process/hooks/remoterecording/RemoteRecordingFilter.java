@@ -4,9 +4,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
-import org.tinylog.TaggedLogger;
-
-import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.reflect.DynamicReflectiveType;
 import com.appland.appmap.reflect.HttpServletRequest;
@@ -14,8 +11,6 @@ import com.appland.appmap.reflect.HttpServletResponse;
 import com.appland.appmap.reflect.ReflectiveType;
 
 public class RemoteRecordingFilter implements InvocationHandler {
-  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
-
   private static class FilterChain extends ReflectiveType {
     static String DO_FILTER = "doFilter";
 

@@ -11,9 +11,7 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.tinylog.TaggedLogger;
 
-import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.test.util.ClassBuilder;
 

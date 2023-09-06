@@ -3,9 +3,6 @@ package com.appland.appmap.process.hooks.http;
 import java.lang.invoke.MethodHandles;
 import java.util.Map;
 
-import org.tinylog.TaggedLogger;
-
-import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.hooks.remoterecording.RemoteRecordingManager;
 import com.appland.appmap.record.Recorder;
@@ -23,7 +20,6 @@ import com.appland.appmap.transform.annotations.Unique;
  */
 @Unique("http_server_request")
 public class HttpServerRequest {
-  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
   private static final String PACKAGE_NAME = MethodHandles.lookup().lookupClass().getPackage().getName();
   public static final String STATUS_ATTRIBUTE = PACKAGE_NAME + ".status";
 
