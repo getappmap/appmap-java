@@ -19,7 +19,7 @@ teardown_file() {
 }
 
 setup() {
-  rm -rf "${FIXTURE_DIR}/target/tmp/appmap"
+  rm -rf "${FIXTURE_DIR}/tmp/appmap"
 }
 
 @test "remote recording works" { 

@@ -3,7 +3,7 @@
 _test_requests_for_nonstatic_resources_are_recorded_by_default() {
   run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
   assert_success 
-  local dir="${FIXTURE_DIR}/target/tmp/appmap/request_recording"
+  local dir="${FIXTURE_DIR}/tmp/appmap/request_recording"
   
   wait_for_glob "${dir}/*owners_1_pets_1_edit.appmap.json"
   run bash -c "compgen -G ${dir}/*owners_1_pets_1_edit.appmap.json"
@@ -21,7 +21,7 @@ _test_request_for_static_resources_dont_generate_recordings() {
   # another that should.
   run _curl -XGET "${WS_URL}/owners/1/pets/1/edit"
   assert_success 
-  local dir="${FIXTURE_DIR}/target/tmp/appmap/request_recording"
+  local dir="${FIXTURE_DIR}/tmp/appmap/request_recording"
   
   wait_for_glob "${dir}/*owners_1_pets_1_edit.appmap.json"
   run bash -c "compgen -G ${dir}/*owners_1_pets_1_edit.appmap.json"

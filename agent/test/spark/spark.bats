@@ -2,7 +2,7 @@ load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
 
-recording_dir="app/build/tmp/appmap/request_recording"
+recording_dir="app/tmp/appmap/request_recording"
 
 setup_file() {
   export WS_SCHEME="http" WS_HOST="localhost" WS_PORT="8080"
