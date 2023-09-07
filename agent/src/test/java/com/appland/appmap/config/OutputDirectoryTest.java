@@ -130,64 +130,9 @@ public class OutputDirectoryTest {
       assertEquals(configDir, AppMapConfig.get().getAppmapDir().toString());
     }
 
-    @Nested
-    @DisplayName("When build.gradle exists")
-    class WhenGradleConfigExists {
-      @BeforeEach
-      void createGradleConfig() throws Exception {
-        Files.createFile(appDir.resolve("build.gradle"));
-      }
-
-      @Test
-      @DisplayName("When pom.xml exists and is newer")
-      void mavenConfigExists() throws Exception {
-        Thread.sleep(10); // to ensure pom.xml will be newer
-        Files.createFile(appDir.resolve("pom.xml"));
-        AppMapConfig.initialize(fs);
-
-        assertEquals("target/tmp/appmap", AppMapConfig.get().getAppmapDir().toString());
-      }
-
-      @Test
-      @DisplayName("When pom.xml does not exist")
-      void mavenConfigDoesNotExist() throws Exception {
-        AppMapConfig.initialize(fs);
-
-        assertEquals("build/tmp/appmap", AppMapConfig.get().getAppmapDir().toString());
-      }
-    }
-
-    @Nested
-    @DisplayName("When pom.xml exists")
-    class WhenMavenConfigExists {
-
-      @BeforeEach
-      void createMavenConfig() throws Exception {
-        Files.createFile(appDir.resolve("pom.xml"));
-      }
-
-      @Test
-      @DisplayName("When build.gradle exists and is newer")
-      void gradleConfigExists() throws Exception {
-        Thread.sleep(10); // to ensure build.gradle will be newer
-        Files.createFile(appDir.resolve("build.gradle"));
-        AppMapConfig.initialize(fs);
-
-        assertEquals("build/tmp/appmap", AppMapConfig.get().getAppmapDir().toString());
-      }
-
-      @Test
-      @DisplayName("When build.gradle does not exist")
-      void gradleConfigDoesNotExist() throws Exception {
-        AppMapConfig.initialize(fs);
-
-        assertEquals("target/tmp/appmap", AppMapConfig.get().getAppmapDir().toString());
-      }
-    }
-
     @Test
-    @DisplayName("When neither build.gradle nor pom.xml exists")
-    void noBuildConfigExists() throws Exception {
+    @DisplayName("the default is used")
+    void defaultChosen() throws Exception {
       AppMapConfig.initialize(fs);
 
       assertEquals("tmp/appmap", AppMapConfig.get().getAppmapDir().toString());
