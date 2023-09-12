@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/getappmap/appmap-java/compare/v1.20.3...v1.21.0) (2023-09-12)
+
+
+### Features
+
+* make tmp/appmap the default output directory ([50581e8](https://github.com/getappmap/appmap-java/commit/50581e876681a9d62e8343f7a983dd86fc1f07db))
+
 ## [1.20.3](https://github.com/getappmap/appmap-java/compare/v1.20.2...v1.20.3) (2023-09-06)
 
 

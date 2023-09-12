@@ -12,7 +12,7 @@ plugins {
 }
 
 ext {
-  defaultVersion = '1.20.3'
+  defaultVersion = '1.21.0'
 }
 
 def defaultGroupId      = 'com.appland'
