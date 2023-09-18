@@ -186,7 +186,7 @@ public class AppMapConfig {
     PrintWriter pw = new PrintWriter(sw);
     pw.println("# This is the AppMap configuration file.");
     pw.println("# For full documentation of this file for Java programs, see:");
-    pw.println("# https://appland.com/docs/reference/appmap-java.html#configuration");
+    pw.println("# https://appmap.io/docs/reference/appmap-java.html#configuration");
     pw.format("name: %s\n", CLI.projectName(new File(directory)));
 
     // For now, this only works in this type of standardize repo structure.
