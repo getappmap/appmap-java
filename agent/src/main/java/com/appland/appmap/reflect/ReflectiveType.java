@@ -11,7 +11,7 @@ import org.tinylog.TaggedLogger;
 
 import com.appland.appmap.config.AppMapConfig;
 
-/* ReflectiveType implements some simple ducking typing. As long as self
+/* ReflectiveType implements some simple duck typing. As long as self
  * implements the methods required by subclasses of ReflectiveType, the actual
  * type of self is immaterial. For example,
  * com.appland.appmap.reflect.HttpServletRequest can wrap objects that implement
@@ -47,6 +47,10 @@ public class ReflectiveType {
     return invokeMethod("equals", Boolean.FALSE, other);
   }
 
+  protected ClassLoader getClassLoader() {
+    return self.getClass().getClassLoader();
+  }
+
   /* Add no-argument methods that can be called on self */
   protected void addMethods(String... names) {
     for (String name : names) {
@@ -74,9 +78,11 @@ public class ReflectiveType {
     try {
       return cls.getMethod(name, parameterTypes);
     } catch (Exception e) {
-      logger.debug(e, "failed to get method {}.{}", cls.getName(), name);
-      return null;
+      logger.trace(e, "failed to get public method {}.{}", cls.getName(), name);
     }
+
+    logger.debug("failed to get method {}.{}", cls.getName(), name);
+    return null;
   }
 
   /**
@@ -118,7 +124,7 @@ public class ReflectiveType {
   protected <T> T invokeMethod(String name, T defaultValue, Object... parameters) {
     Method m = methods.get(name);
     if (m == null) {
-      logger.warn("method {} not found in {}, did you forget to call addMethod?", name, self.getClass().getName());
+      logger.debug("method {} not found in {}, did you forget to call addMethod?", name, self.getClass().getName());
     }
     return m != null ? (T) invokeWrappedMethod(m, parameters)
         : defaultValue;
@@ -148,15 +154,16 @@ public class ReflectiveType {
    * @return Matching method if found. Otherwise, null.
    */
   protected Method getMethodByClassNames(String name, String... parameterTypeNames) {
-    logger.trace("self.getClass(): {}", self.getClass());
+    Class<?> selfClass = self.getClass();
+    logger.trace("self.getClass(): {}", selfClass);
 
     try {
       final List<Class<?>> parameterTypes = new ArrayList<Class<?>>();
-      ClassLoader cl = Thread.currentThread().getContextClassLoader();
+      ClassLoader cl = selfClass.getClassLoader();
       for (String typeName : parameterTypeNames) {
         parameterTypes.add(cl.loadClass(typeName));
       }
-      return self.getClass().getMethod(name, parameterTypes.toArray(new Class<?>[0]));
+      return selfClass.getMethod(name, parameterTypes.toArray(new Class<?>[0]));
     } catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
       logger.debug(e, "No match for method {}", name);
     }

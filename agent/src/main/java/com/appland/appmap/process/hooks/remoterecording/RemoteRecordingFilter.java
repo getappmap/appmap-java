@@ -30,8 +30,8 @@ public class RemoteRecordingFilter implements InvocationHandler {
   private RemoteRecordingFilter() {
   }
 
-  public static Object build() {
-    return DynamicReflectiveType.build(new RemoteRecordingFilter(), "javax.servlet.Filter",
+  public static Object build(ClassLoader cl) {
+    return DynamicReflectiveType.build(new RemoteRecordingFilter(), cl, "javax.servlet.Filter",
         "jakarta.servlet.Filter", "org.springframework.core.Ordered");
   }
 
