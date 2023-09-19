@@ -1,3 +1,9 @@
+load '../../build/bats/bats-support/load'
+load '../../build/bats/bats-assert/load'
+load '../helper'
+load '../petclinic-shared/shared-setup.bash'
+
+
 setup_file() {
   mkdir -p test/petclinic/classes
   javac -d test/petclinic/classes test/petclinic/Props.java
@@ -7,18 +13,18 @@ setup_file() {
   # PetClinicIntegrationTests. The tests here need to support both, so use a
   # pattern that matches them.
   export TEST_NAME="Pet?linicIntegrationTests"
+  export FIXTURE_DIR="build/fixtures/spring-petclinic"
+  _shared_setup
+
 }
 
 setup() {
   # bats doc says you'll get better error messages if you load helper scripts in
   # setup. (Note that loading them # in setup_file doesn't work.)
-  load '../../build/bats/bats-support/load'
-  load '../../build/bats/bats-assert/load'
-  load '../helper'
   export AGENT_JAR="$(find_agent_jar)"
 
-
   cd build/fixtures/spring-petclinic
+  rm -rf tmp/appmap
 }
 
 
