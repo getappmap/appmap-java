@@ -8,16 +8,14 @@ import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookAnnotated;
 import com.appland.appmap.transform.annotations.MethodEvent;
 
-public class JUnit {
+public class JUnit4 {
   private static final Recorder recorder = Recorder.getInstance();
-
-  private static final String JUNIT_NAME = "junit";
 
   @ArgumentArray
   @ExcludeReceiver
   @HookAnnotated("org.junit.Test")
   public static void junit(Event event, Object[] args) {
-    RecordingSupport.startRecording(event, JUNIT_NAME, TestSupport.TEST_RECORDER_TYPE);
+    RecordingSupport.startRecording(event, JUnit5.JUNIT_NAME, TestSupport.TEST_RECORDER_TYPE);
   }
 
   @ArgumentArray
@@ -33,30 +31,9 @@ public class JUnit {
   public static void junit(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
-    RecordingSupport.stopRecording(event, false, exception);
-  }
-
-  @ArgumentArray
-  @ExcludeReceiver
-  @HookAnnotated("org.junit.jupiter.api.Test")
-  public static void junitJupiter(Event event, Object[] args) {
-    RecordingSupport.startRecording(event, JUNIT_NAME, TestSupport.TEST_RECORDER_TYPE);
-  }
-
-  @ArgumentArray
-  @ExcludeReceiver
-  @HookAnnotated(value = "org.junit.jupiter.api.Test", methodEvent = MethodEvent.METHOD_RETURN)
-  public static void junitJupiter(Event event, Object returnValue, Object[] args) {
-    RecordingSupport.stopRecording(event, true);
-  }
-
-  @ArgumentArray
-  @ExcludeReceiver
-  @HookAnnotated(value = "org.junit.jupiter.api.Test", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void junitJupiter(Event event, Exception exception, Object[] args) {
-    event.setException(exception);
-    recorder.add(event);
-    RecordingSupport.stopRecording(event, false, exception);
+    StackTraceElement ste = exception.getStackTrace()[0];
+    RecordingSupport.stopRecording(new RecordingSupport.TestDetails(event), null, exception.getMessage(),
+        ste.getLineNumber());
   }
 
 }

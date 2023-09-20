@@ -64,3 +64,32 @@ run_petclinic_test() {
 
   assert_json_eq '.classMap[0] | recurse(.children[]?) | select(.type? == "function" and .name? == "info").labels[0]' 'log'
 }
+
+@test "test_status set for successful test" {
+  run ./mvnw \
+    -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
+    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
+    test -Dtest="Junit5Tests#testItPasses"
+  assert_success
+
+  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_Junit5Tests_testItPasses.appmap.json
+  assert_success
+
+  assert_json_eq '.metadata.test_status' 'succeeded'
+}
+
+@test "test_status set for failed test" {
+  run ./mvnw \
+    -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
+    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
+    test -Dtest="Junit5Tests#testItFails"
+  assert_failure
+
+  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_Junit5Tests_testItFails.appmap.json
+  assert_success
+
+  assert_json_eq '.metadata.test_status' 'failed'
+  assert_json_eq '.metadata.test_failure.message' 'expected: <true> but was: <false>'
+  assert_json_eq '.metadata.test_failure.location' 'org/springframework/samples/petclinic/Junit5Tests.java:19'
+}  
+

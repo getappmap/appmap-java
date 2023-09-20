@@ -4,51 +4,87 @@ import static com.appland.appmap.util.StringUtil.canonicalName;
 import static com.appland.appmap.util.StringUtil.decapitalize;
 import static com.appland.appmap.util.StringUtil.identifierToSentence;
 
+import java.util.Objects;
+
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
+import com.appland.appmap.record.Recorder.Metadata;
 import com.appland.appmap.record.Recording;
-import com.appland.appmap.util.Logger;
 
 public class RecordingSupport {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   private static final Recorder recorder = Recorder.getInstance();
 
+  public static class TestDetails {
+    public String definedClass;
+    public boolean isStatic;
+    public String methodId;
+    public String path;
+    public String lineNumber;
+
+    protected TestDetails() {
+    }
+
+    public TestDetails(Event event) {
+      Objects.requireNonNull(event);
+      definedClass = event.definedClass;
+      isStatic = event.isStatic;
+      methodId = event.methodId;
+      path = event.path;
+      lineNumber = String.valueOf(event.lineNumber);
+    }
+  }
+
   public static void startRecording(Event event, String recorderName, String recorderType) {
-    Logger.printf("Recording started for %s\n", canonicalName(event));
+    startRecording(new TestDetails(event), recorderName, recorderType);
+  }
+
+  public static void startRecording(TestDetails details, String recorderName, String recorderType) {
+    logger.debug("Recording started for {}", canonicalName(details.definedClass, details.isStatic, details.methodId));
     try {
       Recorder.Metadata metadata = new Recorder.Metadata(recorderName, recorderType);
-      final String feature = identifierToSentence(event.methodId);
-      final String featureGroup = identifierToSentence(event.definedClass);
+      final String feature = identifierToSentence(details.methodId);
+      final String featureGroup = identifierToSentence(details.definedClass);
       metadata.scenarioName = String.format(
           "%s %s",
           featureGroup,
           decapitalize(feature));
-      metadata.recordedClassName = event.definedClass;
-      metadata.recordedMethodName = event.methodId;
-      metadata.sourceLocation = String.join(":", new String[] { event.path, String.valueOf(event.lineNumber) });
+      metadata.recordedClassName = details.definedClass;
+      metadata.recordedMethodName = details.methodId;
+      metadata.sourceLocation = String.join(":", new String[] { details.path, details.lineNumber });
       recorder.start(metadata);
     } catch (ActiveSessionException e) {
-      Logger.printf("%s\n", e.getMessage());
+      logger.warn(e);
     }
   }
 
   public static void stopRecording(Event event) {
-    RecordingSupport.stopRecording(event, null, null);
+    RecordingSupport.stopRecording(new TestDetails(event), true, null, null);
   }
 
   public static void stopRecording(Event event, boolean succeeded) {
-    RecordingSupport.stopRecording(event, succeeded, null);
+    RecordingSupport.stopRecording(new TestDetails(event), succeeded, null, null);
   }
 
-  public static void stopRecording(Event event, Boolean succeeded, Throwable exception) {
-    Logger.printf("Recording stopped for %s\n", canonicalName(event));
-    String filePath = Recorder.sanitizeFilename(String.join("_", event.definedClass, event.methodId));
+  public static void stopRecording(TestDetails details, Boolean succeeded, String failureMessage,
+      Integer failureLine) {
+    logger.debug("Recording stopped for {}",
+        canonicalName(details.definedClass, details.isStatic, details.methodId));
+    String filePath = Recorder.sanitizeFilename(String.join("_", details.definedClass, details.methodId));
     filePath += ".appmap.json";
+
+    Metadata metadata = recorder.getMetadata();
     if (succeeded != null) {
-      recorder.getMetadata().testSucceeded = succeeded;
+      metadata.testSucceeded = succeeded;
     }
-    if (exception != null) {
-      recorder.getMetadata().exception = exception;
+    if (!succeeded) {
+      metadata.failureMessage = failureMessage;
+      metadata.failureLine = failureLine;
     }
     Recording recording = recorder.stop();
     recording.moveTo(filePath);

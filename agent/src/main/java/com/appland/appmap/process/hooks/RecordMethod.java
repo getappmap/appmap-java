@@ -31,7 +31,9 @@ public class RecordMethod {
   public static void record(Event event, Exception exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
-    RecordingSupport.stopRecording(event, null, exception);
+    StackTraceElement ste = exception.getStackTrace()[0];
+    RecordingSupport.stopRecording(new RecordingSupport.TestDetails(event), null, exception.getMessage(),
+        ste.getLineNumber());
   }
 
 }

@@ -73,7 +73,8 @@ public class Recorder {
     public String recordedMethodName;
     public String sourceLocation;
     public Boolean testSucceeded;
-    public Throwable exception;
+    public String failureMessage;
+    public Integer failureLine; // line where failure occurred in sourceLocation
 
     public Metadata(String recorderName, String recorderType) {
       this.recorderName = recorderName;

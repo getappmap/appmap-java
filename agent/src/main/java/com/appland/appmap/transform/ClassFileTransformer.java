@@ -21,6 +21,7 @@ import org.reflections.util.FilterBuilder;
 import org.tinylog.TaggedLogger;
 
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.NoSourceAvailableException;
 import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
