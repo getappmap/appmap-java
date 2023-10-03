@@ -88,7 +88,7 @@ public class Recorder {
     private RecordingSession globalSession = null;
 
     // Only events for a specific thread will get added to the thread session
-    private ThreadLocal<RecordingSession> threadSession = new ThreadLocal<RecordingSession>();
+    private static final ThreadLocal<RecordingSession> threadSession = new ThreadLocal<RecordingSession>();
 
     synchronized RecordingSession get() throws ActiveSessionException {
       if (globalSession == null) {
