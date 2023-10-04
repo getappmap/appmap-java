@@ -7,8 +7,6 @@ import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-import org.tinylog.TaggedLogger;
-
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
@@ -48,8 +46,6 @@ class ThreadState {
  * active session. It also maintains a code object tree containing every known package/class/method.
  */
 public class Recorder {
-  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
-
   private static final String ERROR_SESSION_PRESENT = "an active recording session already exists";
   private static final String ERROR_NO_SESSION = "there is no active recording session";
 
@@ -77,7 +73,8 @@ public class Recorder {
     public String recordedMethodName;
     public String sourceLocation;
     public Boolean testSucceeded;
-    public Throwable exception;
+    public String failureMessage;
+    public Integer failureLine; // line where failure occurred in sourceLocation
 
     public Metadata(String recorderName, String recorderType) {
       this.recorderName = recorderName;
@@ -92,7 +89,7 @@ public class Recorder {
     private RecordingSession globalSession = null;
 
     // Only events for a specific thread will get added to the thread session
-    private ThreadLocal<RecordingSession> threadSession = new ThreadLocal<RecordingSession>();
+    private static final ThreadLocal<RecordingSession> threadSession = new ThreadLocal<RecordingSession>();
 
     synchronized RecordingSession get() throws ActiveSessionException {
       if (globalSession == null) {

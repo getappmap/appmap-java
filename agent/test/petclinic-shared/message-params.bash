@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-_setup_params() {
-  local webDir="${FIXTURE_DIR}/src/main/java/org/springframework/samples/petclinic/web"
-  mkdir -p "${webDir}"
-  cp src/test/fixture/petclinic/ShowAvailable.java "${webDir}/."
-}
 
 _test_form_data_is_recorded_as_message_parameters() {
   start_recording

@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -15,12 +14,10 @@ import org.junit.jupiter.api.Test;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookClass;
-import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
 
 public class AnnotationBuilderTest {
   @BeforeEach
   void initialize() throws Exception {
-    FileSystem fs = MemoryFileSystemBuilder.newEmpty().build();
     AppMapConfig.initialize(FileSystems.getDefault());
   }
 

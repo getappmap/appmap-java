@@ -60,13 +60,14 @@ public class Spark {
     }
 
     static Object build(Object handler) {
+      ClassLoader cl = handler.getClass().getClassLoader();
       try {
-        Object wrapper = safeClassForName("org.eclipse.jetty.server.handler.HandlerWrapper")
+        Object wrapper = safeClassForName(cl, "org.eclipse.jetty.server.handler.HandlerWrapper")
             .getConstructor()
             .newInstance();
         new HandlerWrapper(wrapper)
             .setHandler(handler);
-        return DynamicReflectiveType.build(new Handler(wrapper), "org.eclipse.jetty.server.Handler");
+        return DynamicReflectiveType.build(new Handler(wrapper), cl, "org.eclipse.jetty.server.Handler");
       } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
           | InvocationTargetException | NoSuchMethodException | SecurityException e) {
         // Should never happen
@@ -84,7 +85,7 @@ public class Spark {
         HttpServletResponse resp = new HttpServletResponse(args[3]);
 
         String requestURI = req.getRequestURI();
-        logger.trace(new Exception(), "handling {}", requestURI);
+        logger.trace("handling {}", requestURI);
         if (requestURI.equals("/_appmap/record")) {
           if (RemoteRecordingManager.service(new ServletRequest(req, resp))) {
             jettyReq.setHandled(true);

@@ -2,9 +2,14 @@ package com.appland.appmap;
 
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
+import java.net.URL;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.jar.JarFile;
 
 import org.tinylog.TaggedLogger;
 import org.tinylog.provider.ProviderRegistry;
@@ -15,8 +20,6 @@ import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recorder.Metadata;
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.transform.ClassFileTransformer;
-
-import javassist.ClassPool;
 
 /**
  * Agent is a JVM agent which instruments, records, and prints appmap files
@@ -42,9 +45,22 @@ public class Agent {
     logger.debug("System properties: {}", System.getProperties());
     logger.debug(new Exception(), "whereAmI");
 
-    logger.trace("Agent.class class loader: {}", Agent.class.getClassLoader());
-    logger.trace("ClassPool.getDefault(): {}", ClassPool.getDefault());
-
+    URL jarURL = Agent.class.getProtectionDomain().getCodeSource().getLocation();
+    Path agentJar = Paths.get(jarURL.getPath());
+    // During testing of the agent itself, classes get loaded from a directory.
+    // The rest of the time (i.e. when it's actually deployed), they'll always
+    // come from a jar file.
+    JarFile jarFile = null;
+    if (!Files.isDirectory(agentJar)) {
+      try {
+        jarFile = new JarFile(Paths.get(jarURL.getPath()).toFile());
+        inst.appendToSystemClassLoaderSearch(jarFile);
+      } catch (IOException e) {
+        System.err.println("Failed to load the agent jar");
+        e.printStackTrace();
+        System.exit(1);
+      }
+    }
     inst.addTransformer(new ClassFileTransformer());
 
     try {

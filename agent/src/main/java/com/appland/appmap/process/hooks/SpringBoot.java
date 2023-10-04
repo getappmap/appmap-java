@@ -1,8 +1,6 @@
 package com.appland.appmap.process.hooks;
 
-import static com.appland.appmap.util.ClassUtil.safeClassForName;
-
-import java.util.EnumSet;
+import static com.appland.appmap.util.ClassUtil.safeClassForNames;
 
 import org.tinylog.TaggedLogger;
 
@@ -14,9 +12,9 @@ import com.appland.appmap.process.hooks.http.ServletListener;
 import com.appland.appmap.process.hooks.remoterecording.RemoteRecordingFilter;
 import com.appland.appmap.reflect.ReflectiveType;
 import com.appland.appmap.transform.annotations.ArgumentArray;
-import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookClass;
 import com.appland.appmap.transform.annotations.MethodEvent;
+import com.appland.appmap.util.ClassUtil;
 public class SpringBoot {
   private static final String SERVLET_CONTEXT_INITIALIZED = "com.appland.appmap.ServletContextInitialized";
   private static final String LISTENER_BEAN = "appmap.listener";
@@ -66,7 +64,7 @@ public class SpringBoot {
   @HookClass(value = "org.springframework.boot.SpringApplication", methodEvent = MethodEvent.METHOD_RETURN)
   public static void applyInitializers(Event event, Object receiver, Object ret, Object[] args) {
     ApplicationContext appCtx = new ApplicationContext(args[0]);
-    logger.trace(new Exception(), "ctx: {}", appCtx);
+    logger.trace("ctx: {}", appCtx);
     ServletContext servletCtx = appCtx.getServletContext();
     if (servletCtx != null) {
       Object initializedAttr = servletCtx.getAttribute(SERVLET_CONTEXT_INITIALIZED);
@@ -78,8 +76,9 @@ public class SpringBoot {
 
     ConfigurableListableBeanFactory beanFactory = appCtx.getBeanFactory();
     if (beanFactory.getSingleton(LISTENER_BEAN) == null) {
-      Object remoteRecordingFilter = RemoteRecordingFilter.build();
-      Object servletListener = ServletListener.build();
+      ClassLoader cl = receiver.getClass().getClassLoader();
+      Object remoteRecordingFilter = RemoteRecordingFilter.build(cl);
+      Object servletListener = ServletListener.build(cl);
 
       if (remoteRecordingFilter != null && servletListener != null) {
         beanFactory.registerSingleton(LISTENER_BEAN + ".remoteRecordingFilter", remoteRecordingFilter);
@@ -100,45 +99,29 @@ public class SpringBoot {
   }
 
   @ArgumentArray
-  @ExcludeReceiver
   @HookClass(value = "org.springframework.web.SpringServletContainerInitializer")
-  public static void onStartup(Event event, Object[] args) {
+  public static void onStartup(Event event, Object receiver, Object[] args) {
+    ClassLoader cl = receiver.getClass().getClassLoader();
     ServletContext ctx = new ServletContext(args[1]);
-    logger.trace(new Exception(), "ctx: {}", ctx);
+    logger.trace("ctx: {}", ctx);
 
     if (Properties.RecordingRequests) {
       logger.trace("adding listener to sevlet context");
-      ctx.addListener(ServletListener.build());
+      ctx.addListener(ServletListener.build(cl));
     } else {
       logger.debug("request recording disabled");
     }
 
     ServletContext.FilterRegistration fr = ctx.addFilter("com.appland.appmap.RemoteRecordingFilter",
-        RemoteRecordingFilter.build());
-    fr.addMappingForUrlPatterns(requestEnumSet(), true, "/_appmap/record");
+        RemoteRecordingFilter.build(cl));
+    fr.addMappingForUrlPatterns(
+        ClassUtil.enumSetOf(
+            safeClassForNames(cl, "javax.servlet.DispatcherType", "jakarta.servlet.DispatcherType")
+                .asSubclass(Enum.class),
+            "REQUEST"),
+        true, "/_appmap/record");
 
     ctx.setAttribute(SERVLET_CONTEXT_INITIALIZED, Boolean.TRUE);
-  }
-
-    @SuppressWarnings("unchecked")
-    private static EnumSet<?> requestEnumSet() {
-      Class<?> dispatcherType;
-
-      if ((dispatcherType = safeClassForName("javax.servlet.DispatcherType")) == null
-          && (dispatcherType = safeClassForName("jakarta.servlet.DispatcherType")) == null) {
-        throw new InternalError("no DispatcherType class");
-      }
-
-      return requestEnumSet(dispatcherType.asSubclass(Enum.class));
-    }
-
-    private static <E extends Enum<E>> EnumSet<E> requestEnumSet(Class<E> enumClass) {
-      try {
-        E requestValue = Enum.valueOf(enumClass, "REQUEST");
-        return EnumSet.of(requestValue);
-      } catch (IllegalArgumentException e) {
-        throw new InternalError("failed to fetch DispatcherType.REQUEST", e);
-      }
   }
 
 }

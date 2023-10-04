@@ -20,8 +20,8 @@ public class ServletListener implements InvocationHandler {
   private ServletListener() {
   }
 
-  public static Object build() {
-    return DynamicReflectiveType.build(new ServletListener(), "javax.servlet.ServletRequestListener",
+  public static Object build(ClassLoader cl) {
+    return DynamicReflectiveType.build(new ServletListener(), cl, "javax.servlet.ServletRequestListener",
         "jakarta.servlet.ServletRequestListener");
   }
 

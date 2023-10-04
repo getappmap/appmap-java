@@ -1,3 +1,9 @@
+load '../../build/bats/bats-support/load'
+load '../../build/bats/bats-assert/load'
+load '../helper'
+load '../petclinic-shared/shared-setup.bash'
+
+
 setup_file() {
   mkdir -p test/petclinic/classes
   javac -d test/petclinic/classes test/petclinic/Props.java
@@ -7,18 +13,18 @@ setup_file() {
   # PetClinicIntegrationTests. The tests here need to support both, so use a
   # pattern that matches them.
   export TEST_NAME="Pet?linicIntegrationTests"
+  export FIXTURE_DIR="build/fixtures/spring-petclinic"
+  _shared_setup
+
 }
 
 setup() {
   # bats doc says you'll get better error messages if you load helper scripts in
   # setup. (Note that loading them # in setup_file doesn't work.)
-  load '../../build/bats/bats-support/load'
-  load '../../build/bats/bats-assert/load'
-  load '../helper'
   export AGENT_JAR="$(find_agent_jar)"
 
-
   cd build/fixtures/spring-petclinic
+  rm -rf tmp/appmap
 }
 
 
@@ -58,3 +64,32 @@ run_petclinic_test() {
 
   assert_json_eq '.classMap[0] | recurse(.children[]?) | select(.type? == "function" and .name? == "info").labels[0]' 'log'
 }
+
+@test "test_status set for successful test" {
+  run ./mvnw \
+    -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
+    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
+    test -Dtest="Junit5Tests#testItPasses"
+  assert_success
+
+  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_Junit5Tests_testItPasses.appmap.json
+  assert_success
+
+  assert_json_eq '.metadata.test_status' 'succeeded'
+}
+
+@test "test_status set for failed test" {
+  run ./mvnw \
+    -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
+    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
+    test -Dtest="Junit5Tests#testItFails"
+  assert_failure
+
+  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_Junit5Tests_testItFails.appmap.json
+  assert_success
+
+  assert_json_eq '.metadata.test_status' 'failed'
+  assert_json_eq '.metadata.test_failure.message' 'expected: <true> but was: <false>'
+  assert_json_eq '.metadata.test_failure.location' 'org/springframework/samples/petclinic/Junit5Tests.java:19'
+}  
+

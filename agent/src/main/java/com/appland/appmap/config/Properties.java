@@ -8,40 +8,30 @@ import com.appland.appmap.util.Logger;
 
 public class Properties {
   public static final String APPMAP_OUTPUT_DIRECTORY_KEY = "appmap.output.directory";
-  public static final Boolean Debug = (System.getProperty("appmap.debug") != null);
+
+  public static final Boolean Debug = resolveProperty("appmap.debug", false);
   public static final Boolean DebugHooks = Debug || (System.getProperty("appmap.debug.hooks") != null);
   public static final Boolean DebugLocals = (System.getProperty("appmap.debug.locals") != null);
   public static final Boolean DebugHttp = Debug || System.getProperty("appmap.debug.http") != null;
   public static final String DebugFile = resolveProperty("appmap.debug.file", (String)null);
+  public static final String DebugClassPrefix = resolveProperty("appmap.debug.classPrefix", (String) null);
 
-  public static final Boolean RecordingAuto = resolveProperty(
-      "appmap.recording.auto", Boolean::valueOf, false);
-  public static final String RecordingName = resolveProperty(
-      "appmap.recording.name", (String)null);
-  public static final String RecordingFile = resolveProperty(
-      "appmap.recording.file", (String)null);
-  public static final Boolean RecordingRemote = resolveProperty(
-      "appmap.recording.remote", Boolean::valueOf, true);
-  public static final Boolean RecordingRequests = resolveProperty(
-      "appmap.recording.requests", Boolean::valueOf, true);
+  public static final Boolean RecordingAuto = resolveProperty("appmap.recording.auto", false);
+  public static final String RecordingName = resolveProperty("appmap.recording.name", (String) null);
+  public static final String RecordingFile = resolveProperty("appmap.recording.file", (String) null);
+  public static final Boolean RecordingRemote = resolveProperty("appmap.recording.remote", true);
+  public static final Boolean RecordingRequests = resolveProperty("appmap.recording.requests", true);
 
-  static Path OutputDirectory;
 
   public static final String DefaultConfigFile = "appmap.yml";
-  public static final String ConfigFile = resolveProperty(
-      "appmap.config.file", (String) null);
+  public static final String ConfigFile = resolveProperty("appmap.config.file", (String) null);
 
-  public static final Integer DefaultMaxValueSize = 1024;
-  public static final Integer MaxValueSize = resolveProperty(
-      "appmap.event.valueSize", Integer::valueOf, DefaultMaxValueSize);
+  public static final Integer MaxValueSize = resolveProperty("appmap.event.valueSize", 1024);
 
-  public static final String[] DefaultRecords = new String[0];
-  public static final String[] Records = resolveProperty(
-      "appmap.record", DefaultRecords);
+  public static final String[] Records = resolveProperty("appmap.record", new String[0]);
+  public static final Boolean RecordPrivate = resolveProperty("appmap.record.private", false);
 
-  public static final Boolean RecordPrivate = resolveProperty(
-      "appmap.record.private", Boolean::valueOf, false);
-
+  static Path OutputDirectory;
   private static String resolveProperty(String propName, String defaultValue) {
     String value = defaultValue;
     try {
@@ -64,6 +54,13 @@ public class Properties {
     return OutputDirectory;
   }
 
+  private static Boolean resolveProperty(String propName, Boolean defaultValue) {
+    return resolveProperty(propName, Boolean::valueOf, defaultValue);
+  }
+
+  private static Integer resolveProperty(String propName, Integer defaultValue) {
+    return resolveProperty(propName, Integer::valueOf, defaultValue);
+  }
   private static <T> T resolveProperty(String propName,
                                        Function<String, T> resolvingFunc,
                                        T defaultValue) {

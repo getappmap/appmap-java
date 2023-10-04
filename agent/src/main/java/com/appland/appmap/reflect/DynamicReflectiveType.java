@@ -42,8 +42,7 @@ public class DynamicReflectiveType {
     }
   }
 
-  public static Object build(InvocationHandler handler, String... interfaceNames) {
-    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+  public static Object build(InvocationHandler handler, ClassLoader cl, String... interfaceNames) {
     ArrayList<Class<?>> interfaces = new ArrayList<Class<?>>();
     for (String interfaceName : interfaceNames) {
       Class<?> cls;
@@ -53,7 +52,7 @@ public class DynamicReflectiveType {
     }
 
     if (interfaces.size() == 0) {
-      logger.warn("None of {} found", String.join(",", interfaceNames));
+      logger.debug("None of {} found", () -> String.join(",", interfaceNames));
       return null;
     }
 

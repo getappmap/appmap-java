@@ -192,14 +192,14 @@ public class AppMapSerializer {
         this.json.writeKey("test_status");
         this.json.writeValue(metadata.testSucceeded ? "succeeded" : "failed");
       }
-      if ( metadata.exception != null ) {
-        this.json.writeKey("exception");
+      if (metadata.failureMessage != null) {
+        this.json.writeKey("test_failure");
         this.json.startObject();
-        {
-          this.json.writeKey("class");
-          this.json.writeValue(metadata.exception.getClass().getName());
-          this.json.writeKey("message");
-          this.json.writeValue(metadata.exception.getMessage());
+        this.json.writeKey("message");
+        this.json.writeValue(metadata.failureMessage);
+        if (metadata.sourceLocation != null && metadata.failureLine != null) {
+          this.json.writeKey("location");
+          this.json.writeValue(String.format("%s:%d", metadata.sourceLocation.split(":")[0], metadata.failureLine));
         }
         this.json.endObject();
       }

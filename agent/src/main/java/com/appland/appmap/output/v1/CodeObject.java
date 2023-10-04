@@ -227,6 +227,8 @@ public class CodeObject {
 
   /**
    * Guesses the source file path for the given class.
+   * TODO: improve this (somehow) so it takes into account src/main/java
+   * 
    * @param classType A declared class
    * @return An estimated source file path
    */

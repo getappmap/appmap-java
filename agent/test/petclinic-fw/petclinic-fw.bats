@@ -4,12 +4,13 @@ load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
 
+load '../petclinic-shared/shared-setup.bash'
 load '../petclinic-shared/static-resources.bash'
 load '../petclinic-shared/message-params.bash'
 
 setup_file() {
   export FIXTURE_DIR=build/fixtures/spring-framework-petclinic
-  _setup_params
+  _shared_setup
 
   start_petclinic_fw >&3
 }

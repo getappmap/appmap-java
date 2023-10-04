@@ -1,22 +1,31 @@
 package com.appland.appmap.config;
 
+import static com.appland.appmap.util.ClassUtil.safeClassForName;
+
 import java.util.regex.Pattern;
 
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.transform.annotations.CtClassUtil;
 import com.appland.appmap.util.FullyQualifiedName;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class AppMapPackage {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+  private static String tracePrefix = Properties.DebugClassPrefix;
+
   public String path;
   public String[] exclude = new String[] {};
   public boolean shallow = false;
   public Boolean allMethods = true;
 
   public static class LabelConfig {
+
     private Pattern className = null;
     private Pattern name = null;
 
     private String[] labels = new String[] {};
+    private Class<?> cls;
 
     public LabelConfig() {}
 
@@ -24,6 +33,8 @@ public class AppMapPackage {
     public LabelConfig(@JsonProperty("class") String className, @JsonProperty("name") String name,
         @JsonProperty("labels") String[] labels) {
       this.className = Pattern.compile("\\A(" + className + ")\\z");
+      this.cls = safeClassForName(Thread.currentThread().getContextClassLoader(), className);
+      logger.trace("this.cls: {}", this.cls);
       this.name = Pattern.compile("\\A(" + name + ")\\z");
       this.labels = labels;
     }
@@ -37,6 +48,14 @@ public class AppMapPackage {
     }
 
     public boolean matches(String className, String methodName) {
+      boolean traceClass = logger.isTraceEnabled()
+          && (tracePrefix == null || className.startsWith(tracePrefix));
+      Class<?> cls = safeClassForName(Thread.currentThread().getContextClassLoader(), className);
+
+      if (traceClass) {
+        logger.trace("this.cls: {} cls: {}, isChildOf?: {}", this.cls, cls, CtClassUtil.isChildOf(cls, this.cls));
+      }
+
       return this.className.matcher(className).matches() && this.name.matcher(methodName).matches();
     }
 
@@ -52,6 +71,13 @@ public class AppMapPackage {
    *         is not included or otherwise explicitly excluded.
    */
   public LabelConfig find(FullyQualifiedName canonicalName) {
+    String className = canonicalName != null ? canonicalName.getClassName() : null;
+    boolean traceClass = logger.isTraceEnabled()
+        && (tracePrefix == null || className.startsWith(tracePrefix));
+    if (traceClass) {
+      logger.trace(canonicalName);
+    }
+
     if (this.path == null) {
       return null;
     }
