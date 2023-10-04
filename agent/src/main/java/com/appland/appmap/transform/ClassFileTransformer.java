@@ -45,7 +45,7 @@ import javassist.bytecode.Descriptor;
  */
 public class ClassFileTransformer implements java.lang.instrument.ClassFileTransformer {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
-
+  private static String tracePrefix = Properties.DebugClassPrefix;
   private static final List<Hook> unkeyedHooks = new ArrayList<>();
   private static final Map<String, List<Hook>> keyedHooks = new HashMap<>();
 
@@ -102,12 +102,22 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
   }
 
   private void processClass(CtClass ctClass) {
-    logger.trace(() -> ctClass.getName());
+    boolean traceClass = logger.isTraceEnabled()
+        && (tracePrefix == null || ctClass.getName().startsWith(tracePrefix));
+
+    if (traceClass) {
+      logger.trace(() -> ctClass.getName());
+    }
+
     for (CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
-      logger.trace(() -> behavior.getLongName());
+      if (traceClass) {
+        logger.trace(() -> behavior.getLongName());
+      }
       Hook hook = Hook.from(behavior);
       if (hook == null) {
-        logger.trace("{}, no hooks", () -> behavior.getLongName());
+        if (traceClass) {
+          logger.trace("{}, no hooks", () -> behavior.getLongName());
+        }
         continue;
       }
 
@@ -122,11 +132,16 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       this.addHook(hook);
 
-      logger.trace("registered hook {}", hook);
+      if (traceClass) {
+        logger.trace("registered hook {}", hook);
+      }
     }
   }
 
   private boolean applyHooks(CtBehavior behavior) {
+    boolean traceClass = logger.isTraceEnabled()
+        && (tracePrefix == null || behavior.getDeclaringClass().getName().startsWith(tracePrefix));
+
     try {
       final List<HookSite> hookSites = this.getHooks(behavior.getName())
           .stream()
@@ -135,7 +150,9 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           .collect(Collectors.toList());
 
       if (hookSites.size() < 1) {
-        logger.trace("no hook sites");
+        if (traceClass) {
+          logger.trace("no hook sites");
+        }
         return false;
       }
 
@@ -144,13 +161,20 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       if (logger.isDebugEnabled()) {
         for (HookSite hookSite : hookSites) {
           final Hook hook = hookSite.getHook();
-          logger.debug("hooked {}.{}{} on ({},{}) with {}",
-              behavior.getDeclaringClass().getName(),
-              behavior.getName(),
-              behavior.getMethodInfo().getDescriptor(),
-              hook.getMethodEvent().getEventString(),
-              hook.getPosition(),
-              hook);
+          String className = behavior.getDeclaringClass().getName();
+          if (tracePrefix != null && !className.startsWith(tracePrefix)) {
+            continue;
+          }
+
+          if (traceClass) {
+            logger.debug("hooked {}.{}{} on ({},{}) with {}",
+                className,
+                behavior.getName(),
+                behavior.getMethodInfo().getDescriptor(),
+                hook.getMethodEvent().getEventString(),
+                hook.getPosition(),
+                hook);
+          }
         }
       }
       return true;
@@ -172,9 +196,15 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     className = className.replaceAll("/", ".");
     logger.trace("className: {}", className);
     ClassPool classPool = new ClassPool();
+
+      boolean traceClass = logger.isTraceEnabled()
+          && (tracePrefix == null || className.startsWith(tracePrefix));
+
+      if (traceClass) {
+        logger.trace("className: {}, classPool: {}", className, classPool);
+      }
     classPool.appendClassPath(new LoaderClassPath(loader));
 
-    try {
       CtClass ctClass;
       try {
         ctClass = classPool.makeClass(new ByteArrayInputStream(bytes));
@@ -188,20 +218,26 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         // ctClass.defrost();
         //
         // For now, just skip this class
-        logger.debug(e, "Skipping class {}, failed making a new one");
+        logger.warn(e, "makeClass failed");
         return null;
       }
 
       if (ctClass.isInterface()) {
-        logger.trace("{} is an interface", className);
+        if (traceClass) {
+          logger.trace("{} is an interface", className);
+        }
         return null;
       }
 
       boolean hookApplied = false;
       for (CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
-        logger.trace("behavior: {} ", behavior.getLongName());
+        if (traceClass) {
+          logger.trace("behavior: {} ", behavior.getLongName());
+        }
         if (ignoreMethod(behavior)) {
-          logger.trace("ignored");
+          if (traceClass) {
+            logger.trace("ignored");
+          }
           continue;
         }
 
@@ -211,13 +247,18 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       }
 
       if (hookApplied) {
-        logger.trace("hook(s) applied to {}", className);
+        if (traceClass) {
+          logger.trace("hook(s) applied to {}", className);
+        }
+
         return ctClass.toBytecode();
       }
 
-      logger.trace("no hooks applied to {}", className);
     } catch (Exception e) {
       // Don't allow this exception to propagate out of this method, because it will be swallowed
+      if (traceClass) {
+        logger.trace("no hooks applied to {}", className);
+      }
       // by sun.instrument.TransformerManager.
       logger.warn(e, "An error occurred transforming class {}");
     }

@@ -85,7 +85,7 @@ public class Spark {
         HttpServletResponse resp = new HttpServletResponse(args[3]);
 
         String requestURI = req.getRequestURI();
-        logger.trace(new Exception(), "handling {}", requestURI);
+        logger.trace("handling {}", requestURI);
         if (requestURI.equals("/_appmap/record")) {
           if (RemoteRecordingManager.service(new ServletRequest(req, resp))) {
             jettyReq.setHandled(true);

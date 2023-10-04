@@ -27,6 +27,10 @@ public class FullyQualifiedName {
     this(fqn.packageName, fqn.className, fqn.isStatic, fqn.methodName);
   }
 
+  public String getClassName() {
+    return packageName + "." + className;
+  }
+
   public String methodSpec() {
     // This intentionally omits packageName
     return StringUtil.canonicalName(className, isStatic, methodName);
