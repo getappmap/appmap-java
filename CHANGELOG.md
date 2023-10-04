@@ -1,3 +1,19 @@
+# [1.22.0](https://github.com/getappmap/appmap-java/compare/v1.21.0...v1.22.0) (2023-10-04)
+
+
+### Bug Fixes
+
+* add the agent jar to the classpath ([0e84af4](https://github.com/getappmap/appmap-java/commit/0e84af4fdda6ec1e6227d99660ade68b47119294))
+* avoid Gradle class filtering ([f3c2f57](https://github.com/getappmap/appmap-java/commit/f3c2f57a162f618cb3f08bb9f5436b73b88af677))
+* avoid NPE for anonymous classes ([aa250cd](https://github.com/getappmap/appmap-java/commit/aa250cd26e85da8d78df9ee3835dd7193bcfa132))
+* have safeClassForName require a ClassLoader ([f26eabe](https://github.com/getappmap/appmap-java/commit/f26eabedf423ecd4ce8c097d856654798cf49a5a))
+* make ActiveSession.threadSession static ([86be0b7](https://github.com/getappmap/appmap-java/commit/86be0b7ecaac75bdf9452762f7acc599a09ac7d5))
+
+
+### Features
+
+* set test_status, test_failure for JUnit 5 ([aee1156](https://github.com/getappmap/appmap-java/commit/aee115677e4a74b19331179be89d5cf7d384eea8))
+
 # [1.21.0](https://github.com/getappmap/appmap-java/compare/v1.20.3...v1.21.0) (2023-09-12)
 
 
