@@ -193,9 +193,16 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           ProtectionDomain domain,
       byte[] bytes) throws IllegalClassFormatException {
 
-    className = className.replaceAll("/", ".");
     logger.trace("className: {}", className);
     ClassPool classPool = new ClassPool();
+    try {
+      // Anonymous classes created by sun.misc.Unsafe.defineAnonymousClass don't
+      // have names.
+      if (className == null) {
+        return null;
+      }
+
+      className = className.replaceAll("/", ".");
 
       boolean traceClass = logger.isTraceEnabled()
           && (tracePrefix == null || className.startsWith(tracePrefix));
@@ -254,13 +261,14 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         return ctClass.toBytecode();
       }
 
-    } catch (Exception e) {
-      // Don't allow this exception to propagate out of this method, because it will be swallowed
       if (traceClass) {
         logger.trace("no hooks applied to {}", className);
       }
+    } catch (Throwable t) {
+      // Don't allow this exception to propagate out of this method, because it will
+      // be swallowed
       // by sun.instrument.TransformerManager.
-      logger.warn(e, "An error occurred transforming class {}");
+      logger.warn(t);
     }
 
     return null;
