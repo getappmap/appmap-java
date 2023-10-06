@@ -11,6 +11,7 @@ _test_requests_for_nonstatic_resources_are_recorded_by_default() {
 
   output="$(<${output})"
   assert_json_eq '.events[] | .http_server_request | .path_info' '/owners/1/pets/1/edit' 
+  assert_json_eq '.metadata.recorder.type' 'requests'
 }
 
 _test_request_for_static_resources_dont_generate_recordings() {

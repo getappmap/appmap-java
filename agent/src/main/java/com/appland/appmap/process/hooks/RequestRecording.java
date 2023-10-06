@@ -28,7 +28,7 @@ public class RequestRecording {
       return;
     }
 
-    Recorder.Metadata metadata = new Recorder.Metadata("request_recording", "request");
+    Recorder.Metadata metadata = new Recorder.Metadata("request_recording", "requests");
 
     RecordingSession recordingSession = new RecordingSession(metadata);
 
