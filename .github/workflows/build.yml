@@ -1,0 +1,36 @@
+name: Build
+on:
+    pull_request:
+    schedule:
+        - cron: "0 0 * * 0"
+
+jobs:
+    test:
+        strategy:
+          fail-fast: false
+          matrix:
+            os: [ ubuntu-latest, windows-latest, macos-latest ]
+
+        name: Test ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
+        timeout-minutes: 45
+        steps:
+            - name: Fetch Sources
+              uses: actions/checkout@v4
+
+            - name: Gradle Wrapper Validation
+              uses: gradle/wrapper-validation-action@v1
+
+            - name: Setup Java
+              uses: actions/setup-java@v3
+              with:
+                  distribution: temurin
+                  java-version: 17
+
+            - name: Install Bash on macOS
+              if: runner.os == 'macOS'
+              run: brew install bash
+
+            - name: Run Tests
+              shell: bash
+              run: bash --version && ./gradlew -i check integrationTest && bin/test
