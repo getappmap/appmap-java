@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/getappmap/appmap-java/compare/v1.22.0...v1.22.1) (2023-10-06)
+
+
+### Bug Fixes
+
+* set request recording type correctly ([b50bc06](https://github.com/getappmap/appmap-java/commit/b50bc068ff73af8af587c8235020f615ef7e47f0))
+
 # [1.22.0](https://github.com/getappmap/appmap-java/compare/v1.21.0...v1.22.0) (2023-10-04)
 
 
