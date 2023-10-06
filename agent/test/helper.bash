@@ -2,6 +2,8 @@
 #
 # Helper methods for tests
 
+export JAVA_PATH_SEPARATOR="$(java -XshowSettings:properties 2>&1 | awk '/path.separator/ {printf("%s", $3)}')"
+
 _curl() {
   curl -sfH 'Accept: application/json,*/*' "${@}"
 }
@@ -15,7 +17,9 @@ start_recording() {
 }
 
 stop_recording() {
-  output="$(_curl -sXDELETE ${WS_URL}/_appmap/record | tee /dev/stderr)"
+  local out="${1:-$BATS_TEST_TMPDIR/stop_recording_output}"
+  _curl -sXDELETE -o "$out" "${WS_URL}/_appmap/record" || true
+  [ -f $out ] && output="$(< $out)" || true
 }
 
 teardown() {
@@ -83,7 +87,7 @@ assert_json_not_contains() {
 }
 
 find_agent_jar() {
-  echo "$PWD/build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')"
+  echo "$(git rev-parse --show-toplevel)/agent/build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')"
 }
 
 check_ws_running() {
@@ -144,17 +148,17 @@ start_petclinic() {
 }
 
 start_petclinic_fw() {
-  export LOG_DIR=$PWD/build/log
+  WD="$(git rev-parse --show-toplevel)/agent"
+  export LOG_DIR="$WD/build/log"
   mkdir -p ${LOG_DIR}
 
-  export LOG=$PWD/build/fixtures/spring-framework-petclinic/petclinic.log
+  export LOG="$WD/build/fixtures/spring-framework-petclinic/petclinic.log"
   export WS_SCHEME="http" WS_HOST="localhost" WS_PORT="8080"
   export WS_URL="${WS_SCHEME}://${WS_HOST}:${WS_PORT}"
 
   check_ws_running
 
   printf '  starting PetClinic (framework)\n'
-  WD=$PWD
   AGENT_JAR="$(find_agent_jar)"
 
   pushd build/fixtures/spring-framework-petclinic >/dev/null
@@ -164,10 +168,13 @@ start_petclinic_fw() {
   local mvn_pid=$!
   popd >/dev/null
 
-  while ! pgrep -P $mvn_pid; do
+  while ! ps -p $mvn_pid >/dev/null; do
     sleep 1
   done
-  export JVM_PID=$(pgrep -P $mvn_pid)
+  # Final check, this will fail if the server didn't start
+  ps -p $mvn_pid >/dev/null
+
+  export JVM_PID=$(ps -p $mvn_pid | awk 'END {print $1}')
 
   wait_for_ws
 }

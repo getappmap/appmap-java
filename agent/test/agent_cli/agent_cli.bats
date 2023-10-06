@@ -48,7 +48,5 @@ appmap_jar=build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')
   # Sanity check a couple of the config schema properties
   assert_json_eq '.schema.type' 'object'
   assert_json_eq '.schema.additionalProperties' 'true'
-  assert_json_eq '.schema.required' '[
-  "name"
-]'
+  assert_json_eq '.schema.required | join(",")' 'name'
 }

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -e
+
+mkdir -p ~/.gradle
+echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties

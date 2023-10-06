@@ -1,13 +1,11 @@
 package com.appland.appmap.record;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeThat;
+import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemErr;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 
@@ -32,11 +30,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.SystemErrRule;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import com.alibaba.fastjson.JSON;
 import com.appland.appmap.config.AppMapConfig;
@@ -44,10 +43,7 @@ import com.appland.appmap.output.v1.Event;
 
 public class RecorderTest {
 
-  @Rule
-  public final SystemErrRule systemErrRule = new SystemErrRule().enableLog();
-
-  @Before
+  @BeforeEach
   public void before() throws Exception {
     AppMapConfig.initialize(FileSystems.getDefault());
 
@@ -57,7 +53,7 @@ public class RecorderTest {
     Recorder.getInstance().start(metadata);
   }
 
-  @After
+  @AfterEach
   public void after() throws Exception {
     if ( Recorder.getInstance().hasActiveSession()) {
       Recorder.getInstance().stop();
@@ -103,6 +99,7 @@ public class RecorderTest {
   }
 
   @Test
+  @DisabledOnOs(OS.WINDOWS)
   public void testUnwriteableOutputFile() throws IOException {
     Recorder recorder = recordEvents();
     final Recording recording = recorder.stop();
@@ -117,44 +114,41 @@ public class RecorderTest {
   }
 
   @Test
+  @EnabledOnOs(OS.LINUX)
   // for Files.move when: REPLACE_EXISTING, ATOMIC_MOVE
-  public void testWriteFileAcrossFilesystems() throws IOException {
-    //  /dev/shm exists only on Linux
-    assumeThat(System.getProperty("os.name"), is("Linux"));
-    systemErrRule.clearLog();
+  public void testWriteFileAcrossFilesystems() throws Exception {
+    // /dev/shm exists only on Linux
     String sourceFilename = "/tmp/recordertest_file";
     String targetFilename = "/dev/shm/recordertest_file";
     File sourceFile = new File(sourceFilename);
     File targetFile = new File(targetFilename);
-    Exception exception = null;
     // if the file exists createNewFile returns false
     sourceFile.createNewFile();
 
+    String actualErr = tapSystemErr(() -> {
     // Copying a file across filesystems should not throw an exception.
     final Recording recording = new Recording("recorderName", sourceFile);
     try {
       recording.moveTo(targetFilename);
-    } catch (RuntimeException e) {
-      exception = e;
-      System.out.println(exception.getMessage());
+      } catch (RuntimeException e) {
+        fail("recording.moveTo failed, exception, writing across filesystems threw an exception", e);
     } finally {
       sourceFile.delete();
       targetFile.delete();
     }
-    assertNull("recording.moveTo failed, writing across filesystems threw an exception", exception);
-    assertFalse(systemErrRule.getLog().contains("Invalid cross-device link"));
+    });
+    assertFalse(actualErr.contains("Invalid cross-device link"));
   }
 
   @Test
+  @EnabledOnOs(OS.LINUX)
   // for Files.move when: REPLACE_EXISTING
   public void testCantOverwriteTargetFile() throws IOException {
-    //  /dev/shm exists only on Linux
-    assumeThat(System.getProperty("os.name"), is("Linux"));
+    // /dev/shm exists only on Linux
     String sourceFilename = "/tmp/recordertest_file";
     String targetFilename = "/dev/shm/recordertest_file";
     File sourceFile = new File(sourceFilename);
     File targetFile = new File(targetFilename);
-    Exception exception = null;
     // if the file exists createNewFile returns false
     sourceFile.createNewFile();
     targetFile.createNewFile();
@@ -172,13 +166,11 @@ public class RecorderTest {
     try {
       recording.moveTo(targetFilename);
     } catch (RuntimeException e) {
-      exception = e;
-      System.out.println(exception.getMessage());
+      fail("recording.moveTo failed, overwriting the destination threw an exception", e);
     } finally {
       sourceFile.delete();
       targetFile.delete();
     }
-    assertNull("recording.moveTo failed, overwriting the destination threw an exception", exception);
   }
 
   @Test

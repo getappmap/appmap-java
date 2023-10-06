@@ -80,14 +80,11 @@ load '../helper'
 
   # Pick the functions out of the classMap
   local filter='[.classMap | paths(objects) as $p | getpath($p) | select(.type == "function")]'
-  
+  local join='join(",")'
+
   assert_json_eq "${filter}[0].name" 'sayHello'
-  assert_json_eq "${filter}[0].labels" '[
-  "say",
-  "Hello"
-]'
+  assert_json_eq "${filter}[0].labels | ${join}" 'say,Hello'
+
   assert_json_eq "${filter}[1].name" 'handle'
-  assert_json_eq "${filter}[1].labels" '[
-  "handler"
-]'
+  assert_json_eq "${filter}[1].labels | ${join}" 'handler'
 }
