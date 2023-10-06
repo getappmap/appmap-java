@@ -4,11 +4,13 @@ load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
 
-appmap_jar="$(ls build/libs/appmap-[0-9]*.jar)"
-test_cp=test/access:build/classes/java/test
+sep="$JAVA_PATH_SEPARATOR"
+appmap_jar="$(find_agent_jar)"
+test_cp="test/access${sep}build/classes/java/test"
 
 setup() {
-  javac -cp "${appmap_jar}:${test_cp}" test/access/*.java
+  echo "javac -cp "${appmap_jar}${sep}${test_cp}" test/access/*.java" >&3
+  javac -cp "${appmap_jar}${sep}${test_cp}" test/access/*.java
 }
 
 @test "testProtected" {

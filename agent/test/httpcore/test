@@ -30,7 +30,7 @@ start_server() {
 start_server
 
 run_bats() {
-  bats --tap test/httpcore/httpcore.bats > build/log/bats-httpcore.log 2>&1
+  bats --tap test/httpcore/httpcore.bats
 }
 ${@:-run_bats}
 bats_ret=$?
@@ -38,5 +38,4 @@ bats_ret=$?
 kill $JVM_PID
 wait $JVM_PID
 
-cat build/log/bats-httpcore.log
 exit $bats_ret

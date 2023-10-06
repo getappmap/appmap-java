@@ -1,49 +1,36 @@
 package com.appland.appmap.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemErr;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.io.TempDir;
 
 public class AppMapConfigTest {
 
-    private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
-    private final PrintStream originalErr = System.err;
-
-    @Rule
-    public TemporaryFolder tmpdir = new TemporaryFolder();
-
-    @Before
-    public void setUpStreams() {
-        System.setErr(new PrintStream(errContent));
-    }
-
-    @After
-    public void restoreStreams() {
-        System.setErr(originalErr);
-    }
+    @TempDir
+    Path tmpdir;
 
     @Test
-    public void loadBadDirectory() {
-        // Trying to load appmap.yml in non-existent directory shouldn't work.
+    @DisabledOnOs(OS.WINDOWS)
+    public void loadBadDirectory() throws Exception {
+        // Trying to load appmap.yml in non-existent directory (that can't be created)
+        // shouldn't work.
         Path badDir = Paths.get("/no-such-dir");
         assertFalse(Files.exists(badDir));
-        AppMapConfig.load(badDir.resolve("appmap.yml"), false);
-        assertNotNull(errContent.toString());
-        assertTrue(errContent.toString().contains("file not found"));
+        String actualErr = tapSystemErr(() -> AppMapConfig.load(badDir.resolve("appmap.yml"), false));
+        assertNotNull(actualErr.toString());
+        assertTrue(actualErr.contains("file not found"));
     }
 
     @Test
@@ -67,13 +54,13 @@ public class AppMapConfigTest {
     }
 
     @Test
-    public void requiresExisting() throws IOException {
+    public void requiresExisting() throws Exception {
         Path configFile = Paths.get(System.getProperty("java.io.tmpdir"), "appmap.yml");
         Files.deleteIfExists(configFile);
 
-        AppMapConfig.load(configFile, true);
-        assertNotNull(errContent.toString());
-        assertTrue(errContent.toString().contains("file not found"));
+        String actualErr = tapSystemErr(() -> AppMapConfig.load(configFile, true));
+        assertNotNull(actualErr.toString());
+        assertTrue(actualErr.contains("file not found"));
     }
 
     // If a non-existent config file in a subdirectory is specified, the
@@ -91,7 +78,7 @@ public class AppMapConfigTest {
 
     @Test
     public void hasAppmapDir() throws Exception {
-        Path configFile = tmpdir.newFile("appmap.yml").toPath();
+        Path configFile = tmpdir.resolve("appmap.yml");
         final String contents = "appmap_dir: /appmap\n";
         Files.write(configFile, contents.getBytes());
         AppMapConfig.load(configFile, true);

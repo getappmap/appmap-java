@@ -28,7 +28,7 @@ function install_petclinic (
         git checkout "${oldVersion}" 
         ;;
     esac
-    ./mvnw --quiet package -Dmaven.test.skip=true
+    ./mvnw --quiet package -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true
   else
     case "${JAVA_VERSION}" in
       1.8*)
@@ -37,7 +37,7 @@ function install_petclinic (
         echo "No old version, not packaging in ${pkg}"
         ;;
       17.*)
-        ./mvnw --quiet package -Dmaven.test.skip=true
+        ./mvnw --quiet package -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true
         ;;
     esac
   fi
