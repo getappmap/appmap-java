@@ -2,11 +2,14 @@ package com.appland.appmap;
 
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.jar.JarFile;
@@ -45,22 +48,7 @@ public class Agent {
     logger.debug("System properties: {}", System.getProperties());
     logger.debug(new Exception(), "whereAmI");
 
-    URL jarURL = Agent.class.getProtectionDomain().getCodeSource().getLocation();
-    Path agentJar = Paths.get(jarURL.getPath());
-    // During testing of the agent itself, classes get loaded from a directory.
-    // The rest of the time (i.e. when it's actually deployed), they'll always
-    // come from a jar file.
-    JarFile jarFile = null;
-    if (!Files.isDirectory(agentJar)) {
-      try {
-        jarFile = new JarFile(Paths.get(jarURL.getPath()).toFile());
-        inst.appendToSystemClassLoaderSearch(jarFile);
-      } catch (IOException e) {
-        System.err.println("Failed to load the agent jar");
-        e.printStackTrace();
-        System.exit(1);
-      }
-    }
+    addAgentJar(inst);
     inst.addTransformer(new ClassFileTransformer());
 
     try {
@@ -113,6 +101,40 @@ public class Agent {
     }
   }
 
+  private static void addAgentJar(Instrumentation inst) {
+    ProtectionDomain protectionDomain = Agent.class.getProtectionDomain();
+    CodeSource codeSource;
+    URL jarURL;
+    if (((codeSource = protectionDomain.getCodeSource()) == null)
+        || ((jarURL = codeSource.getLocation()) == null)) {
+      // Nothing we can do if we can't locate the agent jar
+      return;
+    }
+
+    Path agentJar = null;
+    try {
+      agentJar = Paths.get(jarURL.toURI());
+    } catch (URISyntaxException e) {
+      // Doesn't seem like this should ever happen....
+      System.err.println("Failed getting path to agent jar");
+      e.printStackTrace();
+      System.exit(1);
+    }
+    // During testing of the agent itself, classes get loaded from a directory.
+    // The rest of the time (i.e. when it's actually deployed), they'll always
+    // come from a jar file.
+    JarFile jarFile = null;
+    if (!Files.isDirectory(agentJar)) {
+      try {
+        jarFile = new JarFile(agentJar.toFile());
+        inst.appendToSystemClassLoaderSearch(jarFile);
+      } catch (IOException e) {
+        System.err.println("Failed to load the agent jar");
+        e.printStackTrace();
+        System.exit(1);
+      }
+    }
+  }
 
 
 }
