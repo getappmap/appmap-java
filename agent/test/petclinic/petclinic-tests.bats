@@ -33,7 +33,7 @@ run_petclinic_test() {
 
   run ./mvnw \
     -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
-    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/${cfg} -Dappmap.debug  -Dappmap.debug.file=appmap.log" \
+    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/${cfg}" \
     test -Dtest="${TEST_NAME}"
   assert_success
 }

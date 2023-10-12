@@ -7,6 +7,7 @@ load '../helper'
 sep="$JAVA_PATH_SEPARATOR"
 appmap_jar="$(find_agent_jar)"
 test_cp="test/access${sep}build/classes/java/test"
+java_cmd="java -javaagent:'${appmap_jar}' -cp '${test_cp}'"
 
 setup() {
   echo "javac -cp "${appmap_jar}${sep}${test_cp}" test/access/*.java" >&3
@@ -14,7 +15,7 @@ setup() {
 }
 
 @test "testProtected" {
-  local cmd="java -javaagent:'${appmap_jar}' -cp '${test_cp}' RecordPackage"
+  local cmd="${java_cmd} RecordPackage"
 
   # Exactly 4 events means that MyClass.myPrivateMethod was not recorded
   eval "$cmd" | jq -e '.events | length | select(. == 4)'
@@ -22,7 +23,7 @@ setup() {
 }
 
 @test "testPrivate" {
-  local cmd="java -javaagent:${appmap_jar} -cp ${test_cp} -Dappmap.record.private=true RecordPackage"
+  local cmd="${java_cmd} -Dappmap.record.private=true RecordPackage"
 
   # 6 events means that both myPackageMethod and myPrivateMethod were recorded
   eval "$cmd" | jq -e '.events | length | select(. == 6)'

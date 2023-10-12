@@ -8,6 +8,8 @@ import org.apache.http.ExceptionLogger;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.RequestLine;
+
 import org.apache.http.impl.nio.bootstrap.HttpServer;
 import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
 import org.apache.http.nio.protocol.BasicAsyncRequestHandler;
@@ -27,9 +29,14 @@ public class HelloWorldServer {
     public void handle(
             final HttpRequest request,
             final HttpResponse response,
-            final HttpContext context) throws HttpException, IOException {
-        response.setEntity(new StringEntity(sayHello()));
-        response.setStatusCode(200);
+        final HttpContext context) throws HttpException, IOException {
+      RequestLine rl = request.getRequestLine();
+
+      if (rl.getMethod().equals("DELETE") && rl.getUri().equals("/exit")) {
+        System.exit(0);
+      }
+      response.setEntity(new StringEntity(sayHello()));
+      response.setStatusCode(200);
     }
   }
 

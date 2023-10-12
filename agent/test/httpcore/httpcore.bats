@@ -10,6 +10,10 @@ load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
 
+teardown_file() {
+  stop_ws
+}
+
 @test "the recording status reports disabled when not recording" {
   run _curl -sXGET "${WS_URL}/_appmap/record"
   assert_success
