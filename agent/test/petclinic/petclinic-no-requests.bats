@@ -9,11 +9,14 @@
 load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
+load '../petclinic-shared/shared-setup.bash'
 
 setup_file() {
+  export FIXTURE_DIR="build/fixtures/spring-petclinic"
+  _shared_setup
+
   start_petclinic -Dappmap.recording.requests=false >&3
 
-  export FIXTURE_DIR="build/fixtures/spring-petclinic"
 }
 
 teardown_file() {

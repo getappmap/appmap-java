@@ -3,6 +3,7 @@ package com.appland.appmap.sparkexample;
 import spark.Request;
 import spark.Response;
 
+import static spark.Spark.delete;
 import static spark.Spark.get;
 import static spark.Spark.port;
 
@@ -18,6 +19,11 @@ public class App {
         throw new Exception("oops");
     }
 
+    Object exit(Request req, Response res) {
+        System.exit(0);
+        return null;
+    }
+
     Object rest(Request req, Response res) {
         res.status(HttpStatus.NOT_FOUND_404);
         return "";
@@ -30,6 +36,7 @@ public class App {
 
         get("/", app::index);
         get("/error", app::error);
+        delete("/exit", app::exit);
 
         get("*", app::rest);
     }

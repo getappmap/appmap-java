@@ -3,9 +3,13 @@
 load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
+load '../petclinic-shared/shared-setup.bash'
+
 
 setup_file() {
-  cp test/http_client/NoContentController.java build/fixtures/spring-petclinic/src/main/java/org/springframework/samples/petclinic/system/.
+  export FIXTURE_DIR="build/fixtures/spring-petclinic"
+  _shared_setup
+
   start_petclinic >&3
 
   pushd test/http_client >/dev/null

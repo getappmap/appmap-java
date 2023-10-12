@@ -12,15 +12,14 @@ start_server() {
     
   printf 'getting set up' 1>&2
   ./gradlew run --args "${SERVER_PORT}"   &> $LOG &
-
-  JVM_PID=$!
+  export JVM_MAIN_CLASS=org.gradle.wrapper.GradleWrapperMain
+  
   while [ -z "$(curl -sI ${WS_URL} | grep 'HTTP/1.1 200')" ]; do
-    if ! kill -0 "${JVM_PID}" 2> /dev/null; then
-      printf '. failed!\n\nprocess exited unexpectedly:\n'
+    if ! jcmd $JVM_MAIN_CLASS VM.uptime ; then
+      echo "$JVM_MAIN_CLASS failed"
       cat $LOG
       exit 1
     fi
-
     printf '.' 1>&2
     sleep 1
   done
@@ -34,8 +33,5 @@ run_bats() {
 }
 ${@:-run_bats}
 bats_ret=$?
-
-kill $JVM_PID
-wait $JVM_PID
 
 exit $bats_ret

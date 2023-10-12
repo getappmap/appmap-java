@@ -11,10 +11,9 @@ setup_file() {
   export AGENT_JAR="$(find_agent_jar)"
 
   cd test/spark
-  ./gradlew -q -PappmapJar="${AGENT_JAR}" run &
-
-  export JVM_PID=$!
-
+  ./gradlew -PappmapJar="${AGENT_JAR}" run &
+  export JVM_MAIN_CLASS=org.gradle.wrapper.GradleWrapperMain
+  
   wait_for_ws
 }
 
