@@ -1,3 +1,10 @@
+## [1.22.2](https://github.com/getappmap/appmap-java/compare/v1.22.1...v1.22.2) (2023-10-12)
+
+
+### Bug Fixes
+
+* only add the agent jar if it can be located ([ca4bc1b](https://github.com/getappmap/appmap-java/commit/ca4bc1b41639a64d6187c29573ef3bbfb4943cd5))
+
 ## [1.22.1](https://github.com/getappmap/appmap-java/compare/v1.22.0...v1.22.1) (2023-10-06)
 
 
