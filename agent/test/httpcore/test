@@ -15,7 +15,7 @@ start_server() {
   export JVM_MAIN_CLASS=org.gradle.wrapper.GradleWrapperMain
   
   while [ -z "$(curl -sI ${WS_URL} | grep 'HTTP/1.1 200')" ]; do
-    if ! jcmd $JVM_MAIN_CLASS VM.uptime ; then
+    if ! jcmd $JVM_MAIN_CLASS VM.uptime >&/dev/null; then
       echo "$JVM_MAIN_CLASS failed"
       cat $LOG
       exit 1

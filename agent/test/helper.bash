@@ -103,7 +103,7 @@ check_ws_running() {
 
 wait_for_ws() {
   while ! curl -Isf "${WS_URL}" >/dev/null; do
-    if ! jcmd $JVM_MAIN_CLASS VM.uptime >/dev/null; then
+    if ! jcmd $JVM_MAIN_CLASS VM.uptime >&/dev/null; then
       echo "$JVM_MAIN_CLASS failed"
       exit 1
     fi
@@ -118,8 +118,8 @@ wait_for_mvn() {
   # The only thing special about the VM.uptime command is that it's fast, and
   # the output is small.
   local uptime="jcmd ${JVM_MAIN_CLASS} VM.uptime"
-  while ! ${uptime} 2>/dev/null; do
-    if ! ps -p $mvn_pid >/dev/null; then
+  while ! ${uptime} >&/dev/null; do
+    if ! ps -p $mvn_pid >&/dev/null; then
       echo "mvn failed"
       cat $LOG
       exit 1
@@ -127,7 +127,7 @@ wait_for_mvn() {
     sleep 1
   done
   # Final check, this will fail if the server didn't start
-  echo "final check: $(${uptime})" >&3
+  ${uptime} >&/dev/null
 }
 
 # Start a PetClinic server. Note that the output from the printf's in this
@@ -193,16 +193,16 @@ start_petclinic_fw() {
 stop_ws() {
   # curl doesn't like it when the server exits. Assume the request was
   # successful, then wait for the main class to finish.
-  curl -XDELETE "${WS_URL}"/exit >&3 || true
+  curl -sXDELETE "${WS_URL}"/exit  || true
 
   for i in {1..30}; do
-    if ! jcmd $JVM_MAIN_CLASS VM.uptime >&3; then
+    if ! jcmd $JVM_MAIN_CLASS VM.uptime >&/dev/null ; then
       break;
     fi
     sleep 1
   done
 
-  if jvm $JVM_MAIN_CLASS VM.update >&3; then
+  if jvm $JVM_MAIN_CLASS VM.update >&/dev/null; then
     echo "$JVM_MAIN_CLASS didn't exit"
     if [[ ! -z "$LOG" ]]; then
       cat "$LOG" >&3
