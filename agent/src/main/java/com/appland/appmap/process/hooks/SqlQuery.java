@@ -314,49 +314,49 @@ public class SqlQuery {
 
   @ArgumentArray
   @HookClass(value = "java.sql.Connection", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void nativeSQL(Event event, Connection c, Exception exception, Object[] args) {
+  public static void nativeSQL(Event event, Connection c, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
   }
 
   @ArgumentArray
   @HookClass(value = "java.sql.Connection", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void prepareCall(Event event, Connection c, Exception exception, Object[] args) {
+  public static void prepareCall(Event event, Connection c, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
   }
 
   @ArgumentArray
   @HookClass(value = "java.sql.Connection", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void prepareStatement(Event event, Connection c, Exception exception, Object[] args) {
+  public static void prepareStatement(Event event, Connection c, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
   }
 
   @ArgumentArray
   @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void addBatch(Event event, Statement s, Exception exception, Object[] args) {
+  public static void addBatch(Event event, Statement s, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
   }
 
   @ArgumentArray
   @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void execute(Event event, Statement s, Exception exception, Object[] args) {
+  public static void execute(Event event, Statement s, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
   }
 
   @ArgumentArray
   @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void executeQuery(Event event, Statement s, Exception exception, Object[] args) {
+  public static void executeQuery(Event event, Statement s, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
   }
 
   @ArgumentArray
   @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void executeUpdate(Event event, Statement s, Exception exception, Object[] args) {
+  public static void executeUpdate(Event event, Statement s, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
   }

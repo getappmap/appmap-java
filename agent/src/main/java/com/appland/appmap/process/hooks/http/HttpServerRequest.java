@@ -90,7 +90,7 @@ public class HttpServerRequest {
     recorder.add(event);
   }
 
-  private static void recordHttpServerException(Event event, HttpServletRequest req, Exception exception) {
+  private static void recordHttpServerException(Event event, HttpServletRequest req, Throwable exception) {
     event.setException(exception);
     clearLastEvent(req, event);
     recorder.add(event);
@@ -151,7 +151,7 @@ public class HttpServerRequest {
   @ArgumentArray
   @ExcludeReceiver
   @HookClass(value = "javax.servlet.http.HttpServlet", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void service(Event event, Exception exception, Object[] args) {
+  public static void service(Event event, Throwable exception, Object[] args) {
     if (args.length != 2) {
       return;
     }
@@ -163,7 +163,7 @@ public class HttpServerRequest {
   @ArgumentArray
   @ExcludeReceiver
   @HookClass(value = "jakarta.servlet.http.HttpServlet", method = "service", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void serviceJakarta(Event event, Exception exception, Object[] args) {
+  public static void serviceJakarta(Event event, Throwable exception, Object[] args) {
     if (args.length != 2) {
       return;
     }

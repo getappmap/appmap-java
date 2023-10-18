@@ -194,7 +194,7 @@ public class Hook {
 
       targetBehavior.addCatch(
           catchSrcBlock(invocations[MethodEvent.METHOD_EXCEPTION.getIndex()]),
-          ClassPool.getDefault().get("java.lang.Exception"));
+          ClassPool.getDefault().get("java.lang.Throwable"));
       
     } catch (CannotCompileException e) {
       if (Properties.DebugHooks) {

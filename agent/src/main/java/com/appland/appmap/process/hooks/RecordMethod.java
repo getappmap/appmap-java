@@ -28,7 +28,7 @@ public class RecordMethod {
   @ArgumentArray
   @ExcludeReceiver
   @HookCondition(value = RecordCondition.class, methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void record(Event event, Exception exception, Object[] args) {
+  public static void record(Event event, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
     StackTraceElement ste = exception.getStackTrace()[0];

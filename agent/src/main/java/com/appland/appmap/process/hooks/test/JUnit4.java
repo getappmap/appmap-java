@@ -28,7 +28,7 @@ public class JUnit4 {
   @ArgumentArray
   @ExcludeReceiver
   @HookAnnotated(value = "org.junit.Test", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void junit(Event event, Exception exception, Object[] args) {
+  public static void junit(Event event, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
     StackTraceElement ste = exception.getStackTrace()[0];
