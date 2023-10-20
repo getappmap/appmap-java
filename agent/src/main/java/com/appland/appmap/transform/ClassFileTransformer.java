@@ -93,7 +93,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
   }
 
-  private List<Hook> getHooks(String methodId) {
+  public static List<Hook> getHooks(String methodId) {
     List<Hook> matchingKeyedHooks = keyedHooks.get(methodId);
     if (matchingKeyedHooks == null) {
       matchingKeyedHooks = new ArrayList<Hook>();
@@ -145,7 +145,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     boolean traceClass = tracePrefix == null || behavior.getDeclaringClass().getName().startsWith(tracePrefix);
 
     try {
-      final List<HookSite> hookSites = this.getHooks(behavior.getName())
+      final List<HookSite> hookSites = getHooks(behavior.getName())
           .stream()
           .map(hook -> hook.prepare(behavior))
           .filter(Objects::nonNull)

@@ -33,7 +33,7 @@ run_petclinic_test() {
 
   cp "../../../test/petclinic/${cfg}" ./appmap.yml
 
-  run ./mvnw -q \
+  run ./mvnw ${BATS_VERSION+-q} \
     $MAVEN_TEST_PROPS \
     -DargLine="@{argLine} -javaagent:${AGENT_JAR} " \
     clean test -Dtest="${test_name}"

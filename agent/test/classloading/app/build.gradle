@@ -23,6 +23,8 @@ configurations {
 def appmapJar = findProperty("appmapJar")
 
 dependencies {
+    compileOnly project(':lib')
+    
     servlet 'javax.servlet:servlet-api:2.5'
 
     // Use JUnit Jupiter for testing.
@@ -44,10 +46,11 @@ java {
 application {
     // Define the main class for the application.
     mainClass = 'com.appland.appmap.classloading.Runner'
+    def libJar = tasks.getByPath(':lib:jar').outputs.files.singleFile
     applicationDefaultJvmArgs += [
       "-javaagent:${appmapJar}",
       /*"-Dsun.misc.URLClassPath.debug",*/
-      "-DtestJars=${configurations.servlet.asPath}"
+      "-DtestJars=${configurations.servlet.asPath};${libJar}"
     ]
 }
 

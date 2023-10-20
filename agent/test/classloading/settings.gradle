@@ -13,4 +13,4 @@ plugins {
 }
 
 rootProject.name = 'classloading'
-include('app')
+include 'app', 'lib'

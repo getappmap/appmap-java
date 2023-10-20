@@ -1,20 +1,24 @@
 package com.appland.appmap.output.v1;
 
-import com.appland.appmap.config.Properties;
-import com.appland.appmap.util.Logger;
-import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.NotFoundException;
-import javassist.bytecode.CodeAttribute;
-import javassist.bytecode.LocalVariableAttribute;
-import javassist.bytecode.MethodInfo;
-
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.config.Properties;
+import com.appland.appmap.util.Logger;
+
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.NotFoundException;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.LocalVariableAttribute;
+import javassist.bytecode.MethodInfo;
 
 /**
  * A serializable list of named and typed objects.
@@ -24,6 +28,8 @@ import java.util.stream.Stream;
  * @see <a href="https://github.com/applandinc/appmap#parameter-object-format">GitHub: AppMap - Parameter object format</a>
  */
 public class Parameters implements Iterable<Value> {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   private final ArrayList<Value> values = new ArrayList<Value>();
 
   public Parameters() { }
@@ -42,15 +48,6 @@ public class Parameters implements Iterable<Value> {
       "." + behavior.getName() +
       methodInfo.getDescriptor();
 
-    CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
-    if (codeAttribute == null) {
-      throw new NoSourceAvailableException("No code attribute for " + fqn);
-    }
-           
-    LocalVariableAttribute locals = (LocalVariableAttribute) codeAttribute.getAttribute(
-        javassist.bytecode.LocalVariableAttribute.tag);
-
-
     CtClass[] paramTypes = null;
     try {
       paramTypes = behavior.getParameterTypes();
@@ -58,6 +55,14 @@ public class Parameters implements Iterable<Value> {
       throw new NoSourceAvailableException(
         String.format("Failed to get parameter types for %s: %s",
                       fqn, e.getMessage()));
+    }
+
+    CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
+    LocalVariableAttribute locals = null;
+    if (codeAttribute != null) {
+      locals = (LocalVariableAttribute) codeAttribute.getAttribute(javassist.bytecode.LocalVariableAttribute.tag);
+    } else {
+      logger.debug("No code attribute for {}", fqn);
     }
 
     String[] paramNames = null;

@@ -1,6 +1,8 @@
 package com.appland.appmap.util;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+
 import javassist.CtBehavior;
 
 public class FullyQualifiedName {
@@ -21,6 +23,13 @@ public class FullyQualifiedName {
     this(behavior.getDeclaringClass().getPackageName(),
         behavior.getDeclaringClass().getSimpleName(), Modifier.isStatic(behavior.getModifiers()),
         behavior.getMethodInfo().getName());
+  }
+
+  public FullyQualifiedName(Method method) {
+    this(method.getDeclaringClass().getPackage().getName(),
+        method.getDeclaringClass().getSimpleName(),
+        Modifier.isStatic(method.getModifiers()),
+        method.getName());
   }
 
   public FullyQualifiedName(FullyQualifiedName fqn) {
