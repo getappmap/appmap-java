@@ -2,6 +2,7 @@ package com.appland.appmap.process.hooks.test;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.hooks.RecordingSupport;
+import com.appland.appmap.record.Recorder;
 import com.appland.appmap.transform.annotations.ArgumentArray;
 import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookAnnotated;
@@ -14,7 +15,7 @@ public class TestNG {
   @ExcludeReceiver
   @HookAnnotated("org.testng.annotations.Test")
   public static void testng(Event event, Object[] args) {
-    RecordingSupport.startRecording(event, TESTNG_NAME, TestSupport.TEST_RECORDER_TYPE);
+    RecordingSupport.startRecording(event, new Recorder.Metadata(TESTNG_NAME, TestSupport.TEST_RECORDER_TYPE));
   }
 
   @ArgumentArray

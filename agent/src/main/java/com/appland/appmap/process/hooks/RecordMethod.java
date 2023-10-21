@@ -15,7 +15,7 @@ public class RecordMethod {
   @ExcludeReceiver
   @HookCondition(RecordCondition.class)
   public static void record(Event event, Object[] args) {
-    RecordingSupport.startRecording(event, "record_process", "process");
+    RecordingSupport.startRecording(event, new Recorder.Metadata("record_process", "process"));
   }
 
   @ArgumentArray

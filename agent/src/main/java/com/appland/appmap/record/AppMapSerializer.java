@@ -173,20 +173,24 @@ public class AppMapSerializer {
         this.json.writeValue(metadata.sourceLocation);
       }
 
-      this.json.writeKey("framework");
-      this.json.startObject();
-      {
-        if (metadata.framework != null) {
-          this.json.writeKey("name");
-          this.json.writeValue(metadata.framework);
-        }
+      if (metadata.frameworks.size() > 0) {
+        this.json.writeKey("frameworks");
+        this.json.startArray();
+        for (Recorder.Framework framework : metadata.frameworks) {
+          this.json.startObject();
+          if (framework.name != null) {
+            this.json.writeKey("name");
+            this.json.writeValue(framework.name);
+          }
 
-        if (metadata.frameworkVersion != null) {
-          this.json.writeKey("version");
-          this.json.writeValue(metadata.frameworkVersion);
+          if (framework.version != null) {
+            this.json.writeKey("version");
+            this.json.writeValue(framework.version);
+          }
+          this.json.endObject();
         }
+        this.json.endArray();
       }
-      this.json.endObject();
 
       if ( metadata.testSucceeded != null ) {
         this.json.writeKey("test_status");

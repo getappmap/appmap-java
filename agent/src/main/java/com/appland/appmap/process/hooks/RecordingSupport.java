@@ -40,14 +40,13 @@ public class RecordingSupport {
     }
   }
 
-  public static void startRecording(Event event, String recorderName, String recorderType) {
-    startRecording(new TestDetails(event), recorderName, recorderType);
+  public static void startRecording(Event event, Recorder.Metadata metadata) {
+    startRecording(new TestDetails(event), metadata);
   }
 
-  public static void startRecording(TestDetails details, String recorderName, String recorderType) {
+  public static void startRecording(TestDetails details, Recorder.Metadata metadata) {
     logger.debug("Recording started for {}", canonicalName(details.definedClass, details.isStatic, details.methodId));
     try {
-      Recorder.Metadata metadata = new Recorder.Metadata(recorderName, recorderType);
       final String feature = identifierToSentence(details.methodId);
       final String featureGroup = identifierToSentence(details.definedClass);
       metadata.scenarioName = String.format(

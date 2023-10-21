@@ -16,13 +16,10 @@ setup_file() {
   export FIXTURE_DIR="build/fixtures/spring-petclinic"
   _shared_setup
 
+  export AGENT_JAR="$(find_agent_jar)"
 }
 
 setup() {
-  # bats doc says you'll get better error messages if you load helper scripts in
-  # setup. (Note that loading them # in setup_file doesn't work.)
-  export AGENT_JAR="$(find_agent_jar)"
-
   cd build/fixtures/spring-petclinic
   rm -rf tmp/appmap
 }
@@ -69,11 +66,14 @@ run_petclinic_test() {
   run ./mvnw \
     -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
     -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
-    test -Dtest="Junit5Tests#testItPasses"
+    test -Dtest="JUnit5Tests#testItPasses"
   assert_success
 
-  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_Junit5Tests_testItPasses.appmap.json
+  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_JUnit5Tests_testItPasses.appmap.json
   assert_success
+
+  assert_json_eq '.metadata.frameworks[0].name' 'JUnit'
+  assert_json_eq '.metadata.frameworks[0].version' '5'
 
   assert_json_eq '.metadata.test_status' 'succeeded'
 }
@@ -82,14 +82,14 @@ run_petclinic_test() {
   run ./mvnw \
     -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
     -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
-    test -Dtest="Junit5Tests#testItFails"
+    test -Dtest="JUnit5Tests#testItFails"
   assert_failure
 
-  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_Junit5Tests_testItFails.appmap.json
+  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_JUnit5Tests_testItFails.appmap.json
   assert_success
 
   assert_json_eq '.metadata.test_status' 'failed'
   assert_json_eq '.metadata.test_failure.message' 'expected: <true> but was: <false>'
-  assert_json_eq '.metadata.test_failure.location' 'org/springframework/samples/petclinic/Junit5Tests.java:19'
+  assert_json_eq '.metadata.test_failure.location' 'org/springframework/samples/petclinic/JUnit5Tests.java:19'
 }  
 
