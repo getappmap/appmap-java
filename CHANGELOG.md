@@ -1,3 +1,11 @@
+## [1.22.3](https://github.com/getappmap/appmap-java/compare/v1.22.2...v1.22.3) (2023-10-24)
+
+
+### Bug Fixes
+
+* go back to hooking org.junit.jupiter.api.Test ([f15dc6d](https://github.com/getappmap/appmap-java/commit/f15dc6d1f8b7671f9908e081e0d5c76282a05245))
+* instrumentation should catch Throwable ([8b2064d](https://github.com/getappmap/appmap-java/commit/8b2064d49687ea309757629270fca445078f5e98))
+
 ## [1.22.2](https://github.com/getappmap/appmap-java/compare/v1.22.1...v1.22.2) (2023-10-12)
 
 
