@@ -10,7 +10,6 @@ test_cp="test/access${sep}build/classes/java/test"
 java_cmd="java -javaagent:'${appmap_jar}' -cp '${test_cp}'"
 
 setup() {
-  echo "javac -cp "${appmap_jar}${sep}${test_cp}" test/access/*.java" >&3
   javac -cp "${appmap_jar}${sep}${test_cp}" test/access/*.java
 }
 

@@ -15,7 +15,7 @@ public class RecordMethod {
   @ExcludeReceiver
   @HookCondition(RecordCondition.class)
   public static void record(Event event, Object[] args) {
-    RecordingSupport.startRecording(event, "record_process", "process");
+    RecordingSupport.startRecording(event, new Recorder.Metadata("record_process", "process"));
   }
 
   @ArgumentArray
@@ -28,7 +28,7 @@ public class RecordMethod {
   @ArgumentArray
   @ExcludeReceiver
   @HookCondition(value = RecordCondition.class, methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void record(Event event, Exception exception, Object[] args) {
+  public static void record(Event event, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
     StackTraceElement ste = exception.getStackTrace()[0];

@@ -311,7 +311,7 @@ public class Event {
    * @return {@code this}
    * @see <a href="https://github.com/applandinc/appmap#common-attributes-1">GitHub: AppMap - Common attributes</a>
    */
-  public Event setException(Exception exception) {
+  public Event setException(Throwable exception) {
     if (exception != null) {
       this.exceptions = new ArrayList<>();
       Throwable t = exception;

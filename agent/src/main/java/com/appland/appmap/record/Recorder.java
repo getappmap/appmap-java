@@ -1,7 +1,9 @@
 package com.appland.appmap.record;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,12 +65,20 @@ public class Recorder {
    * Data structure for reporting AppMap metadata.
    * These fields map to the 'metadata' section of the AppMap JSON.
    */
+  public static class Framework {
+    public String name;
+    public String version;
+
+    public Framework(String name, String version) {
+      this.name = name;
+      this.version = version;
+    }
+  }
   public static class Metadata {
     public String scenarioName;
     public String recorderName;
     public String recorderType;
-    public String framework;
-    public String frameworkVersion;
+    public List<Framework> frameworks = new ArrayList<>();
     public String recordedClassName;
     public String recordedMethodName;
     public String sourceLocation;

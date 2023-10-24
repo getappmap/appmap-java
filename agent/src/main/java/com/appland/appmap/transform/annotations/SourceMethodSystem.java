@@ -68,7 +68,7 @@ public abstract class SourceMethodSystem extends BaseSystem {
       }
     } else if (this.methodEvent == MethodEvent.METHOD_EXCEPTION) {
       runtimeParameters.add(new Value()
-          .setClassType("java.lang.Exception")
+          .setClassType("java.lang.Throwable")
           .setName("$e"));
     }
   }
