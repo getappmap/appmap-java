@@ -103,8 +103,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
   }
 
   private void processClass(CtClass ctClass) {
-    boolean traceClass = logger.isTraceEnabled()
-        && (tracePrefix == null || ctClass.getName().startsWith(tracePrefix));
+    boolean traceClass = tracePrefix == null || ctClass.getName().startsWith(tracePrefix);
 
     if (traceClass) {
       logger.trace(() -> ctClass.getName());
@@ -140,8 +139,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
   }
 
   private boolean applyHooks(CtBehavior behavior) {
-    boolean traceClass = logger.isTraceEnabled()
-        && (tracePrefix == null || behavior.getDeclaringClass().getName().startsWith(tracePrefix));
+    boolean traceClass = tracePrefix == null || behavior.getDeclaringClass().getName().startsWith(tracePrefix);
 
     try {
       final List<HookSite> hookSites = this.getHooks(behavior.getName())
@@ -194,7 +192,6 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           ProtectionDomain domain,
       byte[] bytes) throws IllegalClassFormatException {
 
-    logger.trace("className: {}", className);
     ClassPool classPool = new ClassPool();
     try {
       // Anonymous classes created by sun.misc.Unsafe.defineAnonymousClass don't
@@ -205,8 +202,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       className = className.replaceAll("/", ".");
 
-      boolean traceClass = logger.isTraceEnabled()
-          && (tracePrefix == null || className.startsWith(tracePrefix));
+      boolean traceClass = tracePrefix == null || className.startsWith(tracePrefix);
 
       if (traceClass) {
         logger.trace("className: {}, classPool: {}", className, classPool);
@@ -256,7 +252,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
       if (hookApplied) {
         if (traceClass) {
-          logger.trace("hook(s) applied to {}", className);
+          logger.trace("hooks applied to {}", className);
         }
 
         return ctClass.toBytecode();

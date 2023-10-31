@@ -48,8 +48,7 @@ public class AppMapPackage {
     }
 
     public boolean matches(String className, String methodName) {
-      boolean traceClass = logger.isTraceEnabled()
-          && (tracePrefix == null || className.startsWith(tracePrefix));
+      boolean traceClass = tracePrefix == null || className.startsWith(tracePrefix);
       Class<?> cls = safeClassForName(Thread.currentThread().getContextClassLoader(), className);
 
       if (traceClass) {
@@ -72,8 +71,7 @@ public class AppMapPackage {
    */
   public LabelConfig find(FullyQualifiedName canonicalName) {
     String className = canonicalName != null ? canonicalName.getClassName() : null;
-    boolean traceClass = logger.isTraceEnabled()
-        && (tracePrefix == null || className.startsWith(tracePrefix));
+    boolean traceClass = tracePrefix == null || className.startsWith(tracePrefix);
     if (traceClass) {
       logger.trace(canonicalName);
     }

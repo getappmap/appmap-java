@@ -30,8 +30,7 @@ public class CtClassUtil {
    */
   public static Boolean isChildOf(CtClass candidateChildClass, CtClass parentClass) {
     String childClassName = candidateChildClass.getName();
-    boolean traceClass = logger.isTraceEnabled()
-        && (tracePrefix == null || childClassName.startsWith(tracePrefix));
+    boolean traceClass = tracePrefix == null || childClassName.startsWith(tracePrefix);
     String parentClassName = parentClass.getName();
 
     // It's important to do this check here (and in all the overloads below, of
