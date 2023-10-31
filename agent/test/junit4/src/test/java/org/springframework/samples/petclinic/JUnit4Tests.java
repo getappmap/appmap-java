@@ -1,17 +1,15 @@
 package org.springframework.samples.petclinic;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertTrue;
 
 import com.appland.appmap.annotation.NoAppMap;
+import org.junit.Test;
 
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-public class JUnit5Tests {
+public class JUnit4Tests {
   @Test
   public void testItPasses() {
     System.err.println("passing test");
-    
+
     assertTrue(true);
   }
 
@@ -19,23 +17,22 @@ public class JUnit5Tests {
   public void testItFails() {
     System.err.println("failing test");
 
-    assertTrue(false);
+    assertTrue("false is not true", false);
   }
 
   @NoAppMap
   @Test
   public void testAnnotatedMethodNotRecorded() {
-    System.err.println("passing annotated test, not recorded");
+    System.out.println("passing annotated test, not recorded");
 
     assertTrue(true);
   }
 
-  @Nested
   @NoAppMap
-  class TestClass {
+  public static class TestClass {
     @Test
     public void testAnnotatedClassNotRecorded() {
-      System.err.println("passing annotated class, not recorded");
+      System.out.println("passing annotated class, not recorded");
 
       assertTrue(true);
     }

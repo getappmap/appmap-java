@@ -72,6 +72,10 @@ public class RecordingSupport {
 
   public static void stopRecording(TestDetails details, Boolean succeeded, String failureMessage,
       Integer failureLine) {
+    if (!recorder.hasActiveSession()) {
+      return;
+    }
+
     logger.debug("Recording stopped for {}",
         canonicalName(details.definedClass, details.isStatic, details.methodId));
     String filePath = Recorder.sanitizeFilename(String.join("_", details.definedClass, details.methodId));

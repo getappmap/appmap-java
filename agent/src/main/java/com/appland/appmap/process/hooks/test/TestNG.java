@@ -15,7 +15,7 @@ public class TestNG {
   @ExcludeReceiver
   @HookAnnotated("org.testng.annotations.Test")
   public static void testng(Event event, Object[] args) {
-    RecordingSupport.startRecording(event, new Recorder.Metadata(TESTNG_NAME, TestSupport.TEST_RECORDER_TYPE));
+    TestSupport.startRecording(event, new Recorder.Metadata(TESTNG_NAME, TestSupport.TEST_RECORDER_TYPE));
   }
 
   @ArgumentArray

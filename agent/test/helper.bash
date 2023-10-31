@@ -87,7 +87,11 @@ assert_json_not_contains() {
 }
 
 find_agent_jar() {
-  echo "$(git rev-parse --show-toplevel)/agent/build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')"
+  find $(git rev-parse --show-toplevel)/agent/build/libs -name 'appmap-[[:digit:]]*.jar'
+}
+
+find_annotation_jar() {
+  find $(git rev-parse --show-toplevel)/annotation/build/libs -name 'annotation-[[:digit:]]*.jar'
 }
 
 check_ws_running() {

@@ -1,13 +1,17 @@
 package com.appland.appmap.transform.annotations;
 
-import javassist.CtBehavior;
+import static com.appland.appmap.util.ClassUtil.safeClassForName;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+
+import javassist.CtBehavior;
 
 /**
  * Utility classes for accessing runtime Annotation information.
  */
-class AnnotationUtil {
+public class AnnotationUtil {
   /**
    * Obtains the default {@code value()} from an Annotation.
    * @param behavior The declaring behavior
@@ -51,5 +55,11 @@ class AnnotationUtil {
     } catch (Exception e) {
       return defaultValue;
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  public static boolean hasAnnotation(String annotationName, AnnotatedElement elt) {
+    Class<?> annotation = safeClassForName(AnnotationUtil.class.getClassLoader(), annotationName);
+    return annotation != null && elt.isAnnotationPresent((Class<? extends Annotation>) annotation);
   }
 }
