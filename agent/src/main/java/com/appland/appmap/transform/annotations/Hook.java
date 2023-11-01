@@ -11,7 +11,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.appland.appmap.config.Properties;
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.record.EventTemplateRegistry;
 import com.appland.appmap.util.Logger;
@@ -25,6 +27,8 @@ import javassist.CtMethod;
 import javassist.NotFoundException;
 
 public class Hook {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   private static final EventTemplateRegistry eventTemplateRegistry = EventTemplateRegistry.get();
 
   private final static List<Function<CtBehavior, ISystem>> requiredHookSystemFactories =
@@ -197,19 +201,10 @@ public class Hook {
           ClassPool.getDefault().get("java.lang.Throwable"));
       
     } catch (CannotCompileException e) {
-      if (Properties.DebugHooks) {
-        Logger.println("failed to compile");
-        Logger.println("       method "
-            + targetBehavior.getDeclaringClass().getName()
-            + "."
-            + targetBehavior.getName());
-        Logger.println("  cause: " + e.getCause());
-        Logger.println("  reason: " + e.getReason());
-        Logger.println(e);
-      }
+      logger.debug(e, "failed to compile {}.{}", targetBehavior.getDeclaringClass().getName(),
+          targetBehavior.getName());
     } catch (NotFoundException e) {
-      Logger.println("failed to find class\n");
-      Logger.println(e);
+      logger.debug(e);
     }
   }
 

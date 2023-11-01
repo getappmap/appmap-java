@@ -75,6 +75,8 @@ dependencies {
   testImplementation 'com.github.stefanbirkner:system-lambda:1.2.1'
   testImplementation "org.mockito:mockito-core:[3.4,4)"
   testImplementation 'com.github.marschall:memoryfilesystem:2.6.1'
+
+  testImplementation 'org.apache.maven:maven-model:3.9.5'
 }
 
 compileJava {

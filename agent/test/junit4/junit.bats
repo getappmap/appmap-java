@@ -10,22 +10,12 @@
 load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
-load '../petclinic-shared/shared-setup.bash'
 
 setup_file() {
   export AGENT_JAR="$(find_agent_jar)"
+  export ANNOTATION_JAR="$(find_annotation_jar)"
 
-  export FIXTURE_DIR="test/junit4/spring-petclinic"
-  rm -rf "${FIXTURE_DIR}"
-
-  git clone build/fixtures/spring-petclinic "${FIXTURE_DIR}" >&3
-  _shared_setup
-
-  cp appmap.yml "${FIXTURE_DIR}"
-
-  cd "${FIXTURE_DIR}"
-  # Checkout the first commit before tests were upgraded top JUnit 5
-  git checkout ce7c3f93 >&3
+  cd test/junit4
 }
 
 setup() {
@@ -33,44 +23,63 @@ setup() {
 }
 
 run_tests() {
-  local test="${@}"
-  run ./mvnw -q -DtrimStackTrace=false \
-    -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
-    -DargLine="@{argLine} -javaagent:${AGENT_JAR}" \
-    test -Dtest="$test"
+  run ./gradlew clean test -PagentJar="$AGENT_JAR" -PannotationJar="$ANNOTATION_JAR" --tests "$@"
 }
 
 @test "framework is captured" {
-  run_tests "JUnit4Tests#testItPasses"
+  run_tests "JUnit4Tests.testItPasses"
   assert_success
-  output=$(< "tmp/appmap/junit/org_springframework_samples_petclinic_JUnit4Tests_testItPasses.appmap.json")
+
+  run cat tmp/appmap/junit/org_springframework_samples_petclinic_JUnit4Tests_testItPasses.appmap.json
+  assert_success
 
   assert_json_eq '.metadata.frameworks[0].name' 'JUnit'
   assert_json_eq '.metadata.frameworks[0].version' '4'
 }
 
 @test "defined_class is captured" {
-  run_tests "JUnit4Tests#testItPasses"
-  output=$(< "tmp/appmap/junit/org_springframework_samples_petclinic_JUnit4Tests_testItPasses.appmap.json")
+  run_tests "JUnit4Tests.testItPasses"
+  assert_success
+
+  run cat tmp/appmap/junit/org_springframework_samples_petclinic_JUnit4Tests_testItPasses.appmap.json
+  assert_success
 
   assert_json_eq '.metadata.recording.defined_class' 'org.springframework.samples.petclinic.JUnit4Tests'
 }
 
 @test "test_status set for passing test" {
-  run_tests "JUnit4Tests#testItPasses"
+  run_tests "JUnit4Tests.testItPasses"
   assert_success
-  output=$(< "tmp/appmap/junit/org_springframework_samples_petclinic_JUnit4Tests_testItPasses.appmap.json")
+  run cat tmp/appmap/junit/org_springframework_samples_petclinic_JUnit4Tests_testItPasses.appmap.json
+  assert_success
 
   assert_json_eq '.metadata.test_status' "succeeded"
 }
 
 @test "test_status set for failed test" {
-  run_tests "JUnit4Tests#testItFails"
+  run_tests "JUnit4Tests.testItFails"
   assert_failure
 
-  output=$(< "tmp/appmap/junit/org_springframework_samples_petclinic_JUnit4Tests_testItFails.appmap.json")
+  run cat tmp/appmap/junit/org_springframework_samples_petclinic_JUnit4Tests_testItFails.appmap.json
+  assert_success
 
   assert_json_eq '.metadata.test_status' "failed"
   assert_json_eq '.metadata.test_failure.message' 'false is not true'
-  assert_json_eq '.metadata.test_failure.location' 'org/springframework/samples/petclinic/JUnit4Tests.java:19'
+  assert_json_eq '.metadata.test_failure.location' 'org/springframework/samples/petclinic/JUnit4Tests.java:20'
+}
+
+@test "NoAppMap on method disables recording" {
+  run_tests "JUnit4Tests.testAnnotatedMethodNotRecorded"
+  assert_output --partial "passing annotated test, not recorded"
+
+  run test \! -f tmp/appmap/junit/org_springframework_samples_petclinic_JUnit4Tests_testItsNotRecorded.appmap.json
+  assert_success
+}
+
+@test "NoAppMap on class disables recording" {
+  run_tests 'JUnit4Tests$TestClass.testAnnotatedClassNotRecorded'
+  assert_output --partial "passing annotated class, not recorded"
+
+  run test \! -f tmp/appmap/junit/org_springframework_samples_petclinic_JUnit4Tests_TestClass_testAnnotatedClassNotRecorded.appmap.json
+  assert_success
 }

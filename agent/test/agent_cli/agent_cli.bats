@@ -4,7 +4,7 @@ load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
 
-appmap_jar=build/libs/$(ls build/libs | grep 'appmap-[[:digit:]]')
+appmap_jar="$(find_agent_jar)"
 
 # bats captures stdout and stderr to the same variable ($output). We
 # need to hide the informational message from the agent commands so

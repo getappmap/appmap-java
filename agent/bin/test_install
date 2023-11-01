@@ -8,6 +8,9 @@ mkdir -p build/fixtures
 source "$JAVA_HOME/release"
 export JAVA_VERSION
 
+source "test/helper.bash"
+export ANNOTATION_JAR="$(find_annotation_jar)"
+
 function install_petclinic (
   local repo="$1"; shift
   local oldVersion="$1"
@@ -49,7 +52,12 @@ function install_petclinic (
 # hash, though, because Travis detects that as a secret. :( 8 digits should be
 # enough to make a collision extremely unlikely.)
 install_petclinic "spring-projects/spring-petclinic" 9cb8dde9
+../gradlew :pomupdater:run -PmainClass=com.appland.appmap.util.PomUpdater \
+  -PpomFile="$PWD/build/fixtures/spring-petclinic/pom.xml" \
+  -PannotationJar="${ANNOTATION_JAR}"
+
 install_petclinic "spring-petclinic/spring-framework-petclinic"
+
 export BATS_DIR=$PWD/build/bats
 mkdir -p build/bats
 

@@ -1,0 +1,37 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
+plugins {
+  id 'application'
+  id 'java'
+}
+
+repositories {
+  mavenCentral()
+}
+
+sourceSets {
+  test {
+    java {
+      srcDirs = ['src/test/java']
+    }
+  }
+}
+
+var agentJar = findProperty("agentJar")
+var annotationJar = findProperty("annotationJar")
+
+dependencies {
+  testImplementation 'junit:junit:4.4'
+  testImplementation files(annotationJar)
+}
+
+test {
+  testLogging {
+    events TestLogEvent.STANDARD_OUT
+  }
+
+  timeout = Duration.ofHours(24)
+  jvmArgs += [
+    "-javaagent:${agentJar}"
+  ]
+}

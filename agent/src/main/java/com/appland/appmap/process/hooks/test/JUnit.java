@@ -15,22 +15,22 @@ public class JUnit {
   @ArgumentArray
   @ExcludeReceiver
   @HookAnnotated("org.junit.Test")
-  public static void junit(Event event, Object[] args) {
+  public static void junitTest(Event event, Object[] args) {
     Recorder.Metadata metadata = new Recorder.Metadata(JUNIT_NAME, TestSupport.TEST_RECORDER_TYPE);
     metadata.frameworks.add(new Recorder.Framework("JUnit", "4"));
-    RecordingSupport.startRecording(event, metadata);
+    TestSupport.startRecording(event, metadata);
   }
 
   @ArgumentArray
   @ExcludeReceiver
   @HookAnnotated(value = "org.junit.Test", methodEvent = MethodEvent.METHOD_RETURN)
-  public static void junit(Event event, Object returnValue, Object[] args) {
+  public static void junitTest(Event event, Object returnValue, Object[] args) {
     RecordingSupport.stopRecording(event, true);
   }
 
   @ArgumentArray
   @HookAnnotated(value = "org.junit.Test", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void junit(Event event, Object self, Throwable exception, Object[] args) {
+  public static void junitTest(Event event, Object self, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
     StackTraceElement ste = findErrorFrame(self, exception);
@@ -44,7 +44,7 @@ public class JUnit {
   public static void junit5Test(Event event, Object[] args) {
     Recorder.Metadata metadata = new Recorder.Metadata(JUNIT_NAME, TestSupport.TEST_RECORDER_TYPE);
     metadata.frameworks.add(new Recorder.Framework("JUnit", "5"));
-    RecordingSupport.startRecording(event, metadata);
+    TestSupport.startRecording(event, metadata);
   }
 
   @ArgumentArray

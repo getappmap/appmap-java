@@ -17,6 +17,8 @@ setup_file() {
   _shared_setup
 
   export AGENT_JAR="$(find_agent_jar)"
+  export ANNOTATION_JAR="$(find_annotation_jar)"
+  export MAVEN_TEST_PROPS="-Dcheckstyle.skip=true -Dspring-javaformat.skip=true -DtrimStackTrace=false -DannotationJar=${ANNOTATION_JAR}"
 }
 
 setup() {
@@ -29,9 +31,9 @@ run_petclinic_test() {
   local cfg="${1:-appmap.yml}"
 
   run ./mvnw \
-    -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
+    $MAVEN_TEST_PROPS \
     -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/${cfg}" \
-    test -Dtest="${TEST_NAME}"
+    clean test -Dtest="${TEST_NAME}"
   assert_success
 }
 
@@ -64,9 +66,9 @@ run_petclinic_test() {
 
 @test "test_status set for successful test" {
   run ./mvnw \
-    -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
+    $MAVEN_TEST_PROPS \
     -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
-    test -Dtest="JUnit5Tests#testItPasses"
+    clean test -Dtest="JUnit5Tests#testItPasses"
   assert_success
 
   run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_JUnit5Tests_testItPasses.appmap.json
@@ -79,10 +81,10 @@ run_petclinic_test() {
 }
 
 @test "test_status set for failed test" {
-  run ./mvnw \
-    -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
+  run ./mvnw -q \
+    $MAVEN_TEST_PROPS \
     -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
-    test -Dtest="JUnit5Tests#testItFails"
+    clean test -Dtest="JUnit5Tests#testItFails"
   assert_failure
 
   run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_JUnit5Tests_testItFails.appmap.json
@@ -90,6 +92,27 @@ run_petclinic_test() {
 
   assert_json_eq '.metadata.test_status' 'failed'
   assert_json_eq '.metadata.test_failure.message' 'expected: <true> but was: <false>'
-  assert_json_eq '.metadata.test_failure.location' 'org/springframework/samples/petclinic/JUnit5Tests.java:19'
+  assert_json_eq '.metadata.test_failure.location' 'org/springframework/samples/petclinic/JUnit5Tests.java:22'
 }  
 
+@test "NoAppMap on method disables test recording" {
+  run ./mvnw -q \
+    $MAVEN_TEST_PROPS \
+    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
+    clean test -Dtest="JUnit5Tests#testAnnotatedMethodNotRecorded"
+  assert_output 'passing annotated test, not recorded'
+
+  run test \! -f ./tmp/appmap/junit/org_springframework_samples_petclinic_JUnit5Tests_testAnnotatedMethodNotRecorded.appmap.json
+  assert_success
+}
+
+@test "NoAppMap on class disables test recording" {
+  run ./mvnw -q \
+    $MAVEN_TEST_PROPS \
+    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
+    clean test -Dtest="JUnit5Tests\$TestClass#testAnnotatedClassNotRecorded"
+  assert_output "passing annotated class, not recorded"
+
+  run test \! -f ./tmp/appmap/junit/org_springframework_samples_petclinic_JUnit5Tests_testAnnotatedMethodNotRecorded.appmap.json
+  assert_success
+}

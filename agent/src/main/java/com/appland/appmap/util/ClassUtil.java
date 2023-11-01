@@ -2,6 +2,7 @@ package com.appland.appmap.util;
 
 import static org.apache.commons.lang3.StringUtils.stripAll;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ public class ClassUtil {
 
   public static Class<?> safeClassForName(ClassLoader cl, String name) {
     try {
-      return cl.loadClass(name);
+      return Class.forName(name, true, cl);
     } catch (ClassNotFoundException e) {
     }
     return null;
@@ -129,5 +130,15 @@ public class ClassUtil {
   @SuppressWarnings("all")
   public static EnumSet<?> enumSetOf(Class<?> enumClass, String valueName) {
     return EnumSet.of((Enum) enumValueOf(enumClass.asSubclass(Enum.class), valueName));
+  }
+
+  public static Method findMethod(StackTraceElement ste) {
+    try {
+      Class<?> cls = safeClassForName(Thread.currentThread().getContextClassLoader(), ste.getClassName());
+      Class<?>[] args = {};
+      return cls.getDeclaredMethod(ste.getMethodName(), args);
+    } catch (NoSuchMethodException | SecurityException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
