@@ -64,7 +64,7 @@ public class DynamicReflectiveType {
 
   private static Class<?> tryClass(ClassLoader cl, String className) {
     try {
-      return cl.loadClass(className);
+      return Class.forName(className, true, cl);
     } catch (ClassNotFoundException e) {
       logger.trace(e);
     }

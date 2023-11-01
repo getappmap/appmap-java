@@ -25,7 +25,7 @@ public class ClassUtil {
 
   public static Class<?> safeClassForName(ClassLoader cl, String name) {
     try {
-      return cl.loadClass(name);
+      return Class.forName(name, true, cl);
     } catch (ClassNotFoundException e) {
     }
     return null;
