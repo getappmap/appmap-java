@@ -1,3 +1,15 @@
+# [1.23.0](https://github.com/getappmap/appmap-java/compare/v1.22.3...v1.23.0) (2023-11-02)
+
+
+### Bug Fixes
+
+* don't use ClassLoader.loadClass ([b8cf5ca](https://github.com/getappmap/appmap-java/commit/b8cf5cad45e1ca8cee3b176dd5e02a0ed68c2213))
+
+
+### Features
+
+* add NoAppMap to control test-case recording ([b136056](https://github.com/getappmap/appmap-java/commit/b136056631d199c94859665dc7a70f17762bedbf))
+
 ## [1.22.3](https://github.com/getappmap/appmap-java/compare/v1.22.2...v1.22.3) (2023-10-24)
 
 
