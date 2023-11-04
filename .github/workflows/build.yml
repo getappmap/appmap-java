@@ -17,6 +17,8 @@ jobs:
         steps:
             - name: Fetch Sources
               uses: actions/checkout@v4
+              with:
+                ref: ${{ github.event.pull_request.head.ref }}
 
             - name: Gradle Wrapper Validation
               uses: gradle/wrapper-validation-action@v1
