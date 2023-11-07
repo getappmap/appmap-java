@@ -107,10 +107,7 @@ public class RecordingSession {
       fw.flush();
 
       AppMapSerializer serializer = AppMapSerializer.reopen(fw, raf);
-      serializer.writeClassMap(this.getClassMap());
-      serializer.writeMetadata(this.metadata);
-      serializer.writeEventUpdates(this.eventUpdates);
-      serializer.finish();
+      serializer.write(this.getClassMap(), this.metadata, this.eventUpdates);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -127,10 +124,7 @@ public class RecordingSession {
     }
 
     try {
-      this.serializer.writeClassMap(this.getClassMap());
-      this.serializer.writeMetadata(this.metadata);
-      this.serializer.writeEventUpdates(this.eventUpdates);
-      this.serializer.finish();
+      this.serializer.write(this.getClassMap(), this.metadata, this.eventUpdates);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

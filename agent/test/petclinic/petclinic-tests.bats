@@ -92,7 +92,7 @@ run_petclinic_test() {
 
   assert_json_eq '.metadata.test_status' 'failed'
   assert_json_eq '.metadata.test_failure.message' 'expected: <true> but was: <false>'
-  assert_json_eq '.metadata.test_failure.location' 'org/springframework/samples/petclinic/JUnit5Tests.java:22'
+  assert_json_eq '.metadata.test_failure.location' 'src/test/java/org/springframework/samples/petclinic/JUnit5Tests.java:22'
 }  
 
 @test "NoAppMap on method disables test recording" {

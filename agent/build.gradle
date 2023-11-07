@@ -58,6 +58,7 @@ dependencies {
   implementation 'org.slf4j:slf4j-nop:1.7.30'
   implementation 'info.picocli:picocli:4.6.1'
   implementation 'org.apache.httpcomponents:httpcore-nio:4.4.15'
+  implementation 'org.eclipse.jgit:org.eclipse.jgit:5.13.2.202306221912-r'
 
   implementation "org.tinylog:tinylog-api:${tinylogVersion}"
   implementation "org.tinylog:tinylog-impl:${tinylogVersion}"

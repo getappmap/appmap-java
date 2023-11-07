@@ -23,6 +23,7 @@ import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recorder.Metadata;
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.transform.ClassFileTransformer;
+import com.appland.appmap.util.GitUtil;
 
 /**
  * Agent is a JVM agent which instruments, records, and prints appmap files
@@ -55,6 +56,12 @@ public class Agent {
     } catch (IOException e) {
       logger.warn(e, "Initialization failed");
       System.exit(1);
+    }
+
+    try {
+      GitUtil.findSourceRoots();
+    } catch (IOException e) {
+      logger.warn(e);
     }
 
     inst.addTransformer(new ClassFileTransformer());

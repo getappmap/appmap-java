@@ -65,7 +65,7 @@ run_tests() {
 
   assert_json_eq '.metadata.test_status' "failed"
   assert_json_eq '.metadata.test_failure.message' 'false is not true'
-  assert_json_eq '.metadata.test_failure.location' 'org/springframework/samples/petclinic/JUnit4Tests.java:20'
+  assert_json_eq '.metadata.test_failure.location' 'src/test/java/org/springframework/samples/petclinic/JUnit4Tests.java:20'
 }
 
 @test "NoAppMap on method disables recording" {
