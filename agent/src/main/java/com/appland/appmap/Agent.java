@@ -57,6 +57,7 @@ public class Agent {
       logger.warn(e, "Initialization failed");
       System.exit(1);
     }
+    logger.debug("config: {}", AppMapConfig.get());
 
     try {
       GitUtil.findSourceRoots();
