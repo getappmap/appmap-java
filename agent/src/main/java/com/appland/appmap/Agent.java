@@ -49,7 +49,6 @@ public class Agent {
     logger.debug(new Exception(), "whereAmI");
 
     addAgentJar(inst);
-    inst.addTransformer(new ClassFileTransformer());
 
     try {
       AppMapConfig.initialize(FileSystems.getDefault());
@@ -58,47 +57,48 @@ public class Agent {
       System.exit(1);
     }
 
+    inst.addTransformer(new ClassFileTransformer());
+
     Runnable logShutdown = () -> {
       try {
-        ProviderRegistry.
-
-            getLoggingProvider().shutdown();
+        ProviderRegistry.getLoggingProvider().shutdown();
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
     };
 
     if (Properties.RecordingAuto) {
-      String appmapName = Properties.RecordingName;
-      final Date date = new Date();
-      final SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss");
-      final String timestamp = dateFormat.format(date);
-      final Metadata metadata = new Metadata("java", "process");
-      final Recorder recorder = Recorder.getInstance();
-
-      if (appmapName == null || appmapName.trim().isEmpty()) {
-        appmapName = timestamp;
-      }
-
-      metadata.scenarioName = appmapName;
-
-      recorder.start(metadata);
-
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        String fileName = Properties.RecordingFile;
-
-        if (fileName == null || fileName.trim().isEmpty()) {
-          fileName = String.format("%s.appmap.json", timestamp);
-        }
-
-        Recording recording = recorder.stop();
-        recording.moveTo(fileName);
-
-        logShutdown.run();
-      }));
-    } else {
+      startAutoRecording(logShutdown);
+    }
+    else {
       Runtime.getRuntime().addShutdownHook(new Thread(logShutdown));
     }
+  }
+
+  private static void startAutoRecording(Runnable logShutdown) {
+    String appmapName = Properties.RecordingName;
+    final Date date = new Date();
+    final SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss");
+    final String timestamp = dateFormat.format(date);
+    final Metadata metadata = new Metadata("java", "process");
+    final Recorder recorder = Recorder.getInstance();
+    if (appmapName == null || appmapName.trim().isEmpty()) {
+      appmapName = timestamp;
+    }
+    metadata.scenarioName = appmapName;
+    recorder.start(metadata);
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      String fileName = Properties.RecordingFile;
+
+      if (fileName == null || fileName.trim().isEmpty()) {
+        fileName = String.format("%s.appmap.json", timestamp);
+      }
+
+      Recording recording = recorder.stop();
+      recording.moveTo(fileName);
+
+      logShutdown.run();
+    }));
   }
 
   private static void addAgentJar(Instrumentation inst) {
