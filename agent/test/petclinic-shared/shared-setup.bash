@@ -5,4 +5,6 @@ _shared_setup() {
   if [[ -d "${fixtureSrc}/${testdir}" ]]; then
     tar -C "${fixtureSrc}/${testdir}" -c -f - . | tar -C "${FIXTURE_DIR}" -x -f - 
   fi
+
+  cp "$(dirname ${BASH_SOURCE[0]})"/appmap-log.local.properties "${FIXTURE_DIR}"
 }
