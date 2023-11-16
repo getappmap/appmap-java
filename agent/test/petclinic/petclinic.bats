@@ -73,6 +73,7 @@ setup() {
   assert_json '.classMap'
   assert_json '.events'
   assert_json '.version'
+  assert_json '.metadata.git'
 
   run _curl -sXGET "${WS_URL}/_appmap/record"
   assert_success
@@ -84,6 +85,7 @@ setup() {
   assert_json '.classMap'
   assert_json '.events'
   assert_json '.version'
+  assert_json '.metadata.git'
 }
 
 @test "successfully stop the current recording" {
@@ -139,6 +141,10 @@ setup() {
   assert_json_eq '.metadata.language.name' 'java'
   assert_json_eq '.metadata.language.version' "${JAVA_VM_VERSION}"
   assert_json_eq '.metadata.language.engine' "${JAVA_VM_NAME}"
+
+  assert_json_eq '.metadata.git.repository' 'https://github.com/spring-projects/spring-petclinic.git'
+  assert_json '.metadata.git.branch'
+  assert_json '.metadata.git.status'
 }
 
 @test "paths in a Spring Boot app are normalized" {

@@ -12,6 +12,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.Recorder.Metadata;
+import com.appland.appmap.util.GitUtil;
 
 /**
  * Writes AppMap data to JSON.
@@ -66,6 +67,15 @@ public class AppMapSerializer {
     return serializer;
   }
 
+  public void write(CodeObjectTree classMap, Metadata metadata, Map<Integer, Event> eventUpdates) throws IOException {
+    writeClassMap(classMap);
+    try (GitUtil git = GitUtil.open()) {
+      writeMetadata(git, metadata);
+    }
+    writeEventUpdates(eventUpdates);
+    finish();
+  }
+
   private void setCurrentSection(String section, String type) throws IOException {
     if (this.currentSection != null && this.currentSection.name == section) {
       return;
@@ -104,7 +114,7 @@ public class AppMapSerializer {
    * @param metadata {@link Metadata} to be serialized and written.
    * @throws IOException If a writer error occurs
    */
-  public void writeMetadata(Metadata metadata) throws IOException {
+  private void writeMetadata(GitUtil git, Metadata metadata) throws IOException {
     this.setCurrentSection(FileSections.Version, "");
     this.json.writeKey("version");
     this.json.writeValue("1.2");
@@ -168,6 +178,20 @@ public class AppMapSerializer {
       }
       this.json.endObject();
 
+      if (git != null) {
+        this.json.writeKey("git");
+        this.json.startObject();
+        {
+          this.json.writeKey("repository");
+          this.json.writeValue(git.getRepositoryURL());
+          this.json.writeKey("branch");
+          this.json.writeValue(git.getBranch());
+          this.json.writeKey("status");
+          this.json.writeValue(git.getStatus());
+        }
+        this.json.endObject();
+      }
+
       if ( metadata.sourceLocation != null ) {
         this.json.writeKey("source_location");
         this.json.writeValue(metadata.sourceLocation);
@@ -216,7 +240,7 @@ public class AppMapSerializer {
    * @param codeObjects {@link CodeObjectTree} to be serialized and written.
    * @throws IOException If a writer error occurs
    */
-  public void writeClassMap(CodeObjectTree codeObjects) throws IOException {
+  private void writeClassMap(CodeObjectTree codeObjects) throws IOException {
     this.setCurrentSection(FileSections.ClassMap, "");
     this.json.writeKey("classMap");
     this.json.writeValue(codeObjects.toArray());
@@ -243,7 +267,7 @@ public class AppMapSerializer {
     this.json.flush();
   }
 
-  public void writeEventUpdates(Map<Integer, Event>updates) throws IOException {
+  private void writeEventUpdates(Map<Integer, Event> updates) throws IOException {
     this.setCurrentSection(FileSections.EventUpdates, "");
     this.json.writeKey("eventUpdates");
     this.json.startObject();
@@ -259,7 +283,7 @@ public class AppMapSerializer {
    * Closes outstanding JSON objects and closes the writer.
    * @throws IOException If a writer error occurs
    */
-  public void finish() throws IOException {
+  private void finish() throws IOException {
     this.setCurrentSection("EOF", "");
     this.json.endObject();
     this.json.close();

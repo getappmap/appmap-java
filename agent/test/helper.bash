@@ -24,6 +24,11 @@ stop_recording() {
 
 teardown() {
   stop_recording
+  if [[ -z "$BATS_TEST_COMPLETED" ]]; then
+    # Letting output go to stdout is more helpful than redirecting to fd 3.
+    echo "${BATS_TEST_NAME} failed" 
+    cat "${FIXTURE_DIR}/appmap.log"
+  fi
 }
 
 print_debug() {

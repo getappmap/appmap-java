@@ -25,6 +25,7 @@ import org.tinylog.Logger;
 import org.tinylog.TaggedLogger;
 import org.tinylog.configuration.Configuration;
 
+import com.alibaba.fastjson.JSON;
 import com.appland.appmap.Agent;
 import com.appland.appmap.cli.CLI;
 import com.appland.appmap.util.FullyQualifiedName;
@@ -300,5 +301,10 @@ public class AppMapConfig {
 
   private static Path findDefaultOutputDirectory(FileSystem fs) {
     return fs.getPath("tmp/appmap");
+  }
+
+  @Override
+  public String toString() {
+    return JSON.toJSONString(this, true);
   }
 }

@@ -9,8 +9,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
+
 import com.alibaba.fastjson.annotation.JSONField;
+import com.appland.appmap.util.GitUtil;
 import com.appland.appmap.util.Logger;
+
 import javassist.CtAppMapClassType;
 import javassist.CtBehavior;
 import javassist.CtClass;
@@ -227,7 +230,6 @@ public class CodeObject {
 
   /**
    * Guesses the source file path for the given class.
-   * TODO: improve this (somehow) so it takes into account src/main/java
    * 
    * @param classType A declared class
    * @return An estimated source file path
@@ -239,7 +241,7 @@ public class CodeObject {
       sourceFilePath = guessSourceFilePath(classType);
     }
 
-    return sourceFilePath;
+    return GitUtil.resolveSourcePath(sourceFilePath);
   }
 
   private static String getSourceFilePathWithDebugInfo(CtClass classType) {
