@@ -1,3 +1,15 @@
+# [1.24.0](https://github.com/getappmap/appmap-java/compare/v1.23.0...v1.24.0) (2023-11-16)
+
+
+### Bug Fixes
+
+* really show the config on startup ([15f58b6](https://github.com/getappmap/appmap-java/commit/15f58b60aa87f057f7efe8dae27ae9b62bca1cc0))
+
+
+### Features
+
+* add Git metadata, improve source paths ([62624fd](https://github.com/getappmap/appmap-java/commit/62624fdf2147183c5edda155c04f84493886fc9e))
+
 # [1.23.0](https://github.com/getappmap/appmap-java/compare/v1.22.3...v1.23.0) (2023-11-02)
 
 
