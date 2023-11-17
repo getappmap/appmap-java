@@ -21,6 +21,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.NoWorkTreeException;
 import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.RemoteConfig;
@@ -35,6 +36,8 @@ public class GitUtil implements AutoCloseable {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
   private Git git;
+  private Path fsBase;
+  private ObjectId tree; // HEAD^{tree}
 
   // Map from the Git path of a source root (that starts with
   // src/{main,test}/java) to its real location in the filesystem.
@@ -45,23 +48,23 @@ public class GitUtil implements AutoCloseable {
   // failed.
   private static Map<String, Optional<String>> sourcePaths = new HashMap<>();
 
-  private GitUtil(Git git) {
+  private GitUtil(Git git, ObjectId tree, Path fsBase) {
     this.git = git;
+    this.tree = tree;
+    this.fsBase = fsBase;
   }
 
   public static GitUtil open() throws IOException {
-    return open(null);
-  }
-
-  public static GitUtil open(File workTree) throws IOException {
     try {
       FileRepositoryBuilder builder = new FileRepositoryBuilder()
           .readEnvironment();
-      if (workTree != null) {
-        builder.setWorkTree(workTree);
-      } else {
+
         builder.findGitDir();
-      }
+        if (builder.getGitDir() == null) {
+          logger.debug("Working directory {}, not in a git repo", () -> Paths.get("").toAbsolutePath());
+          return null;
+        }
+
       Repository repository = builder.build();
       if (repository.isBare()) {
         logger.warn(
@@ -69,7 +72,14 @@ public class GitUtil implements AutoCloseable {
         return null;
       }
 
-      return new GitUtil(new Git(repository));
+      Path fsBase = AppMapConfig.get().configFile.toAbsolutePath().getParent();
+      ObjectId tree = repository.resolve(Constants.HEAD + "^{tree}");
+      if (tree == null) {
+        logger.warn("Couldn't resolve HEAD to a tree in {}, source paths may be incorrect", fsBase);
+        return null;
+      }
+
+      return new GitUtil(new Git(repository), tree, fsBase);
     } catch (IOException e) {
       logger.warn(e);
     }
@@ -142,6 +152,7 @@ public class GitUtil implements AutoCloseable {
   private static final byte[] GIT_TEST_JAVA = "src/test/java".getBytes();
   private static int GIT_TEST_JAVA_LEN = GIT_TEST_JAVA.length;
 
+
   /**
    * If we're in a git repo, walk all the directories under the directory that
    * contains the config, looking for source directories (i.e. those that start
@@ -152,8 +163,6 @@ public class GitUtil implements AutoCloseable {
    * @throws IOException if something goes wrong accessing the git repo
    */
   public static void findSourceRoots() throws IOException {
-    // Start the search for source roots in the directory containing the config.
-    Path fsBase = AppMapConfig.get().configFile.toAbsolutePath().getParent();
 
     try (GitUtil git = GitUtil.open()) {
       if (git == null) {
@@ -162,10 +171,10 @@ public class GitUtil implements AutoCloseable {
 
       Repository repository = git.getRepository();
       Path fsRoot = repository.getWorkTree().toPath();
-      String gitBase = fsRoot.relativize(fsBase).toString().replace(File.separator, "/");
+      String gitBase = fsRoot.relativize(git.fsBase).toString().replace(File.separator, "/");
       logger.debug("repoRoot: {}, gitCwd: {}", fsRoot, gitBase);
       try (TreeWalk treeWalk = new TreeWalk(repository)) {
-        treeWalk.addTree(repository.resolve(Constants.HEAD + "^{tree}"));
+        treeWalk.addTree(git.tree);
 
         if (gitBase.length() > 0) {
           // Ignore the parts of the repo that aren't under the base directory.
