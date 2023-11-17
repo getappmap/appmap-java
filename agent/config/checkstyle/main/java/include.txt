@@ -1,0 +1,6 @@
+com/appland/appmap/config/AppMapConfig.java
+com/appland/appmap/Agent.java
+com/appland/appmap/output/v1/CodeObject.java
+com/appland/appmap/record/AppMapSerializer.java
+com/appland/appmap/record/RecordingSession.java
+com/appland/appmap/util/GitUtil.java
