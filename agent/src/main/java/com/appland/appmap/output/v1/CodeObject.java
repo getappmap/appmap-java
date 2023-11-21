@@ -66,8 +66,9 @@ public class CodeObject {
   @JSONField(name = "location")
   public String getLocation() {
     String ret = this.file != null? this.file : null;
-    if (ret != null && this.lineno != null)
+    if (ret != null && this.lineno != null) {
       ret += ":" + this.lineno;
+    }
 
     return ret;
   }
@@ -425,12 +426,14 @@ public class CodeObject {
 
   private boolean equalBySubstring(String s1, String s2, int start, int end) {
     int sublen = end - start;
-    if (s1.length() != sublen)
+    if (s1.length() != sublen) {
       return false;
+    }
 
     for (int idx = 0; idx < sublen; idx++) {
-      if (s1.charAt(idx) != s2.charAt(start + idx))
+      if (s1.charAt(idx) != s2.charAt(start + idx)) {
         return false;
+      }
     }
 
     return true;

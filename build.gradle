@@ -40,3 +40,29 @@ nexusPublishing {
         }
     }
 }
+
+subprojects {
+  apply plugin: 'java-library'
+  apply plugin: 'checkstyle'
+
+  checkstyle {
+    toolVersion = "9.3"
+    configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+  }
+
+  tasks.named('checkstyleMain').configure {
+      def included = project.file("config/checkstyle/main/java/include.txt")
+      if (included.exists()) {
+        logger.debug("checkstyle for ${project.name}, include file: ${included}")
+        def includedFiles = included.readLines();
+        logger.debug("checking files ${includedFiles}")
+        include includedFiles
+        inputs.files(includedFiles)
+      }
+
+      reports {
+          html.enabled = false // Disable HTML report
+          xml.enabled = true  // Disable XML report if you don't want it
+      }
+  }
+}

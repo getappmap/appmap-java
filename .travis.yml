@@ -40,7 +40,7 @@ jobs:
       source "$HOME/.asdf/asdf.sh"
       asdf install java latest:adoptopenjdk-8
       asdf prune java adoptopenjdk-8
-      asdf local java latest:adoptopenjdk-8
+      asdf global java latest:adoptopenjdk-8
 
   - name: jdk 11
     env:
@@ -50,7 +50,7 @@ jobs:
       source "$HOME/.asdf/asdf.sh"
       asdf install java latest:adoptopenjdk-11
       asdf prune java adoptopenjdk-11
-      asdf local java latest:adoptopenjdk-11
+      asdf global java latest:adoptopenjdk-11
   - name: jdk 17
     env:
     - JDK=17
@@ -59,7 +59,7 @@ jobs:
       source "$HOME/.asdf/asdf.sh"
       asdf install java latest:adoptopenjdk-17
       asdf prune java adoptopenjdk-17
-      asdf local java latest:adoptopenjdk-17
+      asdf global java latest:adoptopenjdk-17
 
 script:
 - |

@@ -9,7 +9,6 @@
 import com.appland.tasks.ShadowRelocation
 
 plugins {
-  id 'java-library'
   id 'jacoco'
   id 'signing'
 }

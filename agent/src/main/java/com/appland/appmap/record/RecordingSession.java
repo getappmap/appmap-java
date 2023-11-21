@@ -146,8 +146,9 @@ public class RecordingSession {
       String[] parts = key.split(":");
 
       CodeObject methodBranch = registeredObjects.getMethodBranch(parts[0], parts[1], Boolean.valueOf(parts[2]), Integer.valueOf(parts[3]));
-      if (methodBranch != null)
+      if (methodBranch != null) {
         classMap.add(methodBranch);
+      }
     }
 
     return classMap;

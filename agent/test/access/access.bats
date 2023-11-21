@@ -6,7 +6,8 @@ load '../helper'
 
 sep="$JAVA_PATH_SEPARATOR"
 appmap_jar="$(find_agent_jar)"
-test_cp="test/access${sep}build/classes/java/test"
+wd="$(git rev-parse --show-toplevel)"/agent
+test_cp="${wd}/test/access${sep}${wd}/build/classes/java/test"
 java_cmd="java -javaagent:'${appmap_jar}' -cp '${test_cp}'"
 
 setup() {
@@ -29,3 +30,23 @@ setup() {
   eval "$cmd" | jq -e '.events[3] | select(.event=="call" and .method_id=="myPrivateMethod")'
 }
 
+@test "outside git repo" {
+  cp appmap.yml "$BATS_TEST_TMPDIR"/.
+  cd "$BATS_TEST_TMPDIR"
+
+  # sanity check
+  run git rev-parse --show-top-level
+  assert_output -p 'not a git repository'
+  assert_failure
+
+  local cmd="${java_cmd} RecordPackage"
+  run bash -c "eval \"$cmd\" 2>/dev/null"
+  assert_success
+  local recording="${output}"
+  run jq -e '.events | length | select(. == 4)' <<< "${recording}"
+  assert_success
+
+  # metadata shouldn't have any git info
+  run jq '.metadata.git' <<< "${recording}"
+  assert_output 'null'
+}
