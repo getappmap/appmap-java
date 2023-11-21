@@ -1,3 +1,10 @@
+## [1.24.1](https://github.com/getappmap/appmap-java/compare/v1.24.0...v1.24.1) (2023-11-21)
+
+
+### Bug Fixes
+
+* only collect git metadata in a repo ([d4ad468](https://github.com/getappmap/appmap-java/commit/d4ad468aab7f4895ae5a7bd45691159152d355d9))
+
 # [1.24.0](https://github.com/getappmap/appmap-java/compare/v1.23.0...v1.24.0) (2023-11-16)
 
 
