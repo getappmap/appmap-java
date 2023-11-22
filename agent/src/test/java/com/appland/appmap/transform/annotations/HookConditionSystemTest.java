@@ -1,12 +1,18 @@
 package com.appland.appmap.transform.annotations;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.AppMapPackage;
 import com.appland.appmap.output.v1.Event;
@@ -14,9 +20,7 @@ import com.appland.appmap.process.conditions.ConfigCondition;
 import com.appland.appmap.test.util.ClassBuilder;
 import com.appland.appmap.test.util.MethodBuilder;
 import com.appland.appmap.util.FullyQualifiedName;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
+
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -29,7 +33,7 @@ public class HookConditionSystemTest {
   private CtClass targetClassGood;
   private CtClass targetClassBad;
 
-  @Before
+  @BeforeEach
   public void initializeTestClasses() throws Exception {
     final ClassBuilder goodClass = new ClassBuilder(TargetClassNameGood);
     final MethodBuilder methodNoArgs = goodClass.beginMethod();

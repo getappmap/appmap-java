@@ -1,21 +1,19 @@
 package com.appland.appmap.test.util;
 
-import com.appland.appmap.output.v1.Parameters;
-import javassist.CtClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.SystemOutRule;
+import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
+
+import com.appland.appmap.output.v1.Parameters;
+
+import javassist.CtClass;
 
 public class MethodBuilderTest {
-  @Rule
-  public final SystemOutRule systemOutRule = new SystemOutRule().enableLog();
-
   private static final String myMethodMessage = "calling myMethod";
 
   @Test
@@ -31,8 +29,8 @@ public class MethodBuilderTest {
     Object obj = testClass.getDeclaredConstructor().newInstance();
     Method myMethod = testClass.getMethod("myMethod");
 
-    myMethod.invoke(obj);
-    assertEquals(myMethodMessage + System.getProperty("line.separator"), systemOutRule.getLog());
+    String actualOut = tapSystemOut(() -> myMethod.invoke(obj));
+    assertEquals(myMethodMessage + System.getProperty("line.separator"), actualOut);
   }
 
   @Test
@@ -51,8 +49,8 @@ public class MethodBuilderTest {
     int x = 100;
     double y = 12.0;
 
-    myMethod.invoke(obj, x, y);
-    assertEquals(x + " " + y + System.getProperty("line.separator"), systemOutRule.getLog());
+    String actualOut = tapSystemOut(() -> myMethod.invoke(obj, x, y));
+    assertEquals(x + " " + y + System.getProperty("line.separator"), actualOut);
     assertEquals(2, myMethod.getParameterCount());
 
     assertArrayEquals(new Class<?>[]{ int.class, double.class }, myMethod.getParameterTypes());

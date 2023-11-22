@@ -1,18 +1,23 @@
 package com.appland.appmap.transform.annotations;
 
-import com.appland.appmap.output.v1.Event;
-import com.appland.appmap.test.util.ClassBuilder;
-import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtMethod;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static org.junit.Assert.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.appland.appmap.output.v1.Event;
+import com.appland.appmap.test.util.ClassBuilder;
+
+import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.CtMethod;
 
 public class ArgumentArraySystemTest {
   private final static String TargetClassName = "ArgumentArraySystemTest.TargetClass";
@@ -20,7 +25,7 @@ public class ArgumentArraySystemTest {
   private final static Integer UNUSED_PARAMETER = -1;
   private CtClass targetClass;
 
-  @Before
+  @BeforeEach
   public void initializeTestClasses() throws Exception {
     targetClass = new ClassBuilder(TargetClassName)
         .beginMethod()
@@ -90,7 +95,7 @@ public class ArgumentArraySystemTest {
       hooks.add(hook);
     }
 
-    assertTrue("No hooks?", hooks.size() > 0);
+    assertTrue(hooks.size() > 0, "No hooks?");
 
     for (CtBehavior behavior : targetClass.getDeclaredBehaviors()) {
       Map<String, Object> matchResult = new HashMap<String, Object>();

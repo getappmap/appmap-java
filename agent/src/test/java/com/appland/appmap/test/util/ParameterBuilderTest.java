@@ -1,19 +1,20 @@
 package com.appland.appmap.test.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class ParameterBuilderTest {
   private String paramId = "myParam";
   private CtClass paramType;
 
-  @Before
+  @BeforeEach
   public void before() throws Exception {
     paramId = "myParam";
     paramType = ClassPool.getDefault().get("java.lang.String");
