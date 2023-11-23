@@ -102,8 +102,9 @@ public class CtClassUtil {
   public static Boolean isChildOf(String childClassName, CtClass parentClass) {
     String parentClassName = parentClass.getName();
     boolean namesEqual = childClassName.equals(parentClassName);
-    if (namesEqual)
+    if (namesEqual) {
       return true;
+    }
 
     ClassPool cp = ClassPool.getDefault();
     try {
@@ -126,8 +127,9 @@ public class CtClassUtil {
   public static Boolean isChildOf(CtClass childClass, String parentClassName) {
     String childClassName = childClass.getName();
     boolean namesEqual = childClassName.equals(parentClassName);
-    if (namesEqual)
+    if (namesEqual) {
       return true;
+    }
 
     ClassPool cp = ClassPool.getDefault();
     try {
@@ -149,8 +151,9 @@ public class CtClassUtil {
 
   public static Boolean isChildOf(String childClassName, String parentClassName) {
     boolean namesEqual = childClassName.equals(parentClassName);
-    if (namesEqual)
+    if (namesEqual) {
       return true;
+    }
 
     ClassPool cp = ClassPool.getDefault();
     try {

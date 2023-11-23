@@ -318,11 +318,14 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     if (new AppMapBehavior(method).isRecordable() &&
         Descriptor.numOfParameters(descriptor) == 0) {
       if (methodName.matches("^get[A-Z].*") &&
-          !descriptor.matches("\\)V$")) /* void */
+          !descriptor.matches("\\)V$")) {/* void */
         return true;
+      }
+
       if (methodName.matches("^is[A-Z].*") &&
-          descriptor.matches("\\)Z$")) /* boolean */
+          descriptor.matches("\\)Z$")) {/* boolean */
         return true;
+      }
       /* boolean */
       return methodName.matches("^has[A-Z].*") &&
           descriptor.matches("\\)Z$");

@@ -91,15 +91,17 @@ public class Parameters implements Iterable<Value> {
       // method isn't in the source file, so I'm not sure where it's
       // coming from.
       for (; localVarIdx < numLocals; localVarIdx++) {
-        if (locals.index(localVarIdx) == firstParamIdx)
+        if (locals.index(localVarIdx) == firstParamIdx) {
           break;
+        }
       }
 
       if (localVarIdx < numLocals) {
         // Assume the rest of the parameters follow the first.
         paramNames[0] = locals.variableName(localVarIdx);
-        for (int idx = 1; idx < numParams; idx++)
+        for (int idx = 1; idx < numParams; idx++) {
           paramNames[idx] = locals.variableName(localVarIdx + idx);
+        }
       }
     }
 
