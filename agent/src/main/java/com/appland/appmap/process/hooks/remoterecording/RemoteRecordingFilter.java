@@ -2,6 +2,7 @@ package com.appland.appmap.process.hooks.remoterecording;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.appland.appmap.config.Properties;
@@ -22,7 +23,7 @@ public class RemoteRecordingFilter implements InvocationHandler {
       }
     }
 
-    public void doFilter(Object req, Object resp) {
+    public void doFilter(Object req, Object resp) throws InvocationTargetException {
       invokeVoidMethod(DO_FILTER, req, resp);
     }
   }
@@ -35,7 +36,7 @@ public class RemoteRecordingFilter implements InvocationHandler {
         "jakarta.servlet.Filter", "org.springframework.core.Ordered");
   }
 
-  private static void doFilter(Object[] args) {
+  private static void doFilter(Object[] args) throws InvocationTargetException {
     final HttpServletRequest req = new HttpServletRequest(args[0]);
     final HttpServletResponse res = new HttpServletResponse(args[1]);
     final FilterChain chain = new FilterChain(args[2]);
@@ -49,18 +50,21 @@ public class RemoteRecordingFilter implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     String methodName = method.getName();
-    if (methodName.equals("doFilter")) {
-      doFilter(args);
-    } else if (methodName.equals("getOrder")) {
-      Class<?> methodClass = method.getDeclaringClass();
-      Field highestPrecedence = methodClass.getField("HIGHEST_PRECEDENCE");
-      return highestPrecedence.getInt(methodClass);
-    } else if (methodName.equals("init") || methodName.equals("destroy")) {
-      // nothing to do for these, but they need to be implemented
-    } else {
-      throw new InternalError("unhandled method " + methodName);
+    try {
+      if (methodName.equals("doFilter")) {
+        doFilter(args);
+      } else if (methodName.equals("getOrder")) {
+        Class<?> methodClass = method.getDeclaringClass();
+        Field highestPrecedence = methodClass.getField("HIGHEST_PRECEDENCE");
+        return highestPrecedence.getInt(methodClass);
+      } else if (methodName.equals("init") || methodName.equals("destroy")) {
+        // nothing to do for these, but they need to be implemented
+      } else {
+        throw new InternalError("unhandled method " + methodName);
+      }
+    } catch (InvocationTargetException e) {
+      throw e.getTargetException();
     }
-
     return null;
   }
 }

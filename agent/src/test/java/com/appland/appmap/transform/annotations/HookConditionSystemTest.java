@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 import com.appland.appmap.config.AppMapConfig;
@@ -19,12 +20,14 @@ import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.conditions.ConfigCondition;
 import com.appland.appmap.test.util.ClassBuilder;
 import com.appland.appmap.test.util.MethodBuilder;
+import com.appland.appmap.util.ClassPoolExtension;
 import com.appland.appmap.util.FullyQualifiedName;
 
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
 
+@ExtendWith(ClassPoolExtension.class)
 public class HookConditionSystemTest {
   private final static String TargetClassNameGood = "HookConditionSystemTest.Good.TargetClass";
   private final static String TargetClassNameBad = "HookConditionSystemTest.Bad.TargetClass";

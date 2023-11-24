@@ -8,11 +8,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.appland.appmap.output.v1.Parameters;
+import com.appland.appmap.util.ClassPoolExtension;
 
 import javassist.CtClass;
 
+@ExtendWith(ClassPoolExtension.class)
 public class MethodBuilderTest {
   private static final String myMethodMessage = "calling myMethod";
 

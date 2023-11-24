@@ -4,8 +4,9 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.appland.appmap.util.AppMapClassPool;
+
 import javassist.CannotCompileException;
-import javassist.ClassPool;
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -83,7 +84,7 @@ public class MethodBuilder {
    * @throws NotFoundException If the name of the method return type cannot be resolved to a Class
    */
   public MethodBuilder setReturnType(String returnTypeName) throws NotFoundException {
-    this.setReturnType(ClassPool.getDefault().get(returnTypeName));
+    this.setReturnType(AppMapClassPool.get().get(returnTypeName));
     return this;
   }
 
@@ -104,7 +105,7 @@ public class MethodBuilder {
    * @throws NotFoundException If the name of the exception type cannot be resolved to a Class
    */
   public MethodBuilder addException(String exceptionTypeName) throws NotFoundException {
-    this.addException(ClassPool.getDefault().get(exceptionTypeName));
+    this.addException(AppMapClassPool.get().get(exceptionTypeName));
     return this;
   }
 

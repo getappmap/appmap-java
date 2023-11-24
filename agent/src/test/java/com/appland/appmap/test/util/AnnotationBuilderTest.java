@@ -11,10 +11,13 @@ import java.nio.file.FileSystems;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.extension.ExtendWith;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.transform.annotations.ExcludeReceiver;
 import com.appland.appmap.transform.annotations.HookClass;
+import com.appland.appmap.util.ClassPoolExtension;
 
+@ExtendWith(ClassPoolExtension.class)
 public class AnnotationBuilderTest {
   @BeforeEach
   void initialize() throws Exception {

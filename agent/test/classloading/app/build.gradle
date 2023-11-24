@@ -43,8 +43,12 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'com.appland.appmap.classloading.App'
-    applicationDefaultJvmArgs += "-DservletJar=${configurations.servlet.asPath}"
+    mainClass = 'com.appland.appmap.classloading.Runner'
+    applicationDefaultJvmArgs += [
+      "-javaagent:${appmapJar}",
+      /*"-Dsun.misc.URLClassPath.debug",*/
+      "-DtestJars=${configurations.servlet.asPath}"
+    ]
 }
 
 tasks.named('test') {

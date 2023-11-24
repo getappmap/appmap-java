@@ -5,11 +5,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import javassist.ClassPool;
+import com.appland.appmap.util.AppMapClassPool;
+import com.appland.appmap.util.ClassPoolExtension;
+
 import javassist.CtClass;
 import javassist.NotFoundException;
 
+@ExtendWith(ClassPoolExtension.class)
 public class ParameterBuilderTest {
   private String paramId = "myParam";
   private CtClass paramType;
@@ -17,7 +21,7 @@ public class ParameterBuilderTest {
   @BeforeEach
   public void before() throws Exception {
     paramId = "myParam";
-    paramType = ClassPool.getDefault().get("java.lang.String");
+    paramType = AppMapClassPool.get().get("java.lang.String");
   }
 
   @Test

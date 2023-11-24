@@ -11,15 +11,18 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.test.util.ClassBuilder;
+import com.appland.appmap.util.ClassPoolExtension;
 
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
 
 
+@ExtendWith(ClassPoolExtension.class)
 public class ExcludeReceiverSystemTest {
   private final static String TargetClassName = "CallbackOnSystemTest.TargetClass";
   private final static String HookClassName = "CallbackOnSystemTest.HookClass";

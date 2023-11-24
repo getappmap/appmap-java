@@ -9,20 +9,24 @@ import java.util.ArrayList;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.appland.appmap.test.util.ClassBuilder;
+import com.appland.appmap.util.AppMapClassPool;
+import com.appland.appmap.util.ClassPoolExtension;
 
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 
+@ExtendWith(ClassPoolExtension.class)
 public class EventTemplateRegistryTest {
   private static final EventTemplateRegistry registry = EventTemplateRegistry.get();
 
   @Test
   public void testRegister() throws Exception {
     ArrayList<CtMethod> behaviorsToRegister = new ArrayList<CtMethod>();
-    ClassPool classPool = ClassPool.getDefault();
+    ClassPool classPool = AppMapClassPool.get();
     CtClass classType = classPool.get("com.appland.appmap.ExampleClass");
 
     behaviorsToRegister.add(classType.getDeclaredMethod("methodStaticZeroParam"));

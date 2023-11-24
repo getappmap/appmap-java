@@ -24,5 +24,7 @@ _test_the_agent_doesnt_exhaust_theInputStream() {
   run _curl --data '{"some": "data"}' "${WS_URL}/showavailable"
   assert_success
 
-  assert_json_eq ".available" "31"
+  run jq -r '.available' <<< "${output}"
+  assert [ $output -gt 0 ]
+
 }

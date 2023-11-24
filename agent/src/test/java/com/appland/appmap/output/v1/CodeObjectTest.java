@@ -9,11 +9,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.appland.appmap.test.util.ClassBuilder;
-import javassist.ClassPool;
+import com.appland.appmap.util.AppMapClassPool;
+import com.appland.appmap.util.ClassPoolExtension;
+
 import javassist.CtClass;
 import javassist.NotFoundException;
 
 
+@ExtendWith(ClassPoolExtension.class)
 public class CodeObjectTest {
 
   /**
@@ -72,19 +75,21 @@ public class CodeObjectTest {
 
   @Test
   public void getSourceFilePathForRegularClass() throws NotFoundException {
-      CtClass testCtClass = ClassPool.getDefault().get("com.appland.appmap.ExampleClass");
+    CtClass testCtClass = AppMapClassPool.get().get("com.appland.appmap.ExampleClass");
       assertEquals("com/appland/appmap/ExampleClass.java", CodeObject.getSourceFilePath(testCtClass));
   }
 
   @Test
   public void getSourceFilePath_for_InnerClass_ResultInBaseClass() throws NotFoundException {
-      CtClass testCtClass = ClassPool.getDefault().get("com.appland.appmap.output.v1.testclasses.ExampleInnerClass$StaticFinalInnerClass");
+    CtClass testCtClass = AppMapClassPool.get()
+        .get("com.appland.appmap.output.v1.testclasses.ExampleInnerClass$StaticFinalInnerClass");
       assertEquals("com/appland/appmap/output/v1/testclasses/ExampleInnerClass.java", CodeObject.getSourceFilePath(testCtClass));
   }
 
   @Test
   public void getSourceFilePath_for_AnonymousClass_ResultInBaseClass() throws NotFoundException {
-      CtClass testCtClass = ClassPool.getDefault().get("com.appland.appmap.output.v1.testclasses.Anonymous$1");
+    CtClass testCtClass =
+        AppMapClassPool.get().get("com.appland.appmap.output.v1.testclasses.Anonymous$1");
       assertEquals("com/appland/appmap/output/v1/testclasses/Anonymous.java", CodeObject.getSourceFilePath(testCtClass));
   }
 }

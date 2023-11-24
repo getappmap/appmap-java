@@ -1,6 +1,7 @@
 package com.appland.appmap.reflect;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -37,7 +38,11 @@ public class DynamicReflectiveType {
         }
       }
 
-      return delegate.invoke(proxy, method, args);
+      try {
+        return delegate.invoke(proxy, method, args);
+      } catch (InvocationTargetException e) {
+        throw e.getTargetException();
+      }
 
     }
   }

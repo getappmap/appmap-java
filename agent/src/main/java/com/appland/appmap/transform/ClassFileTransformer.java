@@ -27,13 +27,13 @@ import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
 import com.appland.appmap.util.AppMapBehavior;
+import com.appland.appmap.util.AppMapClassPool;
 import com.appland.appmap.util.Logger;
 
 import javassist.ClassPool;
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
-import javassist.LoaderClassPath;
 import javassist.Modifier;
 import javassist.NotFoundException;
 import javassist.bytecode.Descriptor;
@@ -60,17 +60,20 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         .setUrls(ClasspathHelper.forPackage("com.appland.appmap.process"))
         .setScanners(new SubTypesScanner(false))
         .filterInputsBy(new FilterBuilder().includePackage("com.appland.appmap.process")));
-    ClassPool classPool = ClassPool.getDefault();
-    for (Class<?> classType : reflections.getSubTypesOf(Object.class)) {
-      try {
-        CtClass ctClass = classPool.get(classType.getName());
-        processClass(ctClass);
-        ctClass.detach();
-      } catch (NotFoundException e) {
-        Logger.printf("failed to find %s in class pool", classType.getName());
-        Logger.println(e);
+    ClassPool classPool = AppMapClassPool.acquire(Thread.currentThread().getContextClassLoader());
+    try {
+      for (Class<?> classType : reflections.getSubTypesOf(Object.class)) {
+        try {
+          CtClass ctClass = classPool.get(classType.getName());
+          processClass(ctClass);
+          ctClass.detach();
+        } catch (NotFoundException e) {
+          logger.debug(e);
+        }
       }
-    } 
+    } finally {
+      AppMapClassPool.release();
+    }
   }
 
   private void addHook(Hook hook) {
@@ -192,7 +195,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           ProtectionDomain domain,
       byte[] bytes) throws IllegalClassFormatException {
 
-    ClassPool classPool = new ClassPool();
+    AppMapClassPool.acquire(loader);
     try {
       // Anonymous classes created by sun.misc.Unsafe.defineAnonymousClass don't
       // have names.
@@ -201,16 +204,15 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       }
 
       className = className.replaceAll("/", ".");
-
       boolean traceClass = tracePrefix == null || className.startsWith(tracePrefix);
-
-      if (traceClass) {
-        logger.trace("className: {}, classPool: {}", className, classPool);
-      }
-    classPool.appendClassPath(new LoaderClassPath(loader));
 
       CtClass ctClass;
       try {
+        ClassPool classPool = AppMapClassPool.get();
+        if (traceClass) {
+          logger.trace("className: {}, classPool: {}", className, classPool);
+        }
+
         ctClass = classPool.makeClass(new ByteArrayInputStream(bytes));
       } catch (RuntimeException e) {
         // The class is frozen
@@ -266,6 +268,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       // be swallowed
       // by sun.instrument.TransformerManager.
       logger.warn(t);
+    } finally {
+      AppMapClassPool.release();
     }
 
     return null;

@@ -13,9 +13,9 @@ public class FilterChain extends ReflectiveType {
                                        "javax.servlet.ServletResponse");
   }
 
-  public void doFilter(Object request, Object response) {
+  public void doFilter(Object request, Object response) throws Throwable {
     if (fnDoFilter != null) {
-      invokeWrappedMethod(fnDoFilter, request, response);
+      unsafeInvokeWrappedMethod(fnDoFilter, request, response);
     }
   }
 }

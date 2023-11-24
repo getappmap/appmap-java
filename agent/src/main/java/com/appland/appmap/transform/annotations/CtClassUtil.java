@@ -7,6 +7,7 @@ import org.tinylog.TaggedLogger;
 
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
+import com.appland.appmap.util.AppMapClassPool;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -106,8 +107,8 @@ public class CtClassUtil {
       return true;
     }
 
-    ClassPool cp = ClassPool.getDefault();
     try {
+      ClassPool cp = AppMapClassPool.get();
       CtClass childClass = cp.get(childClassName);
 
       Boolean ret = isChildOf(childClass, parentClass);
@@ -131,8 +132,9 @@ public class CtClassUtil {
       return true;
     }
 
-    ClassPool cp = ClassPool.getDefault();
     try {
+      ClassPool cp = AppMapClassPool.get();
+
       CtClass parentClass = cp.get(parentClassName);
 
       Boolean ret = isChildOf(childClass, parentClass);
@@ -155,8 +157,9 @@ public class CtClassUtil {
       return true;
     }
 
-    ClassPool cp = ClassPool.getDefault();
     try {
+      ClassPool cp = AppMapClassPool.get();
+
       CtClass parentClass = cp.get(parentClassName);
 
       Boolean ret = isChildOf(childClassName, parentClass);

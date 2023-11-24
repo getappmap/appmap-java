@@ -8,7 +8,11 @@ setup_file() {
   cd test/classloading
 }
 
-@test "Can load a class from a runtime jar" {
-  run ./gradlew -q -PappmapJar="$AGENT_JAR" run
+@test "ClassUtil.safeClassForName" {
+  # It's nice to be able to cut and paste the run command. Written like this,
+  # it's easy to do (the test for BATS_VERSION will add -q to the command line
+  # when run as a test, but not when run in a shell).
+  run \
+    ./gradlew ${BATS_VERSION+-q} -PappmapJar="$AGENT_JAR" run --args "TestSafeClassForName"
   assert_success
 }

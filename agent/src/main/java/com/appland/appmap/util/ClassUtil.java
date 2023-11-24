@@ -65,7 +65,9 @@ public class ClassUtil {
     if (ret == null) {
       try {
         logger.trace("name: {}", name);
-        ret = ClassPool.getDefault().get(name);
+        ClassPool cp = AppMapClassPool.get();
+
+        ret = cp.get(name);
       } catch (NotFoundException e) {
         logger.warn(e);
       }
@@ -87,9 +89,10 @@ public class ClassUtil {
   public static MethodLocation getMethodLocation(String className, String methodName, String paramTypes) {
     logger.trace("className: {}, methodName: {}, paramTypes: {}", className, methodName, paramTypes);
 
-    ClassPool cp = ClassPool.getDefault();
     CtClass cls;
     try {
+      ClassPool cp = AppMapClassPool.get();
+
       cls = cp.get(className);
       String loc = CodeObject.getSourceFilePath(cls);
       logger.trace("loc: {}", loc);
