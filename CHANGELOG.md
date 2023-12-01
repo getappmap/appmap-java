@@ -1,3 +1,15 @@
+# [1.25.0](https://github.com/getappmap/appmap-java/compare/v1.24.1...v1.25.0) (2023-12-01)
+
+
+### Bug Fixes
+
+* manage ClassPool instances per-thread ([30092a1](https://github.com/getappmap/appmap-java/commit/30092a18962eacc9a1c3dbc8b42d2602c2b16cc1))
+
+
+### Features
+
+* record calls made through a Proxy ([0873d3d](https://github.com/getappmap/appmap-java/commit/0873d3dc3c3468aa17e174e7b6d7e0d516eccfed))
+
 ## [1.24.1](https://github.com/getappmap/appmap-java/compare/v1.24.0...v1.24.1) (2023-11-21)
 
 
