@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
  */
 public class HookSite {
   private final Hook hook;
+  private final Integer behaviorOrdinal;
   private final String hookInvocation;
   private final MethodEvent methodEvent;
   private final Boolean ignoresGlobalLock;
@@ -22,6 +23,7 @@ public class HookSite {
   HookSite(Hook hook, Integer behaviorOrdinal, Parameters parameters) {
     this.methodEvent = hook.getMethodEvent();
     this.hook = hook;
+    this.behaviorOrdinal = behaviorOrdinal;
     this.ignoresGlobalLock = (Boolean) AnnotationUtil.getValue(
       hook.getBehavior(),
       ContinueHooking.class,
@@ -84,5 +86,9 @@ public class HookSite {
 
   public Boolean ignoresGlobalLock() {
     return this.ignoresGlobalLock;
+  }
+
+  public Integer getBehaviorOrdinal() {
+    return behaviorOrdinal;
   }
 }

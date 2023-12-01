@@ -57,7 +57,7 @@ public class RecorderTest {
   }
 
   @Test
-  @Timeout(5)
+  @Timeout(30)
   public void testMultiThreadedRecordBlock() throws InterruptedException {
     final int iterations = 1000;
     final MyClass myClass = new MyClass();

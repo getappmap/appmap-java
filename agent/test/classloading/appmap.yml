@@ -1,0 +1,4 @@
+name: classloading
+appmap_dir: tmp/appmap
+packages:
+- path: com.appland.appmap.classloading.helloworld

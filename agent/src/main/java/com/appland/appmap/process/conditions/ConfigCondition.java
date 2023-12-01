@@ -6,6 +6,7 @@ import com.appland.appmap.config.AppMapPackage;
 import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.FullyQualifiedName;
 import javassist.CtBehavior;
+import javassist.CtClass;
 
 
 /**
@@ -28,7 +29,8 @@ public abstract class ConfigCondition implements Condition {
    * @see AppMapConfig
    */
   public static Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
-    if (behavior.getDeclaringClass().getName().startsWith("java.lang")) {
+    CtClass declaringClass = behavior.getDeclaringClass();
+    if (declaringClass.getName().startsWith("java.lang")) {
       return false;
     }
 
@@ -36,7 +38,7 @@ public abstract class ConfigCondition implements Condition {
       return false;
     }
 
-    if (behavior.getMethodInfo().getLineNumber(0) < 0) {
+    if (!declaringClass.isInterface() && behavior.getMethodInfo().getLineNumber(0) < 0) {
       // likely a runtime generated method
       return false;
     }

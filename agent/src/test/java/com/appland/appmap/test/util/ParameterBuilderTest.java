@@ -1,22 +1,27 @@
 package com.appland.appmap.test.util;
 
-import javassist.ClassPool;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import com.appland.appmap.util.AppMapClassPool;
+import com.appland.appmap.util.ClassPoolExtension;
+
 import javassist.CtClass;
 import javassist.NotFoundException;
-import org.junit.Before;
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
+@ExtendWith(ClassPoolExtension.class)
 public class ParameterBuilderTest {
   private String paramId = "myParam";
   private CtClass paramType;
 
-  @Before
+  @BeforeEach
   public void before() throws Exception {
     paramId = "myParam";
-    paramType = ClassPool.getDefault().get("java.lang.String");
+    paramType = AppMapClassPool.get().get("java.lang.String");
   }
 
   @Test

@@ -1,6 +1,7 @@
 package com.appland.appmap.test.util;
 
-import javassist.ClassPool;
+import com.appland.appmap.util.AppMapClassPool;
+
 import javassist.CtClass;
 import javassist.NotFoundException;
 
@@ -37,7 +38,7 @@ public class ParameterBuilder {
    * @throws NotFoundException If the name of the parameter type cannot be resolved to a Class
    */
   public ParameterBuilder setType(String typeName) throws NotFoundException {
-    this.setType(ClassPool.getDefault().get(typeName));
+    this.setType(AppMapClassPool.get().get(typeName));
     return this;
   }
 

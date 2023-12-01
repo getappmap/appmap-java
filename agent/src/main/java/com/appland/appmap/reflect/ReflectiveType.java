@@ -105,12 +105,20 @@ public class ReflectiveType {
 
   protected Object invokeWrappedMethod(Method method, Object... parameters) {
     try {
+      return unsafeInvokeWrappedMethod(method, parameters);
+    } catch (Throwable t) {
+      throw new Error(t);
+    }
+  }
+
+  protected Object unsafeInvokeWrappedMethod(Method method, Object... parameters) throws Throwable {
+    try {
       method.setAccessible(true);
       logger.trace("method: {} parameters: {}", method, parameters);
       return method.invoke(self, parameters);
     } catch (InvocationTargetException e) {
-      logger.warn(e, "{}.{} threw an exception", self.getClass().getName(), method.getName());
-      throw new Error(e);
+      logger.debug(e, "{}.{} threw an exception", self.getClass().getName(), method.getName());
+      throw e.getTargetException();
     } catch (Exception e) {
       logger.warn(e, "failed invoking {}.{}", self.getClass().getName(), method.getName());
       if (e.getCause() != null) {

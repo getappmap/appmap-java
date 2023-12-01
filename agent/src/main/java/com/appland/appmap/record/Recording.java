@@ -87,8 +87,9 @@ public class Recording {
         }
 
         if (!errors.isEmpty()) {
-            if (lastException != null)
+            if (lastException != null) {
                 lastException.printStackTrace();
+            }
             throw new RuntimeException(String.join(", ", errors));
         }
 

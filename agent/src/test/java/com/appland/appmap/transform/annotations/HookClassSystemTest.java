@@ -1,24 +1,27 @@
 package com.appland.appmap.transform.annotations;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.test.util.ClassBuilder;
+import com.appland.appmap.util.ClassPoolExtension;
 
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
 
+@ExtendWith(ClassPoolExtension.class)
 public class HookClassSystemTest {
   private static final String PackageName = "HookClassSystemTest";
   private static final String SuperclassName = PackageName + ".Super";
@@ -28,7 +31,7 @@ public class HookClassSystemTest {
   private static final Integer UNUSED_PARAMETER = -1;
   private CtClass targetClass;
 
-  @Before
+  @BeforeEach
   public void initializeTestClasses() throws Exception {
     CtClass iface = ClassBuilder.buildInterface(InterfaceName)
         .beginMethod()
@@ -111,7 +114,7 @@ public class HookClassSystemTest {
       hooks.add(hook);
     }
 
-    assertTrue("No hooks?", hooks.size() > 0);
+    assertTrue(hooks.size() > 0, "No hooks?");
 
     for (CtBehavior behavior : targetClass.getDeclaredBehaviors()) {
       Map<String, Object> matchResult = new HashMap<String, Object>();
@@ -128,7 +131,7 @@ public class HookClassSystemTest {
     }
 
     int bindingsSize = bindings.size();
-    assertEquals("Wrong number of hooks", 4, bindingsSize);
+    assertEquals(4, bindingsSize, "Wrong number of hooks");
     assertEquals(bindings.get(bindingsSize - 1).getTargetBehavior().getName(), "requiredMethod");
   }
 }

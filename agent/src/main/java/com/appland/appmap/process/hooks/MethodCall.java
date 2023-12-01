@@ -16,7 +16,8 @@ public class MethodCall {
   @ArgumentArray
   @HookCondition(ConfigCondition.class)
   public static void handle(Event event, Object self, Object[] args) {
-    for (int i = 0; i < args.length; i++) {
+    int argsLen = args != null ? args.length : 0;
+    for (int i = 0; i < argsLen; i++) {
       Value param = event.parameters.get(i);
       param.set(args[i]);
     }

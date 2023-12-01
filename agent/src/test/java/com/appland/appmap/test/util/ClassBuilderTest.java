@@ -1,15 +1,14 @@
 package com.appland.appmap.test.util;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.SystemOutRule;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import com.appland.appmap.util.ClassPoolExtension;
+
+@ExtendWith(ClassPoolExtension.class)
 public class ClassBuilderTest {
-  @Rule
-  public final SystemOutRule systemOutRule = new SystemOutRule().enableLog();
-
   @Test
   public void testBuild() throws Exception {
     Class<?> testClass = new ClassBuilder("ClassBuilderTest.testBuild").build().asClass();

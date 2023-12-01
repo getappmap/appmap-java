@@ -16,6 +16,7 @@ import org.tinylog.TaggedLogger;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.record.EventTemplateRegistry;
+import com.appland.appmap.util.AppMapClassPool;
 import com.appland.appmap.util.Logger;
 
 import javassist.CannotCompileException;
@@ -180,12 +181,13 @@ public class Hook {
       targetBehavior.insertAfter(
           afterSrcBlock(invocations[MethodEvent.METHOD_RETURN.getIndex()]));
 
+      ClassPool cp = AppMapClassPool.get();
       if (returnsVoid) {
         targetBehavior.addCatch("{"
             + "com.appland.appmap.process.ThreadLock.current().exit();"
             + "return;"
             + "}",
-            ClassPool.getDefault().get("com.appland.appmap.process.ExitEarly"));
+            cp.get("com.appland.appmap.process.ExitEarly"));
       } else if (!returnType.isPrimitive()) {
         targetBehavior.addCatch("{"
             + "com.appland.appmap.process.ThreadLock.current().exit();"
@@ -193,12 +195,12 @@ public class Hook {
             + returnType.getName()
             + ") $e.getReturnValue();"
             + "}",
-            ClassPool.getDefault().get("com.appland.appmap.process.ExitEarly"));
+            cp.get("com.appland.appmap.process.ExitEarly"));
       }
 
       targetBehavior.addCatch(
           catchSrcBlock(invocations[MethodEvent.METHOD_EXCEPTION.getIndex()]),
-          ClassPool.getDefault().get("java.lang.Throwable"));
+          cp.get("java.lang.Throwable"));
       
     } catch (CannotCompileException e) {
       logger.debug(e, "failed to compile {}.{}", targetBehavior.getDeclaringClass().getName(),

@@ -52,8 +52,9 @@ public class CodeObjectTree {
    * i.e. doesn't have delim as the first or last character
    */
   private int countTokens(String s, char delim) {
-    if (s.length() == 0)
+    if (s.length() == 0) {
       return 0;
+    }
     
     int start = 0, end = 0, count = 0;
     while ((end = s.indexOf(delim, start)) > 0) {

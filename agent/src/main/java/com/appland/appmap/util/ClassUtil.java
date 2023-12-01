@@ -16,6 +16,7 @@ import com.appland.appmap.output.v1.CodeObject;
 
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.LineNumberAttribute;
 import javassist.bytecode.MethodInfo;
@@ -65,7 +66,9 @@ public class ClassUtil {
     if (ret == null) {
       try {
         logger.trace("name: {}", name);
-        ret = ClassPool.getDefault().get(name);
+        ClassPool cp = AppMapClassPool.get();
+
+        ret = cp.get(name);
       } catch (NotFoundException e) {
         logger.warn(e);
       }
@@ -87,17 +90,14 @@ public class ClassUtil {
   public static MethodLocation getMethodLocation(String className, String methodName, String paramTypes) {
     logger.trace("className: {}, methodName: {}, paramTypes: {}", className, methodName, paramTypes);
 
-    ClassPool cp = ClassPool.getDefault();
     CtClass cls;
     try {
+      ClassPool cp = AppMapClassPool.get();
+
       cls = cp.get(className);
       String loc = CodeObject.getSourceFilePath(cls);
       logger.trace("loc: {}", loc);
-      CtClass[] paramClasses = Arrays.stream(stripAll(paramTypes.split(",")))
-          .map(t -> mapType(t))
-          .filter(Objects::nonNull)
-          .toArray(CtClass[]::new);
-      MethodInfo methodInfo = cls.getDeclaredMethod(methodName, paramClasses).getMethodInfo();
+      MethodInfo methodInfo = getDeclaredMethod(cls, methodName, paramTypes).getMethodInfo();
       LineNumberAttribute lineAttr = (LineNumberAttribute) methodInfo.getCodeAttribute()
           .getAttribute(LineNumberAttribute.tag);
       if (loc != null && methodInfo != null) {
@@ -107,6 +107,36 @@ public class ClassUtil {
       logger.warn(e);
     }
     return null;
+  }
+
+  private static String[] splitParams(String paramTypes) {
+    return stripAll(paramTypes.split(","));
+  }
+
+  public static CtMethod getDeclaredMethod(String className, String methodName, String paramTypes)
+      throws NotFoundException {
+    return getDeclaredMethod(className, methodName, splitParams(paramTypes));
+  }
+
+  public static CtMethod getDeclaredMethod(CtClass cls, String methodName, String paramTypes)
+      throws NotFoundException {
+    return getDeclaredMethod(cls, methodName, splitParams(paramTypes));
+  }
+
+  public static CtMethod getDeclaredMethod(String className, String methodName, String[] paramTypes)
+      throws NotFoundException {
+    ClassPool cp = AppMapClassPool.get();
+    CtClass cls = cp.get(className);
+    return getDeclaredMethod(cls, methodName, paramTypes);
+  }
+
+  public static CtMethod getDeclaredMethod(CtClass cls, String methodName, String[] paramTypes)
+      throws NotFoundException {
+    CtClass[] paramClasses = Arrays.stream(paramTypes)
+        .map(t -> mapType(t))
+        .filter(Objects::nonNull)
+        .toArray(CtClass[]::new);
+    return cls.getDeclaredMethod(methodName, paramClasses);
   }
 
   public static <E extends Enum<E>> E enumValueOf(Class<E> enumClass, String valueName) {

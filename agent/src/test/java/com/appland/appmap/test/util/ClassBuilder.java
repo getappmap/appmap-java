@@ -3,8 +3,9 @@ package com.appland.appmap.test.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.appland.appmap.util.AppMapClassPool;
+
 import javassist.CannotCompileException;
-import javassist.ClassPool;
 import javassist.CtClass;
 
 /**
@@ -22,12 +23,12 @@ public class ClassBuilder {
   }
 
   public ClassBuilder(String className) {
-    this.myClass = ClassPool.getDefault().makeClass(className);
+    this.myClass = AppMapClassPool.get().makeClass(className);
   }
 
   public static ClassBuilder buildInterface(String interfaceName) {
     ClassBuilder ret = new ClassBuilder();
-    ret.myClass = ClassPool.getDefault().makeInterface(interfaceName);
+    ret.myClass = AppMapClassPool.get().makeInterface(interfaceName);
     return ret;
   }
 
@@ -66,6 +67,6 @@ public class ClassBuilder {
    * @throws CannotCompileException If compilation fails
    */
   public NewClass build() throws CannotCompileException {
-    return new NewClass(this.myClass, ClassPool.getDefault().toClass(this.myClass));
+    return new NewClass(this.myClass, AppMapClassPool.get().toClass(this.myClass));
   }
 }
