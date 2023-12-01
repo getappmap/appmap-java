@@ -1,16 +1,21 @@
 package com.appland.appmap.transform.annotations;
 
 import java.util.Map;
+
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.output.v1.Value;
-import com.appland.appmap.util.Logger;
 
-import javassist.CtClass;
 import javassist.CtBehavior;
+import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 
 public abstract class SourceMethodSystem extends BaseSystem {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   public static final String EVENT_TOKEN = "$evt";
 
   private String hookClass;
@@ -62,8 +67,10 @@ public abstract class SourceMethodSystem extends BaseSystem {
 
           runtimeParameters.add(returnValue);
         } catch (NotFoundException e) {
-          Logger.println("warning - unknown return type");
-          Logger.println(e);
+          // getReturnType throws a NotFoundException when the class of the
+          // returned value can't be found. See the note in the Parameters
+          // constructor describing why we should be able to ignore this.
+          logger.debug(e, "unknown return type");
         }
       }
     } else if (this.methodEvent == MethodEvent.METHOD_EXCEPTION) {
