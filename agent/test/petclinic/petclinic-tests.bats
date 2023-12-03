@@ -91,7 +91,7 @@ run_petclinic_test() {
 
   assert_json_eq '.metadata.test_status' 'failed'
   assert_json_eq '.metadata.test_failure.message' 'expected: <true> but was: <false>'
-  assert_json_eq '.metadata.test_failure.location' 'src/test/java/org/springframework/samples/petclinic/JUnit5Tests.java:22'
+  assert_json_eq '.metadata.test_failure.location' 'src/test/java/org/springframework/samples/petclinic/JUnit5Tests.java:27'
 }  
 
 @test "NoAppMap on method disables test recording" {
@@ -108,4 +108,12 @@ run_petclinic_test() {
 
   run test \! -f ./tmp/appmap/junit/org_springframework_samples_petclinic_JUnit5Tests_testAnnotatedMethodNotRecorded.appmap.json
   assert_success
+}
+
+@test "test with extension works" {
+  run_petclinic_test "JUnit5Tests#testWithParameter"
+  assert_success
+
+  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_JUnit5Tests_testWithParameter.appmap.json
+  assert_json_eq '.events[0].method_id' 'testWithParameter'
 }
