@@ -52,9 +52,23 @@ public class Parameters implements Iterable<Value> {
     try {
       paramTypes = behavior.getParameterTypes();
     } catch (NotFoundException e) {
-      throw new NoSourceAvailableException(
-        String.format("Failed to get parameter types for %s: %s",
-                      fqn, e.getMessage()));
+      //@formatter:off
+      // getParameterTypes throws NotFoundException when it can't find a class
+      // definition for the type of one of the parameters. Given that:
+      //
+      //   * the method represented by this behavior was loaded from one of the
+      //     app's classes (and so originally compiled successfully)
+      //
+      //   * the JVM resolves the classes for a method's parameters before
+      //     loading the method itself
+      //
+      // this failure can only happen if we're trying to instrument a method
+      // that can never be called.
+      //
+      // Log a message and bail.
+      //@formatter:on
+      logger.debug(e, "Failed to get parameter types for {}", fqn);
+      return;
     }
 
     CodeAttribute codeAttribute = methodInfo.getCodeAttribute();

@@ -286,8 +286,7 @@ public class Hook {
       try {
         returnType = ((CtMethod) behavior).getReturnType();
       } catch (NotFoundException e) {
-        Logger.println("warning - unknown return type");
-        Logger.println(e);
+        logger.debug(e, "unknown return type");
       }
     }
     return returnType;
