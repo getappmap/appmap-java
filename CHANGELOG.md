@@ -1,3 +1,10 @@
+## [1.25.1](https://github.com/getappmap/appmap-java/compare/v1.25.0...v1.25.1) (2023-12-06)
+
+
+### Bug Fixes
+
+* decrease logging about missing classes ([87c83c9](https://github.com/getappmap/appmap-java/commit/87c83c9b12ea72a870408f0e7802ca2420d179ac))
+
 # [1.25.0](https://github.com/getappmap/appmap-java/compare/v1.24.1...v1.25.0) (2023-12-01)
 
 
