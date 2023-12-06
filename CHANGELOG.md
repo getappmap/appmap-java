@@ -1,3 +1,10 @@
+## [1.25.2](https://github.com/getappmap/appmap-java/compare/v1.25.1...v1.25.2) (2023-12-06)
+
+
+### Bug Fixes
+
+* support JUnit 5 test methods with parameters ([1cdd2e9](https://github.com/getappmap/appmap-java/commit/1cdd2e9562cf5bc6c1056b0ef2246cc778df9142))
+
 ## [1.25.1](https://github.com/getappmap/appmap-java/compare/v1.25.0...v1.25.1) (2023-12-06)
 
 
