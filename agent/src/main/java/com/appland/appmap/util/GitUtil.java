@@ -8,17 +8,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.NoWorkTreeException;
 import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -123,24 +119,6 @@ public class GitUtil implements AutoCloseable {
       logger.warn(e);
     }
     return "";
-  }
-
-  public List<String> getStatus() {
-    Status status;
-    List<String> ret = new ArrayList<>();
-    try {
-      status = git.status().call();
-      ret.addAll(status.getAdded().stream().map(f -> "A  " + f).collect(Collectors.toList()));
-      ret.addAll(status.getChanged().stream().map(f -> "M  " + f).collect(Collectors.toList()));
-      ret.addAll(status.getModified().stream().map(f -> " M " + f).collect(Collectors.toList()));
-      ret.addAll(status.getMissing().stream().map(f -> " D " + f).collect(Collectors.toList()));
-      ret.addAll(status.getRemoved().stream().map(f -> "D  " + f).collect(Collectors.toList()));
-      ret.addAll(status.getUntracked().stream().map(f -> "?? " + f).collect(Collectors.toList()));
-      return ret;
-    } catch (NoWorkTreeException | GitAPIException e) {
-      logger.warn(e);
-    }
-    return ret;
   }
 
   // In the code below, the "fs" prefix indicates that the variable holds a

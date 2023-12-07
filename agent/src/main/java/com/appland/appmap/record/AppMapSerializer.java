@@ -186,8 +186,8 @@ public class AppMapSerializer {
           this.json.writeValue(git.getRepositoryURL());
           this.json.writeKey("branch");
           this.json.writeValue(git.getBranch());
-          this.json.writeKey("status");
-          this.json.writeValue(git.getStatus());
+          this.json.writeKey("commit");
+          this.json.writeValue(git.getCommit());
         }
         this.json.endObject();
       }
