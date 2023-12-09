@@ -6,6 +6,8 @@ load '../helper'
 
 setup_file() {
   cd test/jdbc
+  _configure_logging
+
   ./gradlew -q clean
 }
 

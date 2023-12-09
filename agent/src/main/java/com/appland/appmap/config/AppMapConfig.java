@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppMapConfig {
+
   private static final TaggedLogger logger = configureLogging();
 
   public Path configFile; // the configFile used
@@ -118,6 +120,16 @@ public class AppMapConfig {
     }
     singleton.configFile = configFile;
     logger.debug("config: {}", singleton);
+
+    int count = singleton.packages.length;
+    count = Arrays.stream(singleton.packages).map(p -> p.exclude).reduce(count,
+        (acc, e) -> acc += e.length, Integer::sum);
+
+    int pattern_threshold = Properties.PatternThreshold;
+    if (count > pattern_threshold) {
+      logger.warn("{} patterns found in config, startup performance may be impacted", count);
+    }
+
     return singleton;
   }
 

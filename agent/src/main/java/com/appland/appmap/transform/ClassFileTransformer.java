@@ -47,16 +47,22 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
   private static final List<Hook> unkeyedHooks = new ArrayList<>();
   private static final Map<String, List<Hook>> keyedHooks = new HashMap<>();
 
+  private static long classesExamined = 0;
+  private static long methodsHooked = 0;
+  private static long methodsExamined = 0;
+  private static Map<String, Integer> packagesHooked = new HashMap<>();
+
   /**
    * Default constructor. Caches hooks for future class transforms.
    */
   public ClassFileTransformer() {
     super();
 
+    String processPkg = "com.appland.appmap.process";
     Reflections reflections = new Reflections(new ConfigurationBuilder()
-        .setUrls(ClasspathHelper.forPackage("com.appland.appmap.process"))
+        .setUrls(ClasspathHelper.forPackage(processPkg))
         .setScanners(new SubTypesScanner(false))
-        .filterInputsBy(new FilterBuilder().includePackage("com.appland.appmap.process")));
+        .filterInputsBy(new FilterBuilder().includePackage(processPkg)));
     ClassPool classPool = AppMapClassPool.acquire(Thread.currentThread().getContextClassLoader());
     try {
       for (Class<?> classType : reflections.getSubTypesOf(Object.class)) {
@@ -192,6 +198,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           ProtectionDomain domain,
       byte[] bytes) throws IllegalClassFormatException {
 
+    classesExamined++;
     AppMapClassPool.acquire(loader);
     try {
       // Anonymous classes created by sun.misc.Unsafe.defineAnonymousClass don't
@@ -245,14 +252,17 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           continue;
         }
 
+        methodsExamined++;
         if (this.applyHooks(behavior)) {
           hookApplied = true;
+          methodsHooked++;
         }
       }
 
       if (hookApplied) {
         if (traceClass) {
           logger.trace("hooks applied to {}", className);
+          packagesHooked.compute(ctClass.getPackageName(), (k, v) -> v == null ? 1 : v + 1);
         }
 
         return ctClass.toBytecode();
@@ -271,5 +281,15 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
 
     return null;
+  }
+
+  public static void logStatistics() {
+    logger.info("classes examined: {}", classesExamined);
+    logger.info("methods examined: {}", methodsExamined);
+    logger.info("methods instrumented: {}", methodsHooked);
+    String packages = packagesHooked.entrySet().stream()
+        .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+        .map(entry -> entry.getKey() + ": " + entry.getValue()).collect(Collectors.joining("\n"));
+    logger.info("{} packages:\n{}", packagesHooked.size(), packages);
   }
 }

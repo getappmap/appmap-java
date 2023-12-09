@@ -8,7 +8,9 @@ import com.appland.appmap.util.Logger;
 
 public class Properties {
   public static final String APPMAP_OUTPUT_DIRECTORY_KEY = "appmap.output.directory";
-
+  public static final String DISABLE_LOG_FILE_KEY = "appmap.disableLogFile";
+  public static final Boolean DisableLogFile =
+      resolveProperty(DISABLE_LOG_FILE_KEY, (Boolean)null);
   public static final Boolean Debug = resolveProperty("appmap.debug", false);
   public static final Boolean DebugHooks = Debug || (System.getProperty("appmap.debug.hooks") != null);
   public static final Boolean DebugLocals = (System.getProperty("appmap.debug.locals") != null);
@@ -25,6 +27,8 @@ public class Properties {
 
   public static final String DefaultConfigFile = "appmap.yml";
   public static final String ConfigFile = resolveProperty("appmap.config.file", (String) null);
+  public static final Integer PatternThreshold =
+      resolveProperty("appmap.config.patternThreshold", 10);
 
   public static final Integer MaxValueSize = resolveProperty("appmap.event.valueSize", 1024);
 
@@ -66,7 +70,10 @@ public class Properties {
                                        T defaultValue) {
     T value = defaultValue;
     try {
-      final String propValue = System.getProperty(propName);
+      String envVar = propName.toUpperCase().replace('.', '_');
+      String envVal = System.getenv(envVar);
+      String propVal = System.getProperty(propName);
+      String propValue = propVal != null ? propVal : envVal;
       if (propValue != null) {
         value = resolvingFunc.apply(propValue);
       }

@@ -16,6 +16,7 @@ setup_file() {
   export ANNOTATION_JAR="$(find_annotation_jar)"
 
   cd test/junit4
+  _configure_logging
 }
 
 setup() {

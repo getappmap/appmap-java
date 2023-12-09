@@ -6,6 +6,7 @@ setup_file() {
   export AGENT_JAR="$(find_agent_jar)"
 
   cd test/classloading
+  _configure_logging
 }
 
 @test "ClassUtil.safeClassForName" {

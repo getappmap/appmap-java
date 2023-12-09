@@ -1,2 +1,3 @@
+com.appland.appmap.util.tinylog.AppMapFileWriter
 com.appland.shade.org.tinylog.writers.ConsoleWriter
 com.appland.shade.org.tinylog.writers.FileWriter

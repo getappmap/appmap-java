@@ -45,22 +45,35 @@ public class Agent {
    * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html">Package java.lang.instrument</a>
    */
   public static void premain(String agentArgs, Instrumentation inst) {
-    logger.debug("Agent version {}", Agent.class.getPackage().getImplementationVersion());
-    logger.debug("System properties: {}", System.getProperties());
-    logger.debug(new Exception(), "whereAmI");
-
-    addAgentJar(inst);
-
+    long start = System.currentTimeMillis();
     try {
       AppMapConfig.initialize(FileSystems.getDefault());
     } catch (IOException e) {
       logger.warn(e, "Initialization failed");
       System.exit(1);
     }
-    logger.debug("config: {}", AppMapConfig.get());
+    if (Properties.DisableLogFile == null) {
+      // The user hasn't made a choice about disabling logging, let them know
+      // they can.
+      logger.info(
+          "To disable the automatic creation of this log file, set the system property {} to 'true'",
+          Properties.DISABLE_LOG_FILE_KEY);
+    }
+    logger.info("Agent version {}, current time mills: {}",
+        Agent.class.getPackage().getImplementationVersion(), start);
+    logger.info("config: {}", AppMapConfig.get());
+    logger.info("System properties: {}", System.getProperties());
+    logger.debug(new Exception(), "whereAmI");
+
+    addAgentJar(inst);
+
 
     try {
       GitUtil.findSourceRoots();
+      logger.debug("done finding source roots, {}", () -> {
+        long now = System.currentTimeMillis();
+        return String.format("%d, %d", now - start, start);
+      });
     } catch (IOException e) {
       logger.warn(e);
     }
@@ -69,6 +82,8 @@ public class Agent {
 
     Runnable logShutdown = () -> {
       try {
+        ClassFileTransformer.logStatistics();
+
         ProviderRegistry.getLoggingProvider().shutdown();
       } catch (InterruptedException e) {
         e.printStackTrace();

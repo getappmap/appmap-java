@@ -9,15 +9,12 @@ load '../petclinic-shared/shared-setup.bash'
 setup_file() {
   export FIXTURE_DIR="build/fixtures/spring-petclinic"
   _shared_setup
-
   start_petclinic >&3
 
-  pushd test/http_client >/dev/null
+  cd test/http_client
 }
 
 teardown_file() {
-  popd
-
   stop_ws
 }
 
@@ -38,7 +35,7 @@ teardown_file() {
   assert_json_eq '.events[1].http_client_request.url' "${WS_URL}/owners"
   assert_json_eq '.events[1].message | length' 1
   assert_json_eq '.events[1].message[0] | "\(.name) \(.value)"' "lastName davis"
-  
+
   assert_json_eq '.events[2].http_client_response.status' "200"
 }
 
@@ -51,10 +48,10 @@ teardown_file() {
 
 @test "request with HttpHost" {
   run ./gradlew -q -PmainClass=http_client.HttpHostTest run ${DEBUG} --args "${WS_HOST} ${WS_PORT} /owners?lastName=davis"
-  
+
   assert_json_eq '.events[1].http_client_request.url' "${WS_URL}/owners"
   assert_json_eq '.events[1].message | length' 1
   assert_json_eq '.events[1].message[0] | "\(.name) \(.value)"' "lastName davis"
-  
+
   assert_json_eq '.events[2].http_client_response.status' "200"
 }

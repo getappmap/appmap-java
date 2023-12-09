@@ -26,7 +26,7 @@ teardown() {
   stop_recording
   if [[ -z "$BATS_TEST_COMPLETED" ]]; then
     # Letting output go to stdout is more helpful than redirecting to fd 3.
-    echo "${BATS_TEST_NAME} failed" 
+    echo "${BATS_TEST_NAME} failed"
     cat "${FIXTURE_DIR}/appmap.log"
   fi
 }
@@ -35,11 +35,11 @@ print_debug() {
   local query="${1}"
   local result="${2}"
 
-  if [[ ! -z "${DEBUG_JSON}" ]]; then
-    echo >&3
-    echo "query: ${query}" >&3
+  if [[ $BATS_VERBOSE_RUN == 1 ]]; then
     echo >&3
     echo -e "output:\n'${output}'" >&3
+    echo >&3
+    echo "query: ${query}" >&3
     echo >&3
     echo "result: '${result}'" >&3
     echo >&3
@@ -91,12 +91,17 @@ assert_json_not_contains() {
   refute jq -er "${query}" <<< "${output}"
 }
 
+_top_level() {
+  echo "$(git rev-parse --show-toplevel)"
+}
+
+
 find_agent_jar() {
-  find $(git rev-parse --show-toplevel)/agent/build/libs -name 'appmap-[[:digit:]]*.jar'
+  find "$(_top_level)/agent/build/libs" -name 'appmap-[[:digit:]]*.jar'
 }
 
 find_annotation_jar() {
-  find $(git rev-parse --show-toplevel)/annotation/build/libs -name 'annotation-[[:digit:]]*.jar'
+  find "$(_top_level)/annotation/build/libs" -name 'annotation-[[:digit:]]*.jar'
 }
 
 check_ws_running() {
@@ -212,7 +217,7 @@ stop_ws() {
     sleep 1
   done
 
-  if jvm $JVM_MAIN_CLASS VM.update >&/dev/null; then
+  if jcmd $JVM_MAIN_CLASS VM.update >&/dev/null; then
     echo "$JVM_MAIN_CLASS didn't exit"
     if [[ ! -z "$LOG" ]]; then
       cat "$LOG" >&3
@@ -231,3 +236,10 @@ wait_for_glob() {
     sleep .5
   done
 }
+
+_configure_logging() {
+  local logConfigDir="$(_top_level)/agent/test/shared"
+  export APPMAP_DISABLELOGFILE=true
+  export JUL_CONFIG="${logConfigDir}/java-logging.properties"
+}
+

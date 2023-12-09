@@ -20,6 +20,4 @@ agent/bin/test
 annotation/bin
 
 # test output
-appmap.log
-appmap-log.local.properties
 /.metadata/

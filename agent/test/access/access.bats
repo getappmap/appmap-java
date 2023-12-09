@@ -5,13 +5,16 @@ load '../../build/bats/bats-assert/load'
 load '../helper'
 
 sep="$JAVA_PATH_SEPARATOR"
-appmap_jar="$(find_agent_jar)"
+AGENT_JAR="$(find_agent_jar)"
 wd="$(git rev-parse --show-toplevel)"/agent
 test_cp="${wd}/test/access${sep}${wd}/build/classes/java/test"
-java_cmd="java -javaagent:'${appmap_jar}' -cp '${test_cp}'"
+java_cmd="java -javaagent:'${AGENT_JAR}' -cp '${test_cp}'"
 
 setup() {
-  javac -cp "${appmap_jar}${sep}${test_cp}" test/access/*.java
+  javac -cp "${AGENT_JAR}${sep}${test_cp}" test/access/*.java
+
+  cd test/access
+  _configure_logging
 }
 
 @test "testProtected" {
@@ -31,7 +34,7 @@ setup() {
 }
 
 @test "outside git repo" {
-  cp appmap.yml "$BATS_TEST_TMPDIR"/.
+  cp -v "$(_top_level)/agent/appmap.yml" "$BATS_TEST_TMPDIR"/.
   cd "$BATS_TEST_TMPDIR"
 
   # sanity check
