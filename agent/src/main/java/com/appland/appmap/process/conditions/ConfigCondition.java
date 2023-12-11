@@ -21,7 +21,7 @@ import javassist.bytecode.Descriptor;
  * {@link AppMapConfig}.
  * @see AppMapConfig
  */
-public abstract class ConfigCondition implements Condition {
+public class ConfigCondition implements Condition {
   static {
     // HACK
     // force loading of AppMapConfig to prevent it from being loaded twice
@@ -35,7 +35,7 @@ public abstract class ConfigCondition implements Condition {
    * @return {@code true} if the behavior should be hooked
    * @see AppMapConfig
    */
-  public static Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
+  public Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
     CtClass declaringClass = behavior.getDeclaringClass();
     if (declaringClass.getName().startsWith("java.lang")) {
       return false;

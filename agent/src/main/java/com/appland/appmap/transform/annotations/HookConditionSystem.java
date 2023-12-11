@@ -1,19 +1,27 @@
 package com.appland.appmap.transform.annotations;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.process.conditions.Condition;
-import com.appland.appmap.util.Logger;
+
 import javassist.CtBehavior;
 
-import java.lang.reflect.Method;
-import java.util.Map;
-
 public class HookConditionSystem extends SourceMethodSystem {
-  private Method conditionMethod = null;
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
-  private HookConditionSystem(CtBehavior behavior, Method conditionMethod) {
+  private static final Map<Class<? extends Condition>, Condition> conditions = new HashMap<>();
+  private Condition condition;
+
+  private HookConditionSystem(CtBehavior behavior, Condition condition) {
     super(behavior, HookCondition.class);
 
-    this.conditionMethod = conditionMethod;
+    this.condition = Objects.requireNonNull(condition);
   }
 
   /**
@@ -40,12 +48,15 @@ public class HookConditionSystem extends SourceMethodSystem {
         return null;
       }
 
-      Method conditionMethod = conditionClass.getMethod("match", CtBehavior.class, Map.class);
-      if (conditionMethod == null) {
+      return new HookConditionSystem(behavior, conditions.computeIfAbsent(conditionClass, c -> {
+        try {
+          return c.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+            | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+          logger.warn(e);
+        }
         return null;
-      }
-
-      return new HookConditionSystem(behavior, conditionMethod);
+      }));
     } catch (Exception e) {
       return null;
     }
@@ -53,13 +64,7 @@ public class HookConditionSystem extends SourceMethodSystem {
 
   @Override
   public Boolean match(CtBehavior behavior, Map<String, Object> mapResult) {
-    try {
-      return (Boolean) this.conditionMethod.invoke(null, behavior, mapResult);
-    } catch (Exception e) {
-      Logger.printf("match failed due to %s exception\n", e.getClass().getName());
-      Logger.println(e);
-      return false;
-    }
+    return this.condition.match(behavior, mapResult);
   }
 
   @Override
