@@ -26,7 +26,7 @@ public class TestProxy implements TestClass {
     }
     return 0;
   }
-  
+
   private static class HWInvocationHandler implements InvocationHandler {
 
     @Override
@@ -50,8 +50,8 @@ public class TestProxy implements TestClass {
           Class<?>[] hwClass = { Class.forName(HW_CLASS_NAME, true, cl) };
           InvocationHandler hwHandler = new HWInvocationHandler();
           Object proxy = Proxy.newProxyInstance(cl, hwClass, hwHandler);
-          Method getGreeting = proxy.getClass().getMethod("getGreeting");
-          getGreeting.invoke(proxy);
+          Method getGreeting = proxy.getClass().getMethod("getGreeting", Integer.TYPE);
+          getGreeting.invoke(proxy, Integer.valueOf(1));
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
