@@ -7,7 +7,6 @@ import java.util.List;
 import com.appland.appmap.util.AppMapClassPool;
 
 import javassist.CannotCompileException;
-import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.CtNewMethod;
@@ -31,9 +30,9 @@ public class MethodBuilder {
   private Integer modifiers = Modifier.PUBLIC;
   private List<ParameterBuilder> parameters = new ArrayList<ParameterBuilder>();
   private List<AnnotationBuilder> annotations = new ArrayList<AnnotationBuilder>();
-  private CtBehavior behavior;
+  private CtMethod behavior;
 
-  public CtBehavior getBehavior() {
+  public CtMethod getBehavior() {
     if (behavior == null) {
       throw new RuntimeException("build not called");
     }

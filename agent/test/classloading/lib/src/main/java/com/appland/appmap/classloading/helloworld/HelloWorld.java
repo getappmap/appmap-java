@@ -2,5 +2,5 @@ package com.appland.appmap.classloading.helloworld;
 
 
 public interface HelloWorld {
-  String getGreeting();
+  String getGreeting(int greetingId);
 }

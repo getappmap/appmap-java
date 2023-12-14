@@ -26,17 +26,14 @@ import com.appland.appmap.output.v1.NoSourceAvailableException;
 import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
-import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.AppMapClassPool;
 import com.appland.appmap.util.Logger;
 
 import javassist.ClassPool;
 import javassist.CtBehavior;
 import javassist.CtClass;
-import javassist.CtMethod;
 import javassist.Modifier;
 import javassist.NotFoundException;
-import javassist.bytecode.Descriptor;
 
 /**
  * The ClassFileTransformer is responsible for loading and caching hooks during {@link com.appland.appmap.Agent}
@@ -240,9 +237,10 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         if (traceClass) {
           logger.trace("behavior: {} ", behavior.getLongName());
         }
-        if (ignoreMethod(behavior)) {
+
+        if ((behavior.getModifiers() & Modifier.ABSTRACT) != 0) {
           if (traceClass) {
-            logger.trace("ignored");
+            logger.trace("abstract method");
           }
           continue;
         }
@@ -273,75 +271,5 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
 
     return null;
-  }
-
-  private boolean ignoreMethod(CtBehavior behavior) {
-    if (!(behavior instanceof CtMethod)) {
-      return false;
-    }
-    if ((behavior.getModifiers() & Modifier.ABSTRACT) != 0) {
-      return true;
-    }
-
-    CtMethod method = (CtMethod) behavior;
-    try {
-      return behavior.getMethodInfo2().isConstructor() ||
-          behavior.getMethodInfo2().isStaticInitializer() ||
-          isGetter(method) ||
-          isSetter(method) ||
-          isIgnoredInstanceMethod(method);
-    } catch (NotFoundException e) {
-      Logger.println(e);
-      return true;
-    }
-  }
-
-  private boolean isIgnoredInstanceMethod(CtMethod method) {
-    final int mods = method.getModifiers();
-    if ( Modifier.isStatic(mods) || !new AppMapBehavior(method).isRecordable()) {
-      return false;
-    }
-
-    final String methodName = method.getName();
-    return 
-        methodName.equals("equals") ||
-        methodName.equals("hashCode") ||
-        methodName.equals("iterator") ||
-        methodName.equals("toString");
-  }
-
-  public static boolean isGetter(CtMethod method) throws NotFoundException {
-    // KEG I'm getting exceptions like this when trying to use method.getReturnType():
-    //
-    // com.appland.shade.javassist.NotFoundException: java.lang.String
-    //
-    // The descriptor is used under the hood by javassist, and it provides
-    // what we need, albeit in a cryptic format.
-    String descriptor = method.getMethodInfo().getDescriptor();
-    String methodName = method.getName();
-    if (new AppMapBehavior(method).isRecordable() &&
-        Descriptor.numOfParameters(descriptor) == 0) {
-      if (methodName.matches("^get[A-Z].*") &&
-          !descriptor.matches("\\)V$")) {/* void */
-        return true;
-      }
-
-      if (methodName.matches("^is[A-Z].*") &&
-          descriptor.matches("\\)Z$")) {/* boolean */
-        return true;
-      }
-      /* boolean */
-      return methodName.matches("^has[A-Z].*") &&
-          descriptor.matches("\\)Z$");
-    }
-    return false;
-  }
-
-  public static boolean isSetter(CtMethod method) throws NotFoundException {
-    String descriptor = method.getMethodInfo().getDescriptor();
-    return new AppMapBehavior(method).isRecordable() &&
-        descriptor.matches("\\)V$") /* void */ &&
-        Descriptor.numOfParameters(descriptor) == 1 &&
-        method.getName().matches("^set[A-Z].*");
   }
 }
