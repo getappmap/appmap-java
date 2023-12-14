@@ -1,3 +1,10 @@
+## [1.25.3](https://github.com/getappmap/appmap-java/compare/v1.25.2...v1.25.3) (2023-12-14)
+
+
+### Bug Fixes
+
+* make sure getters and setters are ignored ([0bc2f8f](https://github.com/getappmap/appmap-java/commit/0bc2f8fcf107a258fb4393594998b9cd422b56a7))
+
 ## [1.25.2](https://github.com/getappmap/appmap-java/compare/v1.25.1...v1.25.2) (2023-12-06)
 
 
