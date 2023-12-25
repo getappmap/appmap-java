@@ -4,11 +4,35 @@
 # Create a reverse proxy to the petclinic server. Check to make sure each of the remote-recording endpoints
 # return the appropriate response.
 
-WS_URL=${WS_URL:-http://localhost:9090}
 
 load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
+
+setup_file() {
+mkdir -p build/log
+
+export LOG=$PWD/build/log/httpcore.log
+export SERVER_PORT=9090
+export WS_URL=${WS_URL:-http://localhost:9090}
+  cd test/httpcore
+  _configure_logging
+
+  printf 'getting set up' >&3
+  ./gradlew run --args "${SERVER_PORT}"   &> $LOG &
+  export JVM_MAIN_CLASS=org.gradle.wrapper.GradleWrapperMain
+
+  while [ -z "$(curl -sI ${WS_URL} | grep 'HTTP/1.1 200')" ]; do
+    if ! jcmd $JVM_MAIN_CLASS VM.uptime >&/dev/null; then
+      echo "$JVM_MAIN_CLASS failed" >&3
+      cat $LOG >&3
+      exit 1
+    fi
+    printf ' .' >&3
+    sleep 1
+  done
+  printf ' ok\n\n' >&3
+}
 
 teardown_file() {
   stop_ws
@@ -24,7 +48,7 @@ teardown_file() {
 @test "successfully start a new recording" {
   run _curl -sIXPOST "${WS_URL}/_appmap/record"
   assert_success
-  
+
   echo "${output}" \
     | grep "HTTP/1.1 200"
 }
@@ -55,7 +79,7 @@ teardown_file() {
 
 @test "successfully stop the current recording" {
   start_recording
-  
+
   _curl -XGET "${WS_URL}"
   run _curl -sXDELETE "${WS_URL}/_appmap/record"
   assert_success
@@ -67,9 +91,9 @@ teardown_file() {
 
 @test "expected appmap captured" {
   start_recording
-  
+
   _curl -XGET "${WS_URL}"
-  
+
   stop_recording
 
   # Sanity check the events and classmap
@@ -79,7 +103,7 @@ teardown_file() {
   assert_json_eq '.events[4].parent_id' 47
   assert_json_eq '.events[5].event' return
   assert_json_eq '.events[5].http_server_response.status' 200
-  
+
   assert_json_eq '.classMap | length' 1
 
   # Pick the functions out of the classMap

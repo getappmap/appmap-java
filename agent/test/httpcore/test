@@ -1,37 +1,3 @@
-#!/bin/bash
-set -a
+#!/usr/bin/env bash
 
-mkdir -p build/log
-
-LOG=$PWD/build/log/httpcore.log
-SERVER_PORT=9090
-WS_URL="http://localhost:${SERVER_PORT}"
-
-start_server() {
-  pushd test/httpcore >/dev/null
-    
-  printf 'getting set up' 1>&2
-  ./gradlew run --args "${SERVER_PORT}"   &> $LOG &
-  export JVM_MAIN_CLASS=org.gradle.wrapper.GradleWrapperMain
-  
-  while [ -z "$(curl -sI ${WS_URL} | grep 'HTTP/1.1 200')" ]; do
-    if ! jcmd $JVM_MAIN_CLASS VM.uptime >&/dev/null; then
-      echo "$JVM_MAIN_CLASS failed"
-      cat $LOG
-      exit 1
-    fi
-    printf '.' 1>&2
-    sleep 1
-  done
-  printf ' ok\n\n' 1>&2
-  popd
-}
-start_server
-
-run_bats() {
-  bats --tap test/httpcore/httpcore.bats
-}
-${@:-run_bats}
-bats_ret=$?
-
-exit $bats_ret
+bats --tap test/httpcore
