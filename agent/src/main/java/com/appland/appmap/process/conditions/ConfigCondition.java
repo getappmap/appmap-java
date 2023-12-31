@@ -41,7 +41,7 @@ public class ConfigCondition implements Condition {
       return false;
     }
 
-    if (!new AppMapBehavior(behavior).isRecordable() || ignoreMethod(behavior)) {
+    if (!AppMapBehavior.isRecordable(behavior) || ignoreMethod(behavior)) {
       return false;
     }
 
@@ -61,7 +61,7 @@ public class ConfigCondition implements Condition {
 
   static boolean isSetter(CtMethod method) throws NotFoundException {
     String descriptor = method.getMethodInfo().getDescriptor();
-    return new AppMapBehavior(method).isRecordable() && descriptor.matches(".*\\)V$") /* void */
+    return AppMapBehavior.isRecordable(method) && descriptor.matches(".*\\)V$") /* void */
         && Descriptor.numOfParameters(descriptor) == 1 && method.getName().matches("^set[A-Z].*");
   }
 
@@ -74,7 +74,7 @@ public class ConfigCondition implements Condition {
     // what we need, albeit in a cryptic format.
     String descriptor = method.getMethodInfo().getDescriptor();
     String methodName = method.getName();
-    if (new AppMapBehavior(method).isRecordable() && Descriptor.numOfParameters(descriptor) == 0) {
+    if (AppMapBehavior.isRecordable(method) && Descriptor.numOfParameters(descriptor) == 0) {
       if (methodName.matches("^get[A-Z].*") && !descriptor.matches(".*\\)V$")) {/* void */
         return true;
       }

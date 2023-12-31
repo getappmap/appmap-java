@@ -29,7 +29,7 @@ public class RecordCondition implements Condition {
       return false;
     }
 
-    if (!new AppMapBehavior(behavior).isRecordable()) {
+    if (!AppMapBehavior.isRecordable(behavior)) {
       return false;
     }
 
