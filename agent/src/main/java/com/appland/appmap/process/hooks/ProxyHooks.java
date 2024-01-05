@@ -4,13 +4,11 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.record.EventTemplateRegistry;
 import com.appland.appmap.transform.ClassFileTransformer;
-import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.util.AppMapClassPool;
@@ -46,9 +44,7 @@ class ProxyHooks {
           method.getName(), argTypes);
       Proxy.logger.trace("method: '{},'{}' behavior: {}", method::toString, method::toGenericString,
           behavior::getLongName);
-      List<Hook> hooks = ClassFileTransformer.getHooks(behavior.getName());
-      final List<HookSite> hookSites = hooks.stream().map(hook -> hook.prepare(behavior))
-          .filter(Objects::nonNull).collect(Collectors.toList());
+      final List<HookSite> hookSites = ClassFileTransformer.getHookSites(behavior);
 
       Proxy.logger.trace("hookSites.size(): {}", hookSites.size());
       if (hookSites.size() == 0) {

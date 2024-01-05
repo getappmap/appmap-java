@@ -87,7 +87,7 @@ public class HookClassSystem extends SourceMethodSystem {
   }
 
   @Override
-  public Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
+  public Boolean match(CtBehavior behavior, Map<String, Object> hookContext) {
     logger.trace(() -> behavior.getLongName());
 
     String behaviorClass = behavior.getDeclaringClass().getName();

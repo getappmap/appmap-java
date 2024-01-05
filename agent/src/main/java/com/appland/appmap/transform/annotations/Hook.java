@@ -120,17 +120,16 @@ public class Hook {
     return runtimeParameters;
   }
 
-  public HookSite prepare(CtBehavior targetBehavior) {
+  public HookSite prepare(CtBehavior targetBehavior, Map<String, Object> hookContext) {
     if (targetBehavior instanceof CtConstructor) {
       return null;
     }
 
-    Map<String, Object> matchResult = new HashMap<String, Object>();
-    if (!this.sourceSystem.match(targetBehavior, matchResult)) {
+    if (!this.sourceSystem.match(targetBehavior, hookContext)) {
       return null;
     }
 
-    String[] labels = (String[])matchResult.getOrDefault("labels", new String[0]);
+    String[] labels = (String[])hookContext.getOrDefault("labels", new String[0]);
     Integer behaviorOrdinal = eventTemplateRegistry.register(targetBehavior, labels);
     if (behaviorOrdinal < 0) {
       return null;

@@ -35,6 +35,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import javassist.CtBehavior;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppMapConfig {
 
@@ -163,17 +165,18 @@ public class AppMapConfig {
   }
 
   /**
-   * Check if a class/method is explicitly excluded in the configuration.
-   * @param canonicalName the canonical name of the class/method to be checked
-   * @return {@code true} if the class/method is explicitly excluded in the configuration. Otherwise, {@code false}.
+   * Check if a method is explicitly excluded by the configuration.
+   *
+   * @param behavior the method to be checked
+   * @return {@code true} if the method is explicitly excluded, {@code false} otherwise
    */
-  public Boolean excludes(FullyQualifiedName canonicalName) {
+  public Boolean excludes(CtBehavior behavior) {
     if (this.packages == null) {
       return false;
     }
 
     for (AppMapPackage pkg : this.packages) {
-      if (pkg.excludes(canonicalName)) {
+      if (pkg.excludes(behavior)) {
         return true;
       }
     }

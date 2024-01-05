@@ -7,9 +7,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +24,7 @@ import org.tinylog.TaggedLogger;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.NoSourceAvailableException;
+import com.appland.appmap.transform.annotations.AnnotationUtil.AnnotatedBehavior;
 import com.appland.appmap.transform.annotations.Hook;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
@@ -34,6 +36,8 @@ import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.Modifier;
 import javassist.NotFoundException;
+import javassist.bytecode.AnnotationsAttribute;
+import javassist.bytecode.annotation.Annotation;
 
 /**
  * The ClassFileTransformer is responsible for loading and caching hooks during {@link com.appland.appmap.Agent}
@@ -148,13 +152,9 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     boolean traceClass = tracePrefix == null || behavior.getDeclaringClass().getName().startsWith(tracePrefix);
 
     try {
-      final List<HookSite> hookSites = getHooks(behavior.getName())
-          .stream()
-          .map(hook -> hook.prepare(behavior))
-          .filter(Objects::nonNull)
-          .collect(Collectors.toList());
+      List<HookSite> hookSites = getHookSites(behavior);
 
-      if (hookSites.size() < 1) {
+      if (hookSites == null) {
         if (traceClass) {
           logger.trace("no hook sites");
         }
@@ -172,7 +172,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           }
 
           if (traceClass) {
-            logger.debug("hooked {}.{}{} on ({},{}) with {}",
+            logger.trace("hooked {}.{}{} on ({},{}) with {}",
                 className,
                 behavior.getName(),
                 behavior.getMethodInfo().getDescriptor(),
@@ -189,6 +189,36 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
 
     return false;
+  }
+
+  public static List<HookSite> getHookSites(CtBehavior behavior) {
+    List<HookSite> hookSites = null;
+    Map<String, Object> hookContext = new HashMap<>();
+
+    AnnotatedBehavior ab = new AnnotatedBehavior(behavior);
+    AnnotationsAttribute attr = ab.get();
+    Set<String> behaviorAnnotations = null;
+    if (attr != null) {
+      behaviorAnnotations = new HashSet<>();
+      Annotation[] annotations = attr.getAnnotations();
+      for (Annotation a : annotations) {
+        behaviorAnnotations.add(a.getTypeName());
+      }
+    }
+    hookContext.put("annotations", behaviorAnnotations);
+
+    for (Hook hook : getHooks(behavior.getName())) {
+      HookSite hookSite = hook.prepare(behavior, hookContext);
+      if (hookSite == null) {
+        continue;
+      }
+
+      if (hookSites == null) {
+        hookSites = new ArrayList<>();
+      }
+      hookSites.add(hookSite);
+    }
+    return hookSites;
   }
 
   @Override

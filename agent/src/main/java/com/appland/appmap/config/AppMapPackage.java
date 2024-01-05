@@ -10,6 +10,8 @@ import com.appland.appmap.transform.annotations.CtClassUtil;
 import com.appland.appmap.util.FullyQualifiedName;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import javassist.CtBehavior;
 public class AppMapPackage {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
   private static String tracePrefix = Properties.DebugClassPrefix;
@@ -111,6 +113,24 @@ public class AppMapPackage {
    * 
    * @param canonicalName the canonical name of the class/method to be checked
    */
+  public Boolean excludes(CtBehavior behavior) {
+    FullyQualifiedName fqn = null;
+    for (String exclusion : this.exclude) {
+      if (behavior.getDeclaringClass().getName().startsWith(exclusion)) {
+        return true;
+      } else {
+        if (fqn == null) {
+          fqn = new FullyQualifiedName(behavior);
+        }
+        if (fqn.toString().startsWith(exclusion)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   public Boolean excludes(FullyQualifiedName canonicalName) {
     for (String exclusion : this.exclude) {
       if (canonicalName.toString().startsWith(exclusion)) {
