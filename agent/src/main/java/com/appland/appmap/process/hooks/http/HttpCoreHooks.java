@@ -29,8 +29,8 @@ public class HttpCoreHooks {
 
   @ArgumentArray
   @ExcludeReceiver
-  @HookClass(value = "org.apache.http.protocol.HttpRequestHandler", method = "handle")
-  public static void handleSync(Event event, Object[] args)
+  @HookClass(value = "org.apache.http.protocol.HttpRequestHandler")
+  public static void handle(Event event, Object[] args)
       throws IOException, HttpException, ExitEarly {
     HttpRequest req = (HttpRequest) args[0];
     final RequestLine rl = req.getRequestLine();
@@ -41,12 +41,21 @@ public class HttpCoreHooks {
 
   @ArgumentArray
   @ExcludeReceiver
-  @HookClass(value = "org.apache.http.protocol.HttpRequestHandler", method = "handle", position = ISystem.HOOK_POSITION_LAST, methodEvent = MethodEvent.METHOD_RETURN)
-  public static void postHandleSync(Event event, Object ret, Object[] args)
+  @HookClass(value = "org.apache.http.protocol.HttpRequestHandler", method = "handle",
+      position = ISystem.HOOK_POSITION_LAST, methodEvent = MethodEvent.METHOD_RETURN)
+  public static void handleRet(Event event, Object ret, Object[] args)
       throws IOException, HttpException, ExitEarly {
-    HttpResponse res = (HttpResponse) args[1];
+    HttpResponse res = (HttpResponse)args[1];
     HttpServerRequest.recordHttpServerResponse(event, null, res.getStatusLine().getStatusCode(),
         getHeaderMap(res.getAllHeaders()));
   }
 
+  @ArgumentArray
+  @ExcludeReceiver
+  @HookClass(value = "org.apache.http.protocol.HttpRequestHandler", method = "handle",
+      position = ISystem.HOOK_POSITION_LAST, methodEvent = MethodEvent.METHOD_EXCEPTION)
+  public static void handleExc(Event event, Throwable exc, Object[] args)
+      throws IOException, HttpException, ExitEarly {
+    HttpServerRequest.recordHttpServerException(event, null, exc);
+  }
 }

@@ -90,7 +90,8 @@ public class HttpServerRequest {
     recorder.add(event);
   }
 
-  private static void recordHttpServerException(Event event, HttpServletRequest req, Throwable exception) {
+  public static void recordHttpServerException(Event event, HttpServletRequest req,
+      Throwable exception) {
     event.setException(exception);
     clearLastEvent(req, event);
     recorder.add(event);
