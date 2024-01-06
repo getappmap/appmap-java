@@ -109,7 +109,7 @@ public class HookClassSystemTest {
         .ctClass();
 
     for (CtMethod behavior : hookClass.getDeclaredMethods()) {
-      Hook hook = Hook.from(behavior);
+      Hook hook = HookFactory.ALL_HOOKS_FACTORY.from(behavior);
       assertNotNull(hook);
       hooks.add(hook);
     }

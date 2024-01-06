@@ -1,13 +1,12 @@
 package com.appland.appmap.transform.annotations;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,8 +15,8 @@ import org.tinylog.TaggedLogger;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.Parameters;
 import com.appland.appmap.record.EventTemplateRegistry;
+import com.appland.appmap.transform.annotations.AnnotationUtil.AnnotatedBehavior;
 import com.appland.appmap.util.AppMapClassPool;
-import com.appland.appmap.util.Logger;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -26,24 +25,21 @@ import javassist.CtClass;
 import javassist.CtConstructor;
 import javassist.CtMethod;
 import javassist.NotFoundException;
+import javassist.bytecode.AnnotationsAttribute;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.annotation.Annotation;
+import javassist.bytecode.annotation.ArrayMemberValue;
+import javassist.bytecode.annotation.IntegerMemberValue;
+import javassist.bytecode.annotation.MemberValue;
 
 public class Hook {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
   private static final EventTemplateRegistry eventTemplateRegistry = EventTemplateRegistry.get();
 
-  private final static List<Function<CtBehavior, ISystem>> requiredHookSystemFactories =
-  new ArrayList<Function<CtBehavior, ISystem>>() {{
-      add(HookAnnotatedSystem::from);
-      add(HookClassSystem::from);
-      add(HookConditionSystem::from);
-  }};
 
-  private final static List<Function<CtBehavior, ISystem>> optionalSystemFactories =
-      new ArrayList<Function<CtBehavior, ISystem>>() {{
-          add(ExcludeReceiverSystem::from);
-          add(ArgumentArraySystem::from);
-      }};
 
   private final SourceMethodSystem sourceSystem;
   private final List<ISystem> optionalSystems;
@@ -52,7 +48,9 @@ public class Hook {
   private final CtBehavior hookBehavior;
   private String uniqueKey = "";
 
-  private Hook( SourceMethodSystem sourceSystem,
+  public static final String ANNOTATIONS = "annotations";
+
+  Hook(SourceMethodSystem sourceSystem,
                 List<ISystem> optionalSystems,
                 CtBehavior hookBehavior) {
     this.sourceSystem = sourceSystem;
@@ -64,43 +62,7 @@ public class Hook {
     this.buildParameters();
   }
 
-  /**
-   * Creates a Hook from code behavior.
-   *
-   * @return If hookBehavior is a valid hook, return a new Hook object. Otherwise, null.
-   */
-  public static Hook from(CtBehavior hookBehavior) {
-    SourceMethodSystem sourceSystem = null;
-    for (Function<CtBehavior, ISystem> factoryFn : requiredHookSystemFactories) {
-      sourceSystem = (SourceMethodSystem) factoryFn.apply(hookBehavior);
-      if (sourceSystem != null) {
-        break;
-      }
-    }
 
-    if (sourceSystem == null) {
-      return null;
-    }
-
-    List<ISystem> optionalSystems = optionalSystemFactories
-        .stream()
-        .map(factoryFn -> factoryFn.apply(hookBehavior))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-
-    Hook hook = new Hook(sourceSystem, optionalSystems, hookBehavior);
-    for (ISystem optionalSystem : optionalSystems) {
-      if (!optionalSystem.validate(hook)) {
-        Logger.println("hook "
-            + hook
-            + " failed validation from "
-            + optionalSystem.getClass().getSimpleName());
-        return null;
-      }
-    }
-
-    return hook;
-  }
 
   public void buildParameters() {
     this.sourceSystem.mutateStaticParameters(this.hookBehavior, this.staticParameters);
@@ -142,15 +104,33 @@ public class Hook {
       }
     }
 
-    Parameters runtimeParameters = this.getRuntimeParameters(binding);
-
-    return new HookSite(this, behaviorOrdinal, runtimeParameters);
+    return new HookSite(this, behaviorOrdinal, binding);
   }
 
   public static void apply(CtBehavior targetBehavior, List<HookSite> hookSites) {
+    MethodInfo methodInfo = targetBehavior.getMethodInfo();
+    AnnotationsAttribute attr =
+        (AnnotationsAttribute)methodInfo.getAttribute(AnnotationsAttribute.visibleTag);
+
+    // If the behavior is marked as an app method, update the annotation with
+    // the behavior ordinals so the bytebuddy transformer can instrument it.
+    if (attr.getAnnotation(AppMapAppMethod.class.getName()) != null) {
+      setBehaviorOrdinals(targetBehavior, hookSites);
+    }
+
+    // If it's (also) marked as an agent method, it needs to be instrumented
+    // by javassist.
+    if (attr.getAnnotation(AppMapAgentMethod.class.getName()) != null) {
+      instrument(targetBehavior, hookSites);
+    }
+  }
+
+  public static void instrument(CtBehavior targetBehavior, List<HookSite> hookSites) {
     final CtClass returnType = getReturnType(targetBehavior);
     final Boolean returnsVoid = (returnType == CtClass.voidType);
 
+    StringBuilder uniqueLocks = new StringBuilder();
+    Set<String> uniqueKeys = new HashSet<>();
     final String[] invocations = new String[3];
     for (HookSite hookSite : hookSites) {
       final Integer index = hookSite.getMethodEvent().getIndex();
@@ -159,54 +139,75 @@ public class Hook {
       } else {
         invocations[index] += hookSite.getHookInvocation();
       }
-    }
-
-    final String uniqueLocks = hookSites
-        .stream()
-        .map(HookSite::getUniqueKey)
-        .filter(uk -> !uk.isEmpty())
-        .distinct()
-        .map(uniqueKey -> (""
-            + "com.appland.appmap.process.ThreadLock.current().lockUnique(\""
-            + uniqueKey
-            + "\");"))
-        .collect(Collectors.joining("\n"));
-
-    try {
-      targetBehavior.insertBefore(
-          beforeSrcBlock(uniqueLocks, invocations[MethodEvent.METHOD_INVOCATION.getIndex()])
-      );
-
-      targetBehavior.insertAfter(
-          afterSrcBlock(invocations[MethodEvent.METHOD_RETURN.getIndex()]));
-
-      ClassPool cp = AppMapClassPool.get();
-      if (returnsVoid) {
-        targetBehavior.addCatch("{"
-            + "com.appland.appmap.process.ThreadLock.current().exit();"
-            + "return;"
-            + "}",
-            cp.get("com.appland.appmap.process.ExitEarly"));
-      } else if (!returnType.isPrimitive()) {
-        targetBehavior.addCatch("{"
-            + "com.appland.appmap.process.ThreadLock.current().exit();"
-            + "return ("
-            + returnType.getName()
-            + ") $e.getReturnValue();"
-            + "}",
-            cp.get("com.appland.appmap.process.ExitEarly"));
+      String uniqueKey = hookSite.getUniqueKey();
+      if (!uniqueKey.isEmpty()) {
+        if (!uniqueKeys.contains(uniqueKey)) {
+          uniqueLocks.append("com.appland.appmap.process.ThreadLock.current().lockUnique(\"")
+              .append(uniqueKey).append("\");");
+          uniqueKeys.add(uniqueKey);
+        }
       }
 
+    }
+
+    try {
+      String beforeSrcBlock = beforeSrcBlock(uniqueLocks.toString(),
+          invocations[MethodEvent.METHOD_INVOCATION.getIndex()]);
+      logger.trace("{}: beforeSrcBlock:\n{}", targetBehavior::getName, beforeSrcBlock::toString);
+      targetBehavior.insertBefore(
+          beforeSrcBlock);
+
+      String afterSrcBlock = afterSrcBlock(invocations[MethodEvent.METHOD_RETURN.getIndex()]);
+      logger.trace("{}: afterSrcBlock:\n{}", targetBehavior::getName, afterSrcBlock::toString);
+
+      targetBehavior.insertAfter(
+          afterSrcBlock);
+
+      ClassPool cp = AppMapClassPool.get();
+      String exitEarlyCatchSrc = "{com.appland.appmap.process.ThreadLock.current().exit();return;}";
+      if (returnsVoid) {
+        targetBehavior.addCatch(exitEarlyCatchSrc,
+            cp.get("com.appland.appmap.process.ExitEarly"));
+      } else if (!returnType.isPrimitive()) {
+        exitEarlyCatchSrc = "{com.appland.appmap.process.ThreadLock.current().exit();return("
+            + returnType.getName() + ")$e.getReturnValue();}";
+        targetBehavior
+            .addCatch(exitEarlyCatchSrc, cp.get("com.appland.appmap.process.ExitEarly"));
+      }
+      logger.trace("{}: catch1Src:\n{}", targetBehavior::getName, exitEarlyCatchSrc::toString);
+
+      String catchSrcBlock = catchSrcBlock(invocations[MethodEvent.METHOD_EXCEPTION.getIndex()]);
       targetBehavior.addCatch(
-          catchSrcBlock(invocations[MethodEvent.METHOD_EXCEPTION.getIndex()]),
+          catchSrcBlock,
           cp.get("java.lang.Throwable"));
-      
+      logger.trace("{}: catchSrcBlock:\n{}", targetBehavior::getName, catchSrcBlock::toString);
+
     } catch (CannotCompileException e) {
       logger.debug(e, "failed to compile {}.{}", targetBehavior.getDeclaringClass().getName(),
           targetBehavior.getName());
     } catch (NotFoundException e) {
       logger.debug(e);
     }
+  }
+
+  private static void setBehaviorOrdinals(CtBehavior behavior,
+      List<HookSite> hookSites) {
+    CtClass ctClass = behavior.getDeclaringClass();
+    ClassFile classFile = ctClass.getClassFile();
+    ConstPool constPool = classFile.getConstPool();
+    Annotation annotation = new Annotation(AppMapAppMethod.class.getName(), constPool);
+
+    MethodEvent[] eventTypes = MethodEvent.values();
+    MemberValue[] values = new MemberValue[eventTypes.length];
+    for (MethodEvent eventType : eventTypes) {
+      IntegerMemberValue v = new IntegerMemberValue(constPool);
+      v.setValue(hookSites.get(eventType.getIndex()).getBehaviorOrdinal());
+      values[eventType.getIndex()] = v;
+    }
+    ArrayMemberValue arrayVal = new ArrayMemberValue(constPool);
+    arrayVal.setValue(values);
+    annotation.addMemberValue("value", arrayVal);
+    AnnotationUtil.setAnnotation(new AnnotatedBehavior(behavior), annotation);
   }
 
   /* Concatenates potentially null strings with no delimeter. The return value
@@ -262,10 +263,10 @@ public class Hook {
   public CtBehavior getBehavior() {
     return this.hookBehavior;
   }
-  
+
   public void validate() throws HookValidationException {
 
-  } 
+  }
 
   public void validate(CtBehavior behavior) throws HookValidationException {
 

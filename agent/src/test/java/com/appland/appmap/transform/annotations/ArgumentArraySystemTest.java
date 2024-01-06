@@ -93,7 +93,7 @@ public class ArgumentArraySystemTest {
         .ctClass();
 
     for (CtMethod behavior : hookClass.getDeclaredMethods()) {
-      Hook hook = Hook.from(behavior);
+      Hook hook = HookFactory.ALL_HOOKS_FACTORY.from(behavior);
       assertNotNull(hook);
       hooks.add(hook);
     }
@@ -131,6 +131,6 @@ public class ArgumentArraySystemTest {
         .ctClass();
 
     CtMethod invalidHookMethod = hookClass.getDeclaredMethods()[0];
-    assertNull(Hook.from(invalidHookMethod));
+    assertNull(HookFactory.ALL_HOOKS_FACTORY.from(invalidHookMethod));
   }
 }

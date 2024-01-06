@@ -82,7 +82,7 @@ public class ExcludeReceiverSystemTest {
         .ctClass();
 
     for (CtMethod behavior : hookClass.getDeclaredMethods()) {
-      Hook hook = Hook.from(behavior);
+      Hook hook = HookFactory.ALL_HOOKS_FACTORY.from(behavior);
       assertNotNull(hook);
       hooks.add(hook);
     }
@@ -123,7 +123,7 @@ public class ExcludeReceiverSystemTest {
         .endMethod()
         .ctClass();
 
-    
+
     /* CtMethod invalidHookMethod = */hookClass.getDeclaredMethods()/*[0]*/;
     // TODO
     // fix how validation occurs

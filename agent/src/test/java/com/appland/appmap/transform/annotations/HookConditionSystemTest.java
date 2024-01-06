@@ -122,7 +122,7 @@ public class HookConditionSystemTest {
         .ctClass();
 
     for (CtMethod behavior : hookClass.getDeclaredMethods()) {
-      Hook hook = Hook.from(behavior);
+      Hook hook = HookFactory.ALL_HOOKS_FACTORY.from(behavior);
       assertNotNull(hook);
     }
 
@@ -175,7 +175,7 @@ public class HookConditionSystemTest {
         .ctClass();
 
     for (CtMethod behavior : hookClass.getDeclaredMethods()) {
-      Hook hook = Hook.from(behavior);
+      Hook hook = HookFactory.ALL_HOOKS_FACTORY.from(behavior);
       assertNotNull(hook);
     }
 

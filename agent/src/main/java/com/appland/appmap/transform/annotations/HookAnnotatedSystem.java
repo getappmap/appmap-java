@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.transform.annotations.AnnotationUtil.AnnotatedBehavior;
 
 import javassist.CtBehavior;
 
@@ -31,11 +32,19 @@ public class HookAnnotatedSystem extends SourceMethodSystem {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public Boolean match(CtBehavior behavior, Map<String, Object> hookContext) {
+    boolean ret = doMatch(behavior, hookContext);
+    if (ret) {
+      AnnotationUtil.setAnnotation(new AnnotatedBehavior(behavior), AppMapAgentMethod.class);
+    }
+    return ret;
+  }
+
+  @SuppressWarnings("unchecked")
+  private Boolean doMatch(CtBehavior behavior, Map<String, Object> hookContext) {
     final Boolean isExplicitlyExcluded = AppMapConfig.get().excludes(behavior);
 
-    Set<String> annotations = (Set<String>)hookContext.get("annotations");
+    Set<String> annotations = (Set<String>)hookContext.get(Hook.ANNOTATIONS);
     return !isExplicitlyExcluded && annotations != null && annotations.contains(annotationClass);
   }
 }

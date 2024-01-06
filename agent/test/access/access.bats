@@ -17,8 +17,15 @@ setup() {
   _configure_logging
 }
 
+# The following test functions do some logging if BATS_VERBOSE_RUN is set (i.e.
+# the --verbose-run switch was used when invoking bats).
+#
+# Strictly speaking, this isn't what --verbose-run is meant to mean. The
+# functionaly it enables is pretty useless, though, so it seems harmless to
+# hijack it.
 @test "testProtected" {
   local cmd="${java_cmd} RecordPackage"
+  [[ $BATS_VERBOSE_RUN == 1 ]] && echo "cmd: $cmd" >&3
 
   # Exactly 4 events means that MyClass.myPrivateMethod was not recorded
   eval "$cmd" | jq -e '.events | length | select(. == 4)'
@@ -27,6 +34,7 @@ setup() {
 
 @test "testPrivate" {
   local cmd="${java_cmd} -Dappmap.record.private=true RecordPackage"
+  [[ $BATS_VERBOSE_RUN == 1 ]] && echo "cmd: $cmd" >&3
 
   # 6 events means that both myPackageMethod and myPrivateMethod were recorded
   eval "$cmd" | jq -e '.events | length | select(. == 6)'
@@ -43,6 +51,7 @@ setup() {
   assert_failure
 
   local cmd="${java_cmd} RecordPackage"
+  [[ $BATS_VERBOSE_RUN == 1 ]] && echo "cmd: $cmd" >&3
   run bash -c "eval \"$cmd\" 2>/dev/null"
   assert_success
   local recording="${output}"

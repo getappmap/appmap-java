@@ -4,6 +4,10 @@
 # Ignore build artifacts and compiled code
 build
 classes
+agent/bin/main
+agent/bin/test
+annotation/bin
+pomupdater/bin
 
 # AppMap files
 tmp
@@ -15,9 +19,6 @@ tmp
 .settings
 .vscode
 .idea
-agent/bin/main
-agent/bin/test
-annotation/bin
 
 # test output
 /.metadata/
