@@ -1,3 +1,19 @@
+# [1.26.0](https://github.com/getappmap/appmap-java/compare/v1.25.3...v1.26.0) (2024-01-11)
+
+
+### Bug Fixes
+
+* add missing hook ([5a7dc89](https://github.com/getappmap/appmap-java/commit/5a7dc89d699d230ea0e124cc614889aed3cfb095))
+* generalize the way test methods are detected ([dce4e3d](https://github.com/getappmap/appmap-java/commit/dce4e3d0a9c9498231c114acdf0418304acc15aa))
+* get rid of reflection in HookConditionSystem ([bebeffd](https://github.com/getappmap/appmap-java/commit/bebeffd7cefb5022e05974cf0b18f7fd6f2c5bf8))
+* improve agent performance ([241d165](https://github.com/getappmap/appmap-java/commit/241d1657cb2e1491df47210c4b1db70e7f879fd5))
+* only add essential git info ([c816cb2](https://github.com/getappmap/appmap-java/commit/c816cb241a411e3e151147b94b6bcc2f55e6ab68))
+
+
+### Features
+
+* create a log file by default ([b86203f](https://github.com/getappmap/appmap-java/commit/b86203f74327c3312ea2987f2f71f128cd248190))
+
 ## [1.25.3](https://github.com/getappmap/appmap-java/compare/v1.25.2...v1.25.3) (2023-12-14)
 
 
