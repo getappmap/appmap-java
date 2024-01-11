@@ -47,7 +47,8 @@ public class Recording {
     public Path moveTo(Path targetPath) {
         Path sourcePath = Paths.get(this.file.getPath());
 
-        logger.debug("Moving {} to {}", sourcePath, targetPath);
+        logger.info("Saving AppMap {}", targetPath::toAbsolutePath);
+        logger.debug("Moving {}", sourcePath::toString, targetPath::toAbsolutePath);
 
         Function<FileMover, FileMover.Result> tryMove = mover -> {
             IOException exception = null;
