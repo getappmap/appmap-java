@@ -23,52 +23,78 @@ import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recorder.Metadata;
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.transform.ClassFileTransformer;
+import com.appland.appmap.transform.annotations.HookFactory;
+import com.appland.appmap.transform.instrumentation.BBTransformer;
 import com.appland.appmap.util.GitUtil;
 
-/**
- * Agent is a JVM agent which instruments, records, and prints appmap files
- * for a program. To use the AppMap agent, start the progress with the JVM argument
- * <code>-javaagent:/path/to/appmap-java.jar</code>. The agent will read
- * the <code>appmap.yml</code> configuration file, which tells it which classes
- * to instrument. Classes will be instrumented automatically as they are loaded by the
- * JVM. As instrumented classes are used by the program, the activity is recorded by the agent.
- * In some cases, such as JUnit, AppMap files will be printed as the program executes.
- * When the agent exits, any un-printed data will be written to the file <code>appmap.json</code>.
- */
 public class Agent {
+
   public static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
   /**
    * premain is the entry point for the AppMap Java agent.
+   *
    * @param agentArgs agent options
    * @param inst services needed to instrument Java programming language code
-   * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html">Package java.lang.instrument</a>
+   * @see <a href=
+   *      "https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html">Package
+   *      java.lang.instrument</a>
    */
   public static void premain(String agentArgs, Instrumentation inst) {
-    logger.debug("Agent version {}", Agent.class.getPackage().getImplementationVersion());
-    logger.debug("System properties: {}", System.getProperties());
-    logger.debug(new Exception(), "whereAmI");
-
-    addAgentJar(inst);
-
+    long start = System.currentTimeMillis();
     try {
       AppMapConfig.initialize(FileSystems.getDefault());
     } catch (IOException e) {
       logger.warn(e, "Initialization failed");
       System.exit(1);
     }
-    logger.debug("config: {}", AppMapConfig.get());
+    if (Properties.DisableLogFile == null) {
+      // The user hasn't made a choice about disabling logging, let them know
+      // they can.
+      logger.info(
+          "To disable the automatic creation of this log file, set the system property {} to 'true'",
+          Properties.DISABLE_LOG_FILE_KEY);
+    }
+    logger.info("Agent version {}, current time mills: {}",
+        Agent.class.getPackage().getImplementationVersion(), start);
+    logger.info("config: {}", AppMapConfig.get());
+    logger.info("System properties: {}", System.getProperties());
+    logger.debug(new Exception(), "whereAmI");
+
+    addAgentJar(inst);
+
 
     try {
       GitUtil.findSourceRoots();
+      logger.debug("done finding source roots, {}", () -> {
+        long now = System.currentTimeMillis();
+        return String.format("%d, %d", now - start, start);
+      });
     } catch (IOException e) {
       logger.warn(e);
     }
 
-    inst.addTransformer(new ClassFileTransformer());
+    // First, install a javassist-based transformer that will annotate app
+    // methods that require instrumentation.
+    ClassFileTransformer methodCallTransformer =
+        new ClassFileTransformer("method call", HookFactory.APP_HOOKS_FACTORY);
+    inst.addTransformer(methodCallTransformer);
+
+    // Next, install a bytebuddy-based transformer that will instrument the
+    // annotated methods.
+    BBTransformer.installOn(inst);
+
+    // Finally, install another javassist-based transformer that will instrument
+    // non-app methods that have been hooked, i.e. those that have been
+    // specified in com.appland.appmap.process.
+    ClassFileTransformer systemHookTransformer =
+        new ClassFileTransformer("system hook", HookFactory.AGENT_HOOKS_FACTORY);
+    inst.addTransformer(systemHookTransformer);
 
     Runnable logShutdown = () -> {
       try {
+        ClassFileTransformer.logStatistics();
+
         ProviderRegistry.getLoggingProvider().shutdown();
       } catch (InterruptedException e) {
         e.printStackTrace();

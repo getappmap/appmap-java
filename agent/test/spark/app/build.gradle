@@ -40,7 +40,8 @@ application {
   applicationDefaultJvmArgs = [
     "-javaagent:${appmapJar}", 
     "-Dappmap.config.file=appmap.yml", 
-    "-Dorg.slf4j.simpleLogger.log.org.eclipse.jetty.server=debug"
+    "-Dorg.slf4j.simpleLogger.log.org.eclipse.jetty.server=debug",
+    "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}"
 
   ]
 

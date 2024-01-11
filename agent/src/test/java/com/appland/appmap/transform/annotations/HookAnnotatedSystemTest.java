@@ -83,7 +83,7 @@ public class HookAnnotatedSystemTest {
         .ctClass();
 
     for (CtMethod behavior : hookClass.getDeclaredMethods()) {
-      Hook hook = Hook.from(behavior);
+      Hook hook = HookFactory.ALL_HOOKS_FACTORY.from(behavior);
       assertNotNull(hook);
     }
 

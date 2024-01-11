@@ -5,17 +5,27 @@ load '../../build/bats/bats-assert/load'
 load '../helper'
 
 sep="$JAVA_PATH_SEPARATOR"
-appmap_jar="$(find_agent_jar)"
+AGENT_JAR="$(find_agent_jar)"
 wd="$(git rev-parse --show-toplevel)"/agent
 test_cp="${wd}/test/access${sep}${wd}/build/classes/java/test"
-java_cmd="java -javaagent:'${appmap_jar}' -cp '${test_cp}'"
+java_cmd="java -javaagent:'${AGENT_JAR}' -cp '${test_cp}'"
 
 setup() {
-  javac -cp "${appmap_jar}${sep}${test_cp}" test/access/*.java
+  javac -cp "${AGENT_JAR}${sep}${test_cp}" test/access/*.java
+
+  cd test/access
+  _configure_logging
 }
 
+# The following test functions do some logging if BATS_VERBOSE_RUN is set (i.e.
+# the --verbose-run switch was used when invoking bats).
+#
+# Strictly speaking, this isn't what --verbose-run is meant to mean. The
+# functionaly it enables is pretty useless, though, so it seems harmless to
+# hijack it.
 @test "testProtected" {
   local cmd="${java_cmd} RecordPackage"
+  [[ $BATS_VERBOSE_RUN == 1 ]] && echo "cmd: $cmd" >&3
 
   # Exactly 4 events means that MyClass.myPrivateMethod was not recorded
   eval "$cmd" | jq -e '.events | length | select(. == 4)'
@@ -24,6 +34,7 @@ setup() {
 
 @test "testPrivate" {
   local cmd="${java_cmd} -Dappmap.record.private=true RecordPackage"
+  [[ $BATS_VERBOSE_RUN == 1 ]] && echo "cmd: $cmd" >&3
 
   # 6 events means that both myPackageMethod and myPrivateMethod were recorded
   eval "$cmd" | jq -e '.events | length | select(. == 6)'
@@ -31,7 +42,7 @@ setup() {
 }
 
 @test "outside git repo" {
-  cp appmap.yml "$BATS_TEST_TMPDIR"/.
+  cp -v "$(_top_level)/agent/appmap.yml" "$BATS_TEST_TMPDIR"/.
   cd "$BATS_TEST_TMPDIR"
 
   # sanity check
@@ -40,6 +51,7 @@ setup() {
   assert_failure
 
   local cmd="${java_cmd} RecordPackage"
+  [[ $BATS_VERBOSE_RUN == 1 ]] && echo "cmd: $cmd" >&3
   run bash -c "eval \"$cmd\" 2>/dev/null"
   assert_success
   local recording="${output}"

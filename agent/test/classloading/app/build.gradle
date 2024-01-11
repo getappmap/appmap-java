@@ -50,7 +50,8 @@ application {
     applicationDefaultJvmArgs += [
       "-javaagent:${appmapJar}",
       /*"-Dsun.misc.URLClassPath.debug",*/
-      "-DtestJars=${configurations.servlet.asPath};${libJar}"
+      "-DtestJars=${configurations.servlet.asPath};${libJar}",
+      "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}"
     ]
 }
 

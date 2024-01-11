@@ -4,12 +4,15 @@ import java.io.ByteArrayInputStream;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,7 +26,12 @@ import org.tinylog.TaggedLogger;
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.NoSourceAvailableException;
+import com.appland.appmap.transform.annotations.AnnotationUtil;
+import com.appland.appmap.transform.annotations.AnnotationUtil.AnnotatedBehavior;
+import com.appland.appmap.transform.annotations.AnnotationUtil.AnnotatedClass;
+import com.appland.appmap.transform.annotations.AppMapInstrumented;
 import com.appland.appmap.transform.annotations.Hook;
+import com.appland.appmap.transform.annotations.HookFactory;
 import com.appland.appmap.transform.annotations.HookSite;
 import com.appland.appmap.transform.annotations.HookValidationException;
 import com.appland.appmap.util.AppMapClassPool;
@@ -34,6 +42,10 @@ import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.Modifier;
 import javassist.NotFoundException;
+import javassist.bytecode.AnnotationsAttribute;
+import javassist.bytecode.ClassFile;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.annotation.Annotation;
 
 /**
  * The ClassFileTransformer is responsible for loading and caching hooks during {@link com.appland.appmap.Agent}
@@ -44,19 +56,36 @@ import javassist.NotFoundException;
 public class ClassFileTransformer implements java.lang.instrument.ClassFileTransformer {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
   private static String tracePrefix = Properties.DebugClassPrefix;
-  private static final List<Hook> unkeyedHooks = new ArrayList<>();
-  private static final Map<String, List<Hook>> keyedHooks = new HashMap<>();
+  private static final String PROCESS_PACKAGE = "com.appland.appmap.process";
+
+  private final String name;
+  private final List<Hook> unkeyedHooks = new ArrayList<>();
+  private final Map<String, List<Hook>> keyedHooks = new HashMap<>();
+  private HookFactory hookFactory;
+
+  private Hook[] sortedUnkeyedHooks = null;
+  private Map<String, Hook[]> allKeyedHooks = null;
+
+  private static final List<ClassFileTransformer> instances = new ArrayList<>();
+  private long classesExamined = 0;
+  private long methodsHooked = 0;
+  private long methodsExamined = 0;
+  private Map<String, Integer> packagesHooked = new HashMap<>();
+  private Map<String, Integer> packagesIgnored = new HashMap<>();
+  private long classesIgnored = 0;
 
   /**
    * Default constructor. Caches hooks for future class transforms.
    */
-  public ClassFileTransformer() {
+  public ClassFileTransformer(String name, HookFactory hookFactory) {
     super();
+    this.name = name;
+    this.hookFactory = hookFactory;
 
     Reflections reflections = new Reflections(new ConfigurationBuilder()
-        .setUrls(ClasspathHelper.forPackage("com.appland.appmap.process"))
+        .setUrls(ClasspathHelper.forPackage(PROCESS_PACKAGE))
         .setScanners(new SubTypesScanner(false))
-        .filterInputsBy(new FilterBuilder().includePackage("com.appland.appmap.process")));
+        .filterInputsBy(new FilterBuilder().includePackage(PROCESS_PACKAGE)));
     ClassPool classPool = AppMapClassPool.acquire(Thread.currentThread().getContextClassLoader());
     try {
       for (Class<?> classType : reflections.getSubTypesOf(Object.class)) {
@@ -68,9 +97,35 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           logger.debug(e);
         }
       }
+      resolveHooks();
     } finally {
       AppMapClassPool.release();
+      instances.add(this);
     }
+  }
+
+  private void resolveHooks() {
+    // @formatter:off
+    Function<Stream<Hook>, Hook[]> sorter = s -> s.sorted(
+        Comparator.comparingInt(Hook::getPosition)
+      )
+      .toArray(Hook[]::new);
+
+    sortedUnkeyedHooks = sorter.apply(unkeyedHooks.stream());
+
+    allKeyedHooks = keyedHooks
+      .entrySet()
+      .stream()
+      .collect(Collectors.toMap(
+        Map.Entry::getKey,
+        e -> sorter.apply(
+          Stream.of(
+            e.getValue(),
+            unkeyedHooks
+          )
+          .flatMap(Collection::stream)))
+      );
+    // @formatter:on
   }
 
   private void addHook(Hook hook) {
@@ -90,16 +145,9 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
   }
 
-  public static List<Hook> getHooks(String methodId) {
-    List<Hook> matchingKeyedHooks = keyedHooks.get(methodId);
-    if (matchingKeyedHooks == null) {
-      matchingKeyedHooks = new ArrayList<Hook>();
-    }
-
-    return Stream.of(matchingKeyedHooks, unkeyedHooks)
-        .flatMap(Collection::stream)
-        .sorted(Comparator.comparingInt(Hook::getPosition))
-        .collect(Collectors.toList());
+  private Hook[] getHooks(String methodId) {
+    Hook[] methodHooks = allKeyedHooks.get(methodId);
+    return methodHooks != null ? methodHooks : sortedUnkeyedHooks;
   }
 
   private void processClass(CtClass ctClass) {
@@ -113,7 +161,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       if (traceClass) {
         logger.trace(() -> behavior.getLongName());
       }
-      Hook hook = Hook.from(behavior);
+      Hook hook = hookFactory.from(behavior);
       if (hook == null) {
         if (traceClass) {
           logger.trace("{}, no hooks", () -> behavior.getLongName());
@@ -142,13 +190,9 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     boolean traceClass = tracePrefix == null || behavior.getDeclaringClass().getName().startsWith(tracePrefix);
 
     try {
-      final List<HookSite> hookSites = getHooks(behavior.getName())
-          .stream()
-          .map(hook -> hook.prepare(behavior))
-          .filter(Objects::nonNull)
-          .collect(Collectors.toList());
+      List<HookSite> hookSites = getHookSites(behavior);
 
-      if (hookSites.size() < 1) {
+      if (hookSites == null) {
         if (traceClass) {
           logger.trace("no hook sites");
         }
@@ -166,7 +210,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           }
 
           if (traceClass) {
-            logger.debug("hooked {}.{}{} on ({},{}) with {}",
+            logger.trace("hooked {}.{}{} on ({},{}) with {}",
                 className,
                 behavior.getName(),
                 behavior.getMethodInfo().getDescriptor(),
@@ -185,6 +229,38 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     return false;
   }
 
+  public List<HookSite> getHookSites(CtBehavior behavior) {
+    List<HookSite> hookSites = null;
+    Map<String, Object> hookContext = new HashMap<>();
+
+    // Put this behavior's annotations in the context so they'll be available
+    // when the hooks are prepared.
+    AnnotatedBehavior ab = new AnnotatedBehavior(behavior);
+    AnnotationsAttribute attr = ab.get();
+    Set<String> behaviorAnnotations = null;
+    if (attr != null) {
+      behaviorAnnotations = new HashSet<>();
+      Annotation[] annotations = attr.getAnnotations();
+      for (Annotation a : annotations) {
+        behaviorAnnotations.add(a.getTypeName());
+      }
+    }
+    hookContext.put(Hook.ANNOTATIONS, behaviorAnnotations);
+
+    for (Hook hook : getHooks(behavior.getName())) {
+      HookSite hookSite = hook.prepare(behavior, hookContext);
+      if (hookSite == null) {
+        continue;
+      }
+
+      if (hookSites == null) {
+        hookSites = new ArrayList<>();
+      }
+      hookSites.add(hookSite);
+    }
+    return hookSites;
+  }
+
   @Override
   public byte[] transform(ClassLoader loader,
                           String className,
@@ -192,6 +268,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
                           ProtectionDomain domain,
       byte[] bytes) throws IllegalClassFormatException {
 
+    classesExamined++;
     AppMapClassPool.acquire(loader);
     try {
       // Anonymous classes created by sun.misc.Unsafe.defineAnonymousClass don't
@@ -200,14 +277,18 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         return null;
       }
 
-      className = className.replaceAll("/", ".");
+      className = className.replace('/', '.');
+      if (className.startsWith("com.appland.shade")) {
+        return null;
+      }
+
       boolean traceClass = tracePrefix == null || className.startsWith(tracePrefix);
 
       CtClass ctClass;
       try {
         ClassPool classPool = AppMapClassPool.get();
         if (traceClass) {
-          logger.trace("className: {}, classPool: {}", className, classPool);
+          logger.debug("className: {}", className);
         }
 
         ctClass = classPool.makeClass(new ByteArrayInputStream(bytes));
@@ -235,7 +316,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       boolean hookApplied = false;
       for (CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
         if (traceClass) {
-          logger.trace("behavior: {} ", behavior.getLongName());
+          logger.trace("behavior: {}", behavior.getLongName());
         }
 
         if ((behavior.getModifiers() & Modifier.ABSTRACT) != 0) {
@@ -245,22 +326,39 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           continue;
         }
 
+        methodsExamined++;
         if (this.applyHooks(behavior)) {
           hookApplied = true;
+          methodsHooked++;
         }
       }
 
       if (hookApplied) {
+        // One or more of the methods in the the class were marked as needing to
+        // be instrumented. Mark the class so the bytebuddy transformer will
+        // know it needs to be instrumented.
+        ClassFile classFile = ctClass.getClassFile();
+        ConstPool constPool = classFile.getConstPool();
+        Annotation annot = new Annotation(AppMapInstrumented.class.getName(), constPool);
+        AnnotationUtil.setAnnotation(new AnnotatedClass(ctClass), annot);
+
         if (traceClass) {
           logger.trace("hooks applied to {}", className);
+          packagesHooked.compute(ctClass.getPackageName(), (k, v) -> v == null ? 1 : v + 1);
         }
 
         return ctClass.toBytecode();
       }
 
+      classesIgnored++;
+      packagesIgnored.compute(ctClass.getPackageName(), (k, v) -> v == null ? 1 : v + 1);
+
       if (traceClass) {
-        logger.trace("no hooks applied to {}", className);
+        logger.trace("no hooks applied to {}, methods: {}", ctClass::getName,
+            () -> Arrays.stream(ctClass.getDeclaredBehaviors())
+                .map(CtBehavior::getName).collect(Collectors.joining(",")));
       }
+
     } catch (Throwable t) {
       // Don't allow this exception to propagate out of this method, because it will
       // be swallowed
@@ -271,5 +369,27 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
 
     return null;
+  }
+
+  public static void logStatistics() {
+    instances.forEach(cft -> {
+      logger.info("+++ {} +++", cft.name);
+
+      logger.info("classes examined: {}", cft.classesExamined);
+      logger.info("classes ignored: {}", cft.classesIgnored);
+      logger.info("methods examined: {}", cft.methodsExamined);
+      logger.info("methods instrumented: {}", cft.methodsHooked);
+
+      Function<Map<String, Integer>, String> collectPkgs = pkgs -> pkgs.entrySet().stream()
+          .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+            .map(entry -> entry.getKey() + ": " + entry.getValue())
+            .collect(Collectors.joining("\n"));
+      logger.debug("{} packages hooked:\n{}", () -> cft.packagesHooked.size(),
+          () -> collectPkgs.apply(cft.packagesHooked));
+      logger.debug("{} packages ignored:\n{}", () -> cft.packagesIgnored.size(),
+          () -> collectPkgs.apply(cft.packagesIgnored));
+
+      logger.info("=== {} ===", cft.name);
+    });
   }
 }

@@ -31,6 +31,7 @@ test {
 	jvmArgs += [
 		"-javaagent:${appmapJar}", 
     "-Dappmap.config.file=appmap.yml", 
+    "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}"
     // "-Dappmap.debug=true", 
     // "-Dappmap.debug.file=../../build/log/jdbc-appmap.log"
 	]

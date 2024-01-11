@@ -7,13 +7,14 @@ recording_dir="app/tmp/appmap/request_recording"
 setup_file() {
   export WS_SCHEME="http" WS_HOST="localhost" WS_PORT="8080"
   export WS_URL="${WS_SCHEME}://${WS_HOST}:${WS_PORT}"
-  
+
   export AGENT_JAR="$(find_agent_jar)"
+  _configure_logging
 
   cd test/spark
   ./gradlew -PappmapJar="${AGENT_JAR}" run &
   export JVM_MAIN_CLASS=org.gradle.wrapper.GradleWrapperMain
-  
+
   wait_for_ws
 }
 
@@ -57,4 +58,3 @@ setup() {
   assert_json '.version'
   assert_json_eq '.events | map(select(.http_server_request or .http_server_response)) | ((.[0].event == "call" and .[1].event == "return") and (.[1].parent_id == .[0].id))' "true"
 }
-  

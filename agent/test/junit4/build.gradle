@@ -32,6 +32,7 @@ test {
 
   timeout = Duration.ofHours(24)
   jvmArgs += [
-    "-javaagent:${agentJar}"
+    "-javaagent:${agentJar}",
+    "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}"
   ]
 }

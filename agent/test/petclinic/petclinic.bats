@@ -39,14 +39,14 @@ setup() {
 @test "successfully start a new recording" {
   run _curl -sIXPOST "${WS_URL}/_appmap/record"
   assert_success
-  
+
   echo "${output}" \
     | grep "HTTP/1.1 200"
 }
 
 @test "fail to start a recording while recording is already in progress" {
   start_recording
-  
+
   run _curl -sIXPOST "${WS_URL}/_appmap/record"
   assert_failure 22
 
@@ -56,7 +56,7 @@ setup() {
 
 @test "the recording status reports enabled when recording" {
   start_recording
-  
+
   run _curl -sXGET "${WS_URL}/_appmap/record"
   assert_success
   assert_json_eq '.enabled' 'true'
@@ -90,7 +90,7 @@ setup() {
 
 @test "successfully stop the current recording" {
   start_recording
-  
+
   _curl -XGET "${WS_URL}"
   run _curl -sXDELETE "${WS_URL}/_appmap/record"
   assert_success
@@ -144,7 +144,7 @@ setup() {
 
   assert_json_eq '.metadata.git.repository' 'https://github.com/spring-projects/spring-petclinic.git'
   assert_json '.metadata.git.branch'
-  assert_json '.metadata.git.status'
+  assert_json '.metadata.git.commit'
 }
 
 @test "paths in a Spring Boot app are normalized" {
@@ -178,7 +178,7 @@ setup() {
 
 @test "recording captures an exception in http request" {
   start_recording
-  
+
   # this route seems least likely to be affected by future changes
   run _curl -XGET "${WS_URL}/oups"
   assert_failure 22

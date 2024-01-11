@@ -9,6 +9,7 @@ import java.util.Map;
 import org.tinylog.TaggedLogger;
 
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.transform.annotations.AnnotationUtil.AnnotatedBehavior;
 import com.appland.appmap.util.Logger;
 
 import javassist.CtBehavior;
@@ -87,7 +88,15 @@ public class HookClassSystem extends SourceMethodSystem {
   }
 
   @Override
-  public Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
+  public Boolean match(CtBehavior behavior, Map<String, Object> hookContext) {
+    boolean ret = doMatch(behavior, hookContext);
+    if (ret) {
+      AnnotationUtil.setAnnotation(new AnnotatedBehavior(behavior), AppMapAgentMethod.class);
+    }
+    return ret;
+  }
+
+  private Boolean doMatch(CtBehavior behavior, Map<String, Object> hookContext) {
     logger.trace(() -> behavior.getLongName());
 
     String behaviorClass = behavior.getDeclaringClass().getName();

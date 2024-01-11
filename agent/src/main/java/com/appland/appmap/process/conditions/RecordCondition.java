@@ -1,20 +1,21 @@
 package com.appland.appmap.process.conditions;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.FullyQualifiedName;
-import javassist.CtBehavior;
 
-import java.util.Arrays;
-import java.util.Map;
+import javassist.CtBehavior;
 
 /**
  * RecordCondition checks if the behavior should be recorded due to its inclusion in the
  * {@link Properties#Records}.
  * @see Properties#Records
  */
-public abstract class RecordCondition implements Condition {
+public class RecordCondition implements Condition {
 
   /**
    * Determines whether the given behavior should be recorded due to its inclusion in the
@@ -23,12 +24,12 @@ public abstract class RecordCondition implements Condition {
    * @return {@code true} if the behavior should be recorded
    * @see Properties#Records
    */
-  public static Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
+  public Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
     if (behavior.getDeclaringClass().getName().startsWith("java.lang")) {
       return false;
     }
 
-    if (!new AppMapBehavior(behavior).isRecordable()) {
+    if (!AppMapBehavior.isRecordable(behavior)) {
       return false;
     }
 

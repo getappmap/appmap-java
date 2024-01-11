@@ -1,4 +1,4 @@
-package com.appland.appmap.util;
+package com.appland.appmap.util.tinylog;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,13 +13,13 @@ import org.tinylog.configuration.ConfigurationLoader;
 import org.tinylog.provider.InternalLogger;
 import org.tinylog.runtime.RuntimeProvider;
 
-public class AppMapTinylogConfigurationLoader implements ConfigurationLoader {
+public class AppMapConfigurationLoader implements ConfigurationLoader {
 
   @Override
   public Properties load() throws IOException {
     Properties properties = new Properties();
     final File localConfigFile = new File("appmap-log.local.properties");
-    final String[] configFiles = { "appmap-log.properties", localConfigFile.getName() };
+    final String[] configFiles = {"appmap-log.properties", localConfigFile.getName()};
 
     for (String configFile : configFiles) {
       List<ClassLoader> classLoaders = RuntimeProvider.getClassLoaders();
@@ -30,6 +30,13 @@ public class AppMapTinylogConfigurationLoader implements ConfigurationLoader {
           }
         }
       }
+    }
+
+    // Set the level and writer after loading the default config, but allow a
+    // local config to override them.
+    if (com.appland.appmap.config.Properties.DisableLogFile == Boolean.TRUE) {
+      properties.put("level", "WARN");
+      properties.put("writer", "console");
     }
 
     try {
@@ -43,7 +50,7 @@ public class AppMapTinylogConfigurationLoader implements ConfigurationLoader {
     // Update with any appmap.log System properties.
     for (Map.Entry<Object, Object> p : System.getProperties().entrySet()) {
       String prefix = "appmap.log.";
-      String key = (String) p.getKey();
+      String key = (String)p.getKey();
       if (!key.startsWith(prefix)) {
         continue;
       }

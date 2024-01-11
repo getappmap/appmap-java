@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 
-bats --tap test/jdbc/jdbc.bats
+bats --tap test/jdbc

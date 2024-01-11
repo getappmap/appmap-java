@@ -1,9 +1,13 @@
 package com.appland.appmap.process.conditions;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.AppMapPackage;
+import com.appland.appmap.transform.annotations.AnnotationUtil;
+import com.appland.appmap.transform.annotations.AnnotationUtil.AnnotatedBehavior;
+import com.appland.appmap.transform.annotations.AppMapAppMethod;
 import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.FullyQualifiedName;
 import com.appland.appmap.util.Logger;
@@ -21,7 +25,7 @@ import javassist.bytecode.Descriptor;
  * {@link AppMapConfig}.
  * @see AppMapConfig
  */
-public abstract class ConfigCondition implements Condition {
+public class ConfigCondition implements Condition {
   static {
     // HACK
     // force loading of AppMapConfig to prevent it from being loaded twice
@@ -35,13 +39,21 @@ public abstract class ConfigCondition implements Condition {
    * @return {@code true} if the behavior should be hooked
    * @see AppMapConfig
    */
-  public static Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
+  public Boolean match(CtBehavior behavior, Map<String, Object> matchResult) {
+    boolean matched = doMatch(behavior, matchResult);
+    if (matched) {
+      AnnotationUtil.setAnnotation(new AnnotatedBehavior(behavior), AppMapAppMethod.class);
+    }
+    return matched;
+  }
+
+  private boolean doMatch(CtBehavior behavior, Map<String, Object> matchResult) {
     CtClass declaringClass = behavior.getDeclaringClass();
     if (declaringClass.getName().startsWith("java.lang")) {
       return false;
     }
 
-    if (!new AppMapBehavior(behavior).isRecordable() || ignoreMethod(behavior)) {
+    if (!AppMapBehavior.isRecordable(behavior) || ignoreMethod(behavior)) {
       return false;
     }
 
@@ -59,11 +71,19 @@ public abstract class ConfigCondition implements Condition {
     return false;
   }
 
+  private static final Pattern SETTER_PATTERN = Pattern.compile("^set[A-Z].*");
+
   static boolean isSetter(CtMethod method) throws NotFoundException {
     String descriptor = method.getMethodInfo().getDescriptor();
-    return new AppMapBehavior(method).isRecordable() && descriptor.matches(".*\\)V$") /* void */
-        && Descriptor.numOfParameters(descriptor) == 1 && method.getName().matches("^set[A-Z].*");
+
+    return AppMapBehavior.isRecordable(method) &&
+        Descriptor.numOfParameters(descriptor) == 1 &&
+        descriptor.endsWith(")V") &&
+        SETTER_PATTERN.matcher(method.getName()).matches();
   }
+
+  private static final Pattern GETTER_PATTERN = Pattern.compile("^get[A-Z].*");
+  private static final Pattern IS_HAS_PATTERN = Pattern.compile("^(i|ha)s[A-Z].*");
 
   static boolean isGetter(CtMethod method) throws NotFoundException {
     // KEG I'm getting exceptions like this when trying to use method.getReturnType():
@@ -74,16 +94,12 @@ public abstract class ConfigCondition implements Condition {
     // what we need, albeit in a cryptic format.
     String descriptor = method.getMethodInfo().getDescriptor();
     String methodName = method.getName();
-    if (new AppMapBehavior(method).isRecordable() && Descriptor.numOfParameters(descriptor) == 0) {
-      if (methodName.matches("^get[A-Z].*") && !descriptor.matches(".*\\)V$")) {/* void */
+    if (AppMapBehavior.isRecordable(method) && Descriptor.numOfParameters(descriptor) == 0) {
+      if (!descriptor.endsWith(")V") && GETTER_PATTERN.matcher(methodName).matches()) {
         return true;
       }
 
-      if (methodName.matches("^is[A-Z].*") && descriptor.matches(".*\\)Z$")) {/* boolean */
-        return true;
-      }
-      /* boolean */
-      return methodName.matches("^has[A-Z].*") && descriptor.matches(".*\\)Z$");
+      return descriptor.endsWith(")Z") && IS_HAS_PATTERN.matcher(methodName).matches();
     }
     return false;
   }

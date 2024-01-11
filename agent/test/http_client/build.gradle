@@ -45,6 +45,7 @@ application {
   mainClassName = project.hasProperty("mainClass") ? project.getProperty("mainClass") : "NULL"
   applicationDefaultJvmArgs = [
     "-javaagent:${appmapJar}", 
+    "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}",
     "-Dappmap.config.file=appmap.yml", 
     //"-Dappmap.debug=true", 
     //"-Dappmap.debug.file=../../build/log/httpclient-appmap.log"

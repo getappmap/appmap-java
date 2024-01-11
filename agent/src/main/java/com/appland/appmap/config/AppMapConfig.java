@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,8 +35,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import javassist.CtBehavior;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AppMapConfig {
+
   private static final TaggedLogger logger = configureLogging();
 
   public Path configFile; // the configFile used
@@ -118,6 +122,16 @@ public class AppMapConfig {
     }
     singleton.configFile = configFile;
     logger.debug("config: {}", singleton);
+
+    int count = singleton.packages.length;
+    count = Arrays.stream(singleton.packages).map(p -> p.exclude).reduce(count,
+        (acc, e) -> acc += e.length, Integer::sum);
+
+    int pattern_threshold = Properties.PatternThreshold;
+    if (count > pattern_threshold) {
+      logger.warn("{} patterns found in config, startup performance may be impacted", count);
+    }
+
     return singleton;
   }
 
@@ -151,17 +165,18 @@ public class AppMapConfig {
   }
 
   /**
-   * Check if a class/method is explicitly excluded in the configuration.
-   * @param canonicalName the canonical name of the class/method to be checked
-   * @return {@code true} if the class/method is explicitly excluded in the configuration. Otherwise, {@code false}.
+   * Check if a method is explicitly excluded by the configuration.
+   *
+   * @param behavior the method to be checked
+   * @return {@code true} if the method is explicitly excluded, {@code false} otherwise
    */
-  public Boolean excludes(FullyQualifiedName canonicalName) {
+  public Boolean excludes(CtBehavior behavior) {
     if (this.packages == null) {
       return false;
     }
 
     for (AppMapPackage pkg : this.packages) {
-      if (pkg.excludes(canonicalName)) {
+      if (pkg.excludes(behavior)) {
         return true;
       }
     }
