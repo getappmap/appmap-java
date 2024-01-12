@@ -1,0 +1,81 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
+plugins {
+  id 'application'
+  id 'java'
+}
+
+repositories {
+  mavenCentral()
+}
+
+sourceSets {
+  test {
+    java {
+      srcDirs = ['src/test/java']
+    }
+  }
+}
+
+def buildAppmapJar = fileTree('../../../agent/build/libs').matching {
+      include {
+        it.file.name ==~ /appmap-[0-9.]*(-SNAPSHOT)*.jar$/
+      }
+    }.getFiles()[0]
+
+def buildAnnotationJar = fileTree('../../../annotation/build/libs').matching {
+      include {
+        it.file.name ==~ /annotation-[0-9.]*(-SNAPSHOT)*.jar$/
+      }
+    }.getFiles()[0]
+
+def agentJar = findProperty("agentJar") ?: buildAppmapJar
+def annotationJar = findProperty("annotationJar") ?: buildAnnotationJar
+
+
+dependencies {
+  testImplementation 'junit:junit:4.4'
+  testImplementation files(annotationJar)
+}
+
+def addAgentArgs = [
+    "-javaagent:${agentJar}",
+    "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}"
+  ]
+
+task test_junit(type: Test) {
+  testLogging {
+    events TestLogEvent.STANDARD_OUT
+  }
+
+  jvmArgs += addAgentArgs
+}
+
+task test_testng(type: Test) {
+  useTestNG()
+  jvmArgs += addAgentArgs
+}
+
+// Choose the version of TestNG based on the Java toolchain detected by Gradle.
+// (TestNG dropped support for Java 8 in v7.6.)
+def jdk8Dependency = 'org.testng:testng:7.5.1'
+def jdk11Dependency = 'org.testng:testng:7.9.0'
+
+tasks.register('setTestDependencies') {
+  doLast {
+    def jdkVersion = javaToolchains.launcherFor(java.toolchain).get().metadata.languageVersion.asInt()
+    if (jdkVersion <= 8) {
+      dependencies {
+          testImplementation jdk8Dependency
+      }
+    } else {
+      dependencies {
+        testImplementation jdk11Dependency
+      }
+    }
+  }
+}
+
+tasks.named("compileTestJava") {
+  dependsOn 'setTestDependencies'
+}

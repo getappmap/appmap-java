@@ -1,3 +1,0 @@
-#!/bin/bash
-
-bats --tap test/junit4

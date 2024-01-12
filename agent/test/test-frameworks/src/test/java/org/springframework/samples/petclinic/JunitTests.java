@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 import com.appland.appmap.annotation.NoAppMap;
 import org.junit.Test;
 
-public class JUnit4Tests {
+public class JunitTests {
   @Test
   public void testItPasses() {
     System.err.println("passing test");

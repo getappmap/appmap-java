@@ -17,9 +17,8 @@ set -x
 ./test/petclinic/test
 if [[ $JAVA_VERSION == 17.* ]]; then
   ./test/petclinic-fw/test
-else
-  ./test/junit4/test
 fi
+./test/test-frameworks/test
 ./test/httpcore/test
 ./test/http_client/test
 ./test/agent_cli/test

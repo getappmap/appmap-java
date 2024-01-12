@@ -37,8 +37,6 @@ class TestSupport {
     // Walk up the stack until we find a method with a @Test annotation.
     ClassLoader cl = Thread.currentThread().getContextClassLoader();
     Method testMethod = null;
-    Class<?> jupiterTest = safeClassForName(cl, "org.junit.jupiter.api.Test");
-    Class<?> junitTest = safeClassForName(cl, "org.junit.Test");
     for (int idx = 0; idx < stack.length; idx++) {
       String className = stack[idx].getClassName();
       if (className.startsWith("java.lang")
@@ -46,8 +44,7 @@ class TestSupport {
         continue;
       }
       Method stackMethod = findStackMethod(stack[idx]);
-      if ((jupiterTest != null && hasAnnotation(jupiterTest, stackMethod)
-          || junitTest != null && hasAnnotation(junitTest, stackMethod))) {
+      if (hasTestAnnotation(cl, stackMethod)) {
         testMethod = stackMethod;
         break;
       }
@@ -64,6 +61,37 @@ class TestSupport {
     }
 
     RecordingSupport.startRecording(details, metadata);
+  }
+
+  static StackTraceElement findErrorFrame(Object self, Throwable exception) throws InternalError {
+    String selfClass = self.getClass().getName();
+    StackTraceElement errorFrame = null;
+    for (StackTraceElement frame : exception.getStackTrace()) {
+      if (frame.getClassName().equals(selfClass)) {
+        errorFrame = frame;
+        break;
+      }
+    }
+    if (errorFrame == null) {
+      throw new InternalError("no stack frame matched test class");
+    }
+    return errorFrame;
+  }
+
+  private static boolean hasTestAnnotation(ClassLoader cl, Method stackMethod) {
+    Class<?>[] testAnnotations = {
+        safeClassForName(cl, "org.junit.jupiter.api.Test"),
+        safeClassForName(cl, "org.junit.Test"),
+        safeClassForName(cl, "org.testng.annotations.Test")
+    };
+
+    for (Class<?> a : testAnnotations) {
+      if (a != null && hasAnnotation(a, stackMethod)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private static boolean isRecordingEnabled(ClassLoader cl, Method testMethod) {

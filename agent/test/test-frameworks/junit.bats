@@ -17,6 +17,8 @@ setup_file() {
 
   cd test/junit4
   _configure_logging
+
+  ./gradlew clean
 }
 
 setup() {
@@ -24,7 +26,9 @@ setup() {
 }
 
 run_tests() {
-  run ./gradlew clean test -PagentJar="$AGENT_JAR" -PannotationJar="$ANNOTATION_JAR" --tests "$@"
+  local cmd="$(echo ./gradlew test -PagentJar="$AGENT_JAR" -PannotationJar="$ANNOTATION_JAR" --tests "$@")"
+  [[ $BATS_VERBOSE_RUN == 1 ]] && echo "$cmd" >&3
+  run $cmd
 }
 
 @test "framework is captured" {
