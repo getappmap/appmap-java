@@ -2,7 +2,7 @@
 
 set -e
 
-export PATH="$BATS_DIR"/bin:$PATH
+export PATH="$BATS_DIR"/bin:"$BASHUNIT_DIR":$PATH
 
 file="$0"
 report_failure() {
