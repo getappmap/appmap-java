@@ -1,3 +1,13 @@
+## [1.26.1](https://github.com/getappmap/appmap-java/compare/v1.26.0...v1.26.1) (2024-01-16)
+
+
+### Bug Fixes
+
+* add info message when saving AppMap ([c7237a1](https://github.com/getappmap/appmap-java/commit/c7237a13fd454e9d149d2fe942e5f6060e6cd081))
+* don't try to add event on test failure ([fb64b52](https://github.com/getappmap/appmap-java/commit/fb64b521041cd4f3a33eeca249e0a4d3b04100de))
+* make sure TestNG tests are captured correctly ([c44c222](https://github.com/getappmap/appmap-java/commit/c44c2224d9280bc1da66aa904273f6fb88b897c4))
+* only track packages stats when debugging ([d2d3d99](https://github.com/getappmap/appmap-java/commit/d2d3d996950d200a7eb438390cc3d6bcc4e9cae2))
+
 # [1.26.0](https://github.com/getappmap/appmap-java/compare/v1.25.3...v1.26.0) (2024-01-11)
 
 
