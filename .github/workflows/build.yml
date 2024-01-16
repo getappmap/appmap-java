@@ -10,6 +10,7 @@ jobs:
           fail-fast: false
           matrix:
             os: [ ubuntu-latest, windows-latest, macos-latest ]
+            java: ['17', '21']
 
         name: Test ${{ matrix.os }}
         runs-on: ${{ matrix.os }}
@@ -25,7 +26,7 @@ jobs:
               uses: actions/setup-java@v3
               with:
                   distribution: temurin
-                  java-version: 17
+                  java-version: ${{ matrix.java }}
 
             - name: Install Bash on macOS
               if: runner.os == 'macOS'
