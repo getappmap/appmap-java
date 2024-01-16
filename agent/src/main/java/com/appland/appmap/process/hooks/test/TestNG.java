@@ -109,7 +109,6 @@ public class TestNG {
     Object self = testResult.getInstance();
     Throwable exception = testResult.getThrowable();
     event.setException(exception);
-    recorder.add(event);
 
     StackTraceElement ste = TestSupport.findErrorFrame(self, exception);
     RecordingSupport.stopRecording(new RecordingSupport.TestDetails(event), false,

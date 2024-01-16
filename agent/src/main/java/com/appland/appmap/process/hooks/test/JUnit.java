@@ -9,7 +9,6 @@ import com.appland.appmap.transform.annotations.HookAnnotated;
 import com.appland.appmap.transform.annotations.MethodEvent;
 
 public class JUnit {
-  private static final Recorder recorder = Recorder.getInstance();
   static final String JUNIT_NAME = "junit";
 
   @ArgumentArray
@@ -32,7 +31,6 @@ public class JUnit {
   @HookAnnotated(value = "org.junit.Test", methodEvent = MethodEvent.METHOD_EXCEPTION)
   public static void junitTest(Event event, Object self, Throwable exception, Object[] args) {
     event.setException(exception);
-    recorder.add(event);
     StackTraceElement ste = TestSupport.findErrorFrame(self, exception);
     RecordingSupport.stopRecording(new RecordingSupport.TestDetails(event), false, exception.getMessage(),
         ste.getLineNumber());
@@ -58,7 +56,6 @@ public class JUnit {
   @HookAnnotated(value = "org.junit.jupiter.api.Test", methodEvent = MethodEvent.METHOD_EXCEPTION)
   public static void junit5Test(Event event, Object self, Throwable exception, Object[] args) {
     event.setException(exception);
-    recorder.add(event);
     StackTraceElement errorFrame = TestSupport.findErrorFrame(self, exception);
     RecordingSupport.stopRecording(new RecordingSupport.TestDetails(event), false, exception.getMessage(),
         errorFrame.getLineNumber());
