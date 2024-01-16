@@ -23,12 +23,12 @@ function install_petclinic (
   cd "${pkg}"
 
   echo "${JAVA_VERSION}"
-  if [[ ! -z $oldVersion ]]; then 
+  if [[ ! -z $oldVersion ]]; then
     case "${JAVA_VERSION}" in
       1.8*)
         ;&
       11.*)
-        git checkout "${oldVersion}" 
+        git checkout "${oldVersion}"
         ;;
     esac
     ./mvnw --quiet package -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true
@@ -72,3 +72,8 @@ git clone --depth 1 https://github.com/bats-core/bats-core.git \
     && cd bats-core \
     && ./install.sh "$BATS_DIR"
 )
+
+export BASHUNIT_DIR=$PWD/build/bashunit
+mkdir -p $BASHUNIT_DIR
+curl -s https://bashunit.typeddevs.com/install.sh | bash -s $BASHUNIT_DIR
+sed -ibak 's;#!/bin/bash;#!/usr/bin/env bash;' $BASHUNIT_DIR/bashunit

@@ -65,11 +65,12 @@ assert_json_eq() {
 
   local query="${1?} | select(. == null | not)"
   local expected_value="${2}"
+  local msg="${3:-json query: $1}"
   local result=$(jq -r "${query}" <<< "${output}")
 
   print_debug "${query}" "${result}"
 
-  assert_equal "${result}" "${expected_value}"
+  [[ ! -z "$msg" ]] && assert_equal "${result}" "${expected_value}" "${msg}" || assert_equal "${result}" "${expected_value}"
 }
 
 assert_json_contains() {
@@ -80,7 +81,9 @@ assert_json_contains() {
   local result=$(jq -r "${query}" <<< "${output}")
 
   print_debug "${query}" "${result}"
-  assert grep -q "${match}" <<< "${result}"
+
+  grep -q "${match}" <<< "${result}"
+  assert_equal $? 0 "no match for '${match}' in '${result}'"
 }
 
 assert_json_not_contains() {
