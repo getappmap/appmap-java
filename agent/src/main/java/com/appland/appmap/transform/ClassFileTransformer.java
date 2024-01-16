@@ -66,12 +66,15 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
   private Hook[] sortedUnkeyedHooks = null;
   private Map<String, Hook[]> allKeyedHooks = null;
 
+  // These stats are only intended to give a sense of how much work was done by
+  // the transformers. It's not neccessary that they be absolutely correct, so
+  // access to them isn't synchronized.
   private static final List<ClassFileTransformer> instances = new ArrayList<>();
   private long classesExamined = 0;
   private long methodsHooked = 0;
   private long methodsExamined = 0;
-  private Map<String, Integer> packagesHooked = new HashMap<>();
-  private Map<String, Integer> packagesIgnored = new HashMap<>();
+  private HashMap<String, Integer> packagesHooked = new HashMap<>();
+  private HashMap<String, Integer> packagesIgnored = new HashMap<>();
   private long classesIgnored = 0;
 
   /**
@@ -344,6 +347,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
 
         if (traceClass) {
           logger.trace("hooks applied to {}", className);
+        }
+        if (logger.isDebugEnabled()) {
           packagesHooked.compute(ctClass.getPackageName(), (k, v) -> v == null ? 1 : v + 1);
         }
 
@@ -351,7 +356,9 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       }
 
       classesIgnored++;
-      packagesIgnored.compute(ctClass.getPackageName(), (k, v) -> v == null ? 1 : v + 1);
+      if (logger.isDebugEnabled()) {
+        packagesIgnored.compute(ctClass.getPackageName(), (k, v) -> v == null ? 1 : v + 1);
+      }
 
       if (traceClass) {
         logger.trace("no hooks applied to {}, methods: {}", ctClass::getName,
@@ -380,16 +387,21 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       logger.info("methods examined: {}", cft.methodsExamined);
       logger.info("methods instrumented: {}", cft.methodsHooked);
 
-      Function<Map<String, Integer>, String> collectPkgs = pkgs -> pkgs.entrySet().stream()
-          .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-            .map(entry -> entry.getKey() + ": " + entry.getValue())
-            .collect(Collectors.joining("\n"));
       logger.debug("{} packages hooked:\n{}", () -> cft.packagesHooked.size(),
-          () -> collectPkgs.apply(cft.packagesHooked));
+          () -> collectPkgs(cft.packagesHooked));
       logger.debug("{} packages ignored:\n{}", () -> cft.packagesIgnored.size(),
-          () -> collectPkgs.apply(cft.packagesIgnored));
+          () -> collectPkgs(cft.packagesIgnored));
 
       logger.info("=== {} ===", cft.name);
     });
+  }
+
+  @SuppressWarnings("unchecked")
+  private static String collectPkgs(HashMap<String, Integer> p) {
+    HashMap<String, Integer> pkgs = (HashMap<String, Integer>)p.clone();
+    return pkgs.entrySet().stream()
+        .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+        .map(entry -> entry.getKey() + ": " + entry.getValue())
+        .collect(Collectors.joining("\n"));
   }
 }
