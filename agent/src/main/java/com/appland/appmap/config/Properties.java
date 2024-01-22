@@ -17,6 +17,8 @@ public class Properties {
   public static final Boolean DebugHttp = Debug || System.getProperty("appmap.debug.http") != null;
   public static final String DebugFile = resolveProperty("appmap.debug.file", (String)null);
   public static final String DebugClassPrefix = resolveProperty("appmap.debug.classPrefix", (String) null);
+  public static final Boolean SaveInstrumented =
+      resolveProperty("appmap.debug.saveInstrumented", false);
 
   public static final Boolean RecordingAuto = resolveProperty("appmap.recording.auto", false);
   public static final String RecordingName = resolveProperty("appmap.recording.name", (String) null);

@@ -27,6 +27,8 @@ import com.appland.appmap.transform.annotations.HookFactory;
 import com.appland.appmap.transform.instrumentation.BBTransformer;
 import com.appland.appmap.util.GitUtil;
 
+import javassist.CtClass;
+
 public class Agent {
 
   public static final TaggedLogger logger = AppMapConfig.getLogger(null);
@@ -72,6 +74,13 @@ public class Agent {
       });
     } catch (IOException e) {
       logger.warn(e);
+    }
+
+    if (Properties.SaveInstrumented) {
+      CtClass.debugDump =
+          Paths.get(System.getProperty("java.io.tmpdir"), "appmap", "ja").toString();
+      logger.info("Saving instrumented files to {}", CtClass.debugDump);
+
     }
 
     // First, install a javassist-based transformer that will annotate app
