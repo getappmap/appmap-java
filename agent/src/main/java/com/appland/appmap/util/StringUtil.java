@@ -72,7 +72,9 @@ public class StringUtil {
   }
   
   public static String canonicalName(String packageName, String classSimpleName, boolean isStatic, String methodName){
-    return packageName + '.' + classSimpleName + (isStatic ? '.' : '#') + methodName;
+    return (packageName.length() > 0 ? (packageName + "." + classSimpleName) : classSimpleName)
+        + (isStatic ? "." : '#')
+        + methodName;
   }
   /**
    * Returns canonical name of method referenced in the event.

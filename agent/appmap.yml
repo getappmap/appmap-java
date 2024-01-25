@@ -1,6 +1,6 @@
 name: appmap-java
 packages:
-- path: com.appland.appmap.test.util
+- path: com.appland.appmap.test.fixture
   exclude:
   - com.appland.appmap.test.util.UnhandledExceptionCollection
 - exclude: [ com.appland.appmap.integration.RecorderTest ]

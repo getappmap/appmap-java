@@ -1,4 +1,4 @@
-package com.appland.appmap.test.util;
+package com.appland.appmap.test.fixture;
 
 public class MyThread extends Thread {
   private long id;
@@ -10,7 +10,7 @@ public class MyThread extends Thread {
 
   public MyThread(Runnable runnable) {
     super(runnable);
-    this.id = (long) Math.ceil(Math.random() * Long.MAX_VALUE);
+    this.id = (long)Math.ceil(Math.random() * Long.MAX_VALUE);
   }
 
   @Override

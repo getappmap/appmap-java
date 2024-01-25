@@ -3,17 +3,16 @@ import java.io.OutputStreamWriter;
 
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recording;
-import com.appland.appmap.test.fixture.MyClass;
 
-public class RecordPackage {
+public class RecordUnnamed {
   public static void main(String[] argv) {
     final Recording recording = Recorder.getInstance().record(() -> {
-      new MyClass().callNonPublic();
+      new HelloWorld().getGreetingWithPunctuation("!");
     });
 
     try {
       recording.readFully(true, new OutputStreamWriter(System.out));
-    } catch(IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
     }
 

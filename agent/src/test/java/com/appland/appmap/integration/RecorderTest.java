@@ -16,7 +16,7 @@ import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.record.ActiveSessionException;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recording;
-import com.appland.appmap.test.util.MyClass;
+import com.appland.appmap.test.fixture.MyClass;
 
 
 

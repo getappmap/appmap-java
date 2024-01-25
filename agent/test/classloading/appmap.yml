@@ -1,4 +1,4 @@
 name: classloading
 appmap_dir: tmp/appmap
 packages:
-- path: com.appland.appmap.classloading.helloworld
+- path: com.appland.appmap.test.fixture.helloworld

@@ -1,4 +1,4 @@
-package com.appland.appmap.test.util;
+package com.appland.appmap.test.fixture;
 
 public class MyClass {
   public void myMethod() {

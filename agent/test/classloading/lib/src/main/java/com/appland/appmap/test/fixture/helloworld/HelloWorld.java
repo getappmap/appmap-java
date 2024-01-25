@@ -1,4 +1,4 @@
-package com.appland.appmap.classloading.helloworld;
+package com.appland.appmap.test.fixture.helloworld;
 
 
 public interface HelloWorld {

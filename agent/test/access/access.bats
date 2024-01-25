@@ -62,3 +62,10 @@ setup() {
   run jq '.metadata.git' <<< "${recording}"
   assert_output 'null'
 }
+
+@test "unnamed package" {
+  local cmd="${java_cmd} RecordUnnamed"
+  [[ $BATS_VERBOSE_RUN == 1 ]] && echo "cmd: $cmd" >&3
+  eval "$cmd" | jq -e '.events | length | select(. == 2)'
+  eval "$cmd" | jq -e '.events[0] | select(.event == "call" and .method_id == "getGreetingWithPunctuation")'
+}

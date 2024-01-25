@@ -1,4 +1,4 @@
-package com.appland.appmap.classloading;
+package com.appland.appmap.test.fixture;
 
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -12,7 +12,7 @@ public class Runner {
     String className = Runner.class.getPackage().getName() + "." + argv[0];
     try {
       TestClass testClass = (TestClass)Class.forName(className).getConstructor().newInstance();
-      
+
       int status = testClass.beforeTest();
       if (status != 0) {
         System.exit(status);

@@ -1,4 +1,4 @@
-package com.appland.appmap.classloading;
+package com.appland.appmap.test.fixture;
 
 import java.io.IOException;
 import com.appland.appmap.util.ClassUtil;
@@ -13,8 +13,7 @@ public class TestSafeClassForName implements TestClass {
       Class.forName(FILTER_CLASS_NAME);
       System.err.println("Misconfigured, " + FILTER_CLASS_NAME + " shouldn't be on class path");
       return 1;
-    }
-    catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException e) {
       // expected
     }
     return 0;
@@ -23,7 +22,7 @@ public class TestSafeClassForName implements TestClass {
   @Override
   public int runTest() throws IOException {
     ClassLoader cl = Thread.currentThread().getContextClassLoader();
-    
+
     Class<?> filterClass = ClassUtil.safeClassForName(cl, FILTER_CLASS_NAME);
     return filterClass != null ? 0 : 1;
   }
