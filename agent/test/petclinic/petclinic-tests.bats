@@ -35,7 +35,7 @@ run_petclinic_test() {
 
   run ./mvnw ${BATS_VERSION+-q} \
     $MAVEN_TEST_PROPS \
-    -DargLine="@{argLine} -javaagent:${AGENT_JAR} " \
+    -DargLine="@{argLine} ${JAVA_OUTPUT_OPTIONS} -javaagent:${AGENT_JAR} " \
     clean test -Dtest="${test_name}"
 }
 
@@ -92,7 +92,7 @@ run_petclinic_test() {
   assert_json_eq '.metadata.test_status' 'failed'
   assert_json_eq '.metadata.test_failure.message' 'expected: <true> but was: <false>'
   assert_json_eq '.metadata.test_failure.location' 'src/test/java/org/springframework/samples/petclinic/JUnit5Tests.java:27'
-}  
+}
 
 @test "NoAppMap on method disables test recording" {
   run_petclinic_test "JUnit5Tests#testAnnotatedMethodNotRecorded"

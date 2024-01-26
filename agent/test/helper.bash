@@ -3,6 +3,14 @@
 # Helper methods for tests
 
 export JAVA_PATH_SEPARATOR="$(java -XshowSettings:properties 2>&1 | awk '/path.separator/ {printf("%s", $3)}')"
+source "$JAVA_HOME/release"
+export JAVA_VERSION
+
+# Because the agent appends to the boot classpath, the JVM disables the class-data sharing
+# optimization (described here: https://nipafx.dev/java-application-class-data-sharing/) and
+# issues a warning. That warning confuses our tests, so set -Xshare:off to preempt it.
+export JAVA_OUTPUT_OPTIONS="-Xshare:off"
+
 
 _curl() {
   curl -sfH 'Accept: application/json,*/*' "${@}"

@@ -5,9 +5,6 @@ set -e
 fixture_dir=$PWD/build/fixtures
 mkdir -p build/fixtures
 
-source "$JAVA_HOME/release"
-export JAVA_VERSION
-
 source "test/helper.bash"
 export ANNOTATION_JAR="$(find_annotation_jar)"
 

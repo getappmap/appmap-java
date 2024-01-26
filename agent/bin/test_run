@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-set -ex
+set -e
 
 export PATH="$BATS_DIR"/bin:"$BASHUNIT_DIR":$PATH
 
+set -x
 # bats has a mechanism to discover test files recursively, but it doesn't report errors properly.
 bats $(find "${@-test}" -name \*.bats)
 

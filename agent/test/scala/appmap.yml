@@ -1,0 +1,12 @@
+# This is the AppMap configuration file.
+# For full documentation of this file for Java programs, see:
+# https://appmap.io/docs/reference/appmap-java.html#configuration
+name: play-scala-rest-api-example
+packages:
+- path: play
+# appmap-java init looks for source packages in src/main/java.
+# This folder was not found in your project, so no packages were auto-detected.
+# You can add your source packages by replacing the line above with lines like this:
+# packages:
+# - path: com.mycorp.pkg
+# - path: org.otherstuff.pkg

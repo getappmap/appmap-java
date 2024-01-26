@@ -20,14 +20,18 @@ cache:
 before_install:
 - |
   if [ ! -d $HOME/.asdf/plugins ]; then
-    git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.12.0
+    git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.14.0
     source "$HOME/.asdf/asdf.sh"
     asdf plugin add java
+    asdf plugin add sbt https://github.com/bram2000/asdf-sbt.git
+    asdf install sbt latest:1.9
     asdf plugin add prune https://github.com/apotterri/asdf-prune.git
   fi
   source "$HOME/.asdf/asdf.sh"
   asdf update
   asdf plugin update --all
+  asdf prune sbt 1.9
+  asdf global sbt latest:1.9
   nvm install lts/*
 
 jobs:
@@ -51,6 +55,7 @@ jobs:
       asdf install java latest:adoptopenjdk-11
       asdf prune java adoptopenjdk-11
       asdf global java latest:adoptopenjdk-11
+
   - name: jdk 17
     env:
     - JDK=17

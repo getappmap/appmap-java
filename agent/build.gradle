@@ -45,6 +45,8 @@ final tinylogVersion = '2.6.2'
 
 final javassistVersion = '3.29.2-GA'
 dependencies {
+  implementation project(':runtime')
+
   // Note that implementation dependencies added here will have their packages
   // rewritten by Shadow (unless they're explicitly excluded below). As a
   // result, you won't be able to add hooks for anything in those packages.
@@ -53,6 +55,7 @@ dependencies {
   implementation 'org.reflections:reflections:0.9.11'
   implementation 'net.bytebuddy:byte-buddy:1.14.10'
   implementation 'org.apache.commons:commons-lang3:3.10'
+  implementation 'commons-io:commons-io:2.15.1'
   implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2'
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.2.2'
   implementation 'org.slf4j:slf4j-nop:1.7.30'
@@ -105,8 +108,19 @@ shadowJar {
     exclude(dependency('org.tinylog:.*:.*'))
   }
 
+  dependsOn ':runtime:jar'
+  from(project(':runtime').tasks.named('jar').get().destinationDirectory) {
+  // Per
+  // https://imperceptiblethoughts.com/shadow/configuration/dependencies/#embedding-jar-files-inside-your-shadow-jar,
+  // we need to rename the runtime jar to get it embedded in the output jar.
+  // We'll rename it when we extract it.
+    include '*.jar'
+    rename '(.+).jar', '$1.zip'
+  }
+
   dependencies {
     exclude(dependency('org.apache.httpcomponents:.*:.*'))
+    exclude(project(':runtime'))
  }
 }
 
@@ -157,6 +171,7 @@ task relocateShadowJar(type: ShadowRelocation) {
   excludes = [
     "java.",
     "org.apache.http",
+    "com.appland.appmap.runtime"
   ]
 }
 

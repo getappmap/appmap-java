@@ -4,11 +4,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 
-import com.appland.appmap.process.ThreadLock;
-import com.appland.appmap.process.hooks.MethodCall;
-import com.appland.appmap.process.hooks.MethodException;
-import com.appland.appmap.process.hooks.MethodReturn;
-import com.appland.appmap.record.EventTemplateRegistry;
+import com.appland.appmap.runtime.HookFunctions;
 import com.appland.appmap.transform.annotations.AppMapAppMethod;
 import com.appland.appmap.transform.annotations.MethodEvent;
 
@@ -30,7 +26,6 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.implementation.bytecode.assign.Assigner.Typing;
 import net.bytebuddy.matcher.ElementMatchers;
-
 
 public class BBAdvice {
   static final ForDeclaredMethods METHOD_INSTRUMENTOR =
@@ -129,16 +124,8 @@ public class BBAdvice {
   @OnMethodEnter
   public static void onEnter(@CallOrdinal int callOrdinal,
       @This(optional = true) Object self,
-      @Origin Method method,
       @AllArguments Object[] args) throws Throwable {
-    EventTemplateRegistry etr = EventTemplateRegistry.get();
-
-    ThreadLock.current().enter();
-
-    if (ThreadLock.current().lock()) {
-      MethodCall.handle(etr.buildCallEvent(callOrdinal), self, args);
-      ThreadLock.current().unlock();
-    } ;
+    HookFunctions.onMethodCall.accept(callOrdinal, self, args);
   }
 
   @OnMethodExit(onThrowable = Throwable.class)
@@ -147,35 +134,6 @@ public class BBAdvice {
       @Origin Method method,
       @AllArguments Object[] args, @Return(typing = Typing.DYNAMIC) Object ret,
       @Thrown Throwable exc) throws Throwable {
-    try {
-      if (exc == null) {
-        handleReturn(returnOrdinal, self, method, args, ret);
-      } else {
-        handleExc(excOrdinal, self, method, args, exc);
-      }
-    } finally {
-      ThreadLock.current().exit();
-    }
-  }
-
-  public static void handleReturn(int returnOrdinal,
-      Object self, Method method, Object[] args, Object ret)
-      throws Throwable {
-    EventTemplateRegistry etr = EventTemplateRegistry.get();
-    if (ThreadLock.current().lock()) {
-      MethodReturn.handle(etr.buildReturnEvent(returnOrdinal), self, ret, args);
-      ThreadLock.current().unlock();
-    }
-  }
-
-  public static void handleExc(int excOrdinal,
-      Object self, Method method, Object[] args, Throwable exc)
-      throws Throwable {
-    EventTemplateRegistry etr = EventTemplateRegistry.get();
-    if (ThreadLock.current().lock()) {
-      MethodException.handle(etr.buildReturnEvent(excOrdinal), self, exc, args);
-      ThreadLock.current().unlock();
-    }
-    throw exc;
+    HookFunctions.onMethodReturn.accept(returnOrdinal, excOrdinal, self, method, args, ret, exc);
   }
 }

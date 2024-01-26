@@ -44,10 +44,11 @@ application {
   // mainClass = 'http_client.HttpClientTest'
   mainClassName = project.hasProperty("mainClass") ? project.getProperty("mainClass") : "NULL"
   applicationDefaultJvmArgs = [
-    "-javaagent:${appmapJar}", 
+    System.env.JAVA_OUTPUT_OPTIONS,
+    "-javaagent:${appmapJar}",
     "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}",
-    "-Dappmap.config.file=appmap.yml", 
-    //"-Dappmap.debug=true", 
+    "-Dappmap.config.file=appmap.yml",
+    //"-Dappmap.debug=true",
     //"-Dappmap.debug.file=../../build/log/httpclient-appmap.log"
   ]
 
