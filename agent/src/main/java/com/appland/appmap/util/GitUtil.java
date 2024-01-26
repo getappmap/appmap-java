@@ -27,6 +27,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.tinylog.TaggedLogger;
 
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.config.Properties;
 
 public class GitUtil implements AutoCloseable {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
@@ -51,6 +52,10 @@ public class GitUtil implements AutoCloseable {
   }
 
   public static GitUtil open() throws IOException {
+    if (Properties.DisableGit) {
+      return null;
+    }
+
     try {
       FileRepositoryBuilder builder = new FileRepositoryBuilder()
           .readEnvironment();

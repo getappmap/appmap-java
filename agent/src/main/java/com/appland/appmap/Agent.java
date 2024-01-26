@@ -66,14 +66,16 @@ public class Agent {
     addAgentJar(inst);
 
 
-    try {
-      GitUtil.findSourceRoots();
-      logger.debug("done finding source roots, {}", () -> {
-        long now = System.currentTimeMillis();
-        return String.format("%d, %d", now - start, start);
-      });
-    } catch (IOException e) {
-      logger.warn(e);
+    if (!Properties.DisableGit) {
+      try {
+        GitUtil.findSourceRoots();
+        logger.debug("done finding source roots, {}", () -> {
+          long now = System.currentTimeMillis();
+          return String.format("%d, %d", now - start, start);
+        });
+      } catch (IOException e) {
+        logger.warn(e);
+      }
     }
 
     if (Properties.SaveInstrumented) {

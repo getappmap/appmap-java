@@ -19,12 +19,15 @@ public class Properties {
   public static final String DebugClassPrefix = resolveProperty("appmap.debug.classPrefix", (String) null);
   public static final Boolean SaveInstrumented =
       resolveProperty("appmap.debug.saveInstrumented", false);
+  public static final Boolean DisableGit = resolveProperty("appmap.debug.disableGit", false);
 
   public static final Boolean RecordingAuto = resolveProperty("appmap.recording.auto", false);
   public static final String RecordingName = resolveProperty("appmap.recording.name", (String) null);
   public static final String RecordingFile = resolveProperty("appmap.recording.file", (String) null);
   public static final Boolean RecordingRemote = resolveProperty("appmap.recording.remote", true);
   public static final Boolean RecordingRequests = resolveProperty("appmap.recording.requests", true);
+  public static final String[] IgnoredPackages =
+      resolveProperty("appmap.recording.ignoredPackages", new String[] {"java.", "jdk.", "sun."});
 
 
   public static final String DefaultConfigFile = "appmap.yml";
@@ -36,6 +39,7 @@ public class Properties {
 
   public static final String[] Records = resolveProperty("appmap.record", new String[0]);
   public static final Boolean RecordPrivate = resolveProperty("appmap.record.private", false);
+
 
   static Path OutputDirectory;
   private static String resolveProperty(String propName, String defaultValue) {
