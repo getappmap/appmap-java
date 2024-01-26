@@ -2,4 +2,4 @@
 
 set -e
 
-(cd agent && bin/run_tests)
+(cd agent && bin/run_tests "$@")

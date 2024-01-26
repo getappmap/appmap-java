@@ -2,6 +2,8 @@
 
 set -e
 
+java -version
+
 source ./bin/test_install
 
-./bin/test_run
+./bin/test_run "$@"

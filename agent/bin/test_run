@@ -1,28 +1,9 @@
 #!/usr/bin/env bash
-
-set -e
+set -ex
 
 export PATH="$BATS_DIR"/bin:"$BASHUNIT_DIR":$PATH
 
-file="$0"
-report_failure() {
-  local ln=$1
-  local test=$(awk "NR==$ln { print \$0 }" "$file")
-  echo "Test command $test failed"
-}
+# bats has a mechanism to discover test files recursively, but it doesn't report errors properly.
+bats $(find "${@-test}" -name \*.bats)
 
-trap 'report_failure $LINENO' ERR
-
-set -x
-./test/petclinic/test
-if [[ $JAVA_VERSION == 17.* ]]; then
-  ./test/petclinic-fw/test
-fi
-./test/test-frameworks/test
-./test/httpcore/test
-./test/http_client/test
-./test/agent_cli/test
-./test/access/test
-./test/jdbc/test
-./test/spark/test
-./test/classloading/test
+bashunit 'test/**/*_test.sh'

@@ -4,27 +4,37 @@ load '../../build/bats/bats-support/load'
 load '../../build/bats/bats-assert/load'
 load '../helper'
 
-appmap_jar="$(find_agent_jar)"
+setup_file() {
+  export AGENT_JAR="$(find_agent_jar)"
+
+  rm -rf test/agent_cli/spring-petclinic
+  tar -C build/fixtures -c -f - ./spring-petclinic | tar -x -f - -C test/agent_cli
+  cp -v test/petclinic/appmap.yml test/agent_cli/spring-petclinic/.
+
+  cd test/agent_cli
+  _configure_logging
+
+}
 
 # bats captures stdout and stderr to the same variable ($output). We
 # need to hide the informational message from the agent commands so
 # json assertions don't get confused.
 @test "appmap agent init packages" {
-  run bash -c "java -jar $appmap_jar -d test/agent_cli/sampleproj init 2>/dev/null"
+  run bash -c "java -jar $AGENT_JAR -d ./sampleproj init 2>/dev/null"
   assert_success
   assert_json_contains '.configuration.contents' 'path: pkg1'
   assert_json_contains '.configuration.contents' 'path: pkg2'
 }
 
 @test "appmap agent init empty project" {
-  run bash -c "java -jar $appmap_jar -d test/agent_cli/emptyproj init 2>/dev/null"
+  run bash -c "java -jar $AGENT_JAR -d ./emptyproj init 2>/dev/null"
   assert_success
 
   assert_json_contains '.configuration.contents' 'path: com.mycorp.pkg'
 }
 
 @test "appmap agent status petclinic" {
-  run bash -c "java -jar $appmap_jar -d test/agent_cli/spring-petclinic status 2>/dev/null"
+  run bash -c "java -jar $AGENT_JAR -d ./spring-petclinic status 2>/dev/null"
   assert_success
 
   assert_json_eq '.properties.config.app' 'spring-petclinic'
@@ -39,7 +49,7 @@ appmap_jar="$(find_agent_jar)"
 }
 
 @test "appmap agent validate" {
-  run bash -c "java -jar $appmap_jar -d test/agent_cli/spring-petclinic validate 2>/dev/null"
+  run bash -c "java -jar $AGENT_JAR -d ./spring-petclinic validate 2>/dev/null"
   assert_success
 
   # Shouldn't be any errors
