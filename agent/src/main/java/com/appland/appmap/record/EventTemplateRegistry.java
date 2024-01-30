@@ -1,14 +1,16 @@
 package com.appland.appmap.record;
 
-import com.appland.appmap.config.Properties;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.tinylog.TaggedLogger;
+
+import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.output.v1.Value;
-import com.appland.appmap.util.Logger;
-import javassist.CtBehavior;
 
-import java.util.ArrayList;
-import java.util.List;
+import javassist.CtBehavior;
 
 /**
  * Stores events as templates built from behaviors intended to be hooked. Hooks can then access and
@@ -17,6 +19,8 @@ import java.util.List;
  * for performance.
  */
 public class EventTemplateRegistry {
+  private static final TaggedLogger logger = AppMapConfig.getLogger(null);
+
   private static final EventTemplateRegistry instance = new EventTemplateRegistry();
   private static final Recorder recorder = Recorder.getInstance();
 
@@ -93,14 +97,11 @@ public class EventTemplateRegistry {
     try {
       return eventTemplates.get(templateId);
     } catch (IndexOutOfBoundsException e) {
-      final String msg = String.format("unknown template for ordinal %d - have we been loaded by a non-system class loader?", templateId);
+      logger.warn(e,
+          "unknown template for ordinal {} - have we been loaded by a non-system class loader?",
+          templateId);
 
-      if (Properties.DebugHooks) {
-        Logger.println(msg);
-        Logger.println(e);
-      }
-
-      throw new UnknownEventException(msg);
+      throw new UnknownEventException("unknown template ordinal");
     }
   }
 }

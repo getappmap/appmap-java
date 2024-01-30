@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-bats --tap test/httpcore

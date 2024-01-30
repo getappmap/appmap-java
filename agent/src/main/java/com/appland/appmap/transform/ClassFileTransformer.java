@@ -281,7 +281,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       }
 
       className = className.replace('/', '.');
-      if (className.startsWith("com.appland.shade")) {
+      if (className.startsWith("com.appland")
+          && !className.startsWith("com.appland.appmap.test.fixture")) {
         return null;
       }
 

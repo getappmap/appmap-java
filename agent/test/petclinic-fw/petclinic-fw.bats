@@ -9,6 +9,10 @@ load '../petclinic-shared/static-resources.bash'
 load '../petclinic-shared/message-params.bash'
 
 setup_file() {
+  if [[ $JAVA_VERSION != 17.* ]]; then
+    skip "needs Java 17"
+  fi
+
   export FIXTURE_DIR=build/fixtures/spring-framework-petclinic
   _shared_setup
 
@@ -23,7 +27,7 @@ setup() {
   rm -rf "${FIXTURE_DIR}/tmp/appmap"
 }
 
-@test "remote recording works" { 
+@test "remote recording works" {
   run _curl -sXGET "${WS_URL}/_appmap/record"
   assert_success
   assert_json_eq '.enabled' 'false'

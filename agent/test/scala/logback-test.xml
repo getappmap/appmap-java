@@ -1,0 +1,5 @@
+<configuration>
+  <logger name="play" level="WARN" />
+  <logger name="application" level="WARN" />
+  <logger name="v1.post" level="WARN" />
+</configuration>

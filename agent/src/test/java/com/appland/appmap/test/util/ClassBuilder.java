@@ -3,6 +3,7 @@ package com.appland.appmap.test.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.appland.appmap.test.fixture.NewClass;
 import com.appland.appmap.util.AppMapClassPool;
 
 import javassist.CannotCompileException;

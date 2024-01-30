@@ -1,4 +1,4 @@
-package com.appland.appmap.classloading;
+package com.appland.appmap.test.fixture;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -11,7 +11,8 @@ import com.appland.appmap.record.Recording;
 import com.appland.appmap.util.ClassUtil;
 
 public class TestProxy implements TestClass {
-  private static final String HW_CLASS_NAME = MethodHandles.lookup().lookupClass().getPackage().getName() + ".helloworld.HelloWorld";
+  private static final String HW_CLASS_NAME =
+      MethodHandles.lookup().lookupClass().getPackage().getName() + ".helloworld.HelloWorld";
 
   @Override
   public int beforeTest() throws Exception {
@@ -20,8 +21,7 @@ public class TestProxy implements TestClass {
       Class.forName(HW_CLASS_NAME);
       System.err.println("Misconfigured, " + HW_CLASS_NAME + " shouldn't be on class path");
       return 1;
-    }
-    catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException e) {
       // expected
     }
     return 0;
@@ -47,7 +47,7 @@ public class TestProxy implements TestClass {
       Recording recording = recorder.record(() -> {
         try {
           ClassLoader cl = Thread.currentThread().getContextClassLoader();
-          Class<?>[] hwClass = { Class.forName(HW_CLASS_NAME, true, cl) };
+          Class<?>[] hwClass = {Class.forName(HW_CLASS_NAME, true, cl)};
           InvocationHandler hwHandler = new HWInvocationHandler();
           Object proxy = Proxy.newProxyInstance(cl, hwClass, hwHandler);
           Method getGreeting = proxy.getClass().getMethod("getGreeting", Integer.TYPE);

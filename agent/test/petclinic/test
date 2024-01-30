@@ -1,2 +1,0 @@
-#!/bin/bash
-bats --tap test/petclinic "${@}"

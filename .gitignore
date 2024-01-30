@@ -8,6 +8,7 @@ agent/bin/main
 agent/bin/test
 annotation/bin
 pomupdater/bin
+runtime/bin
 
 # AppMap files
 tmp

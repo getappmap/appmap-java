@@ -1,0 +1,4 @@
+name: test-access
+packages:
+- path: com.appland.appmap.test.fixture
+- path: HelloWorld

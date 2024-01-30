@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.AppMapPackage;
+import com.appland.appmap.config.Properties;
 import com.appland.appmap.transform.annotations.AnnotationUtil;
 import com.appland.appmap.transform.annotations.AnnotationUtil.AnnotatedBehavior;
 import com.appland.appmap.transform.annotations.AppMapAppMethod;
@@ -49,8 +50,11 @@ public class ConfigCondition implements Condition {
 
   private boolean doMatch(CtBehavior behavior, Map<String, Object> matchResult) {
     CtClass declaringClass = behavior.getDeclaringClass();
-    if (declaringClass.getName().startsWith("java.lang")) {
-      return false;
+    String declaringClassName = declaringClass.getName();
+    for (String p : Properties.IgnoredPackages) {
+      if (declaringClassName.startsWith(p)) {
+        return false;
+      }
     }
 
     if (!AppMapBehavior.isRecordable(behavior) || ignoreMethod(behavior)) {

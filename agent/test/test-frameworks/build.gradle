@@ -39,6 +39,7 @@ dependencies {
 }
 
 def addAgentArgs = [
+    System.env.JAVA_OUTPUT_OPTIONS,
     "-javaagent:${agentJar}",
     "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}"
   ]

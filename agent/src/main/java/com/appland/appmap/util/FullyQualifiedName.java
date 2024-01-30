@@ -37,7 +37,7 @@ public class FullyQualifiedName {
   }
 
   public String getClassName() {
-    return packageName + "." + className;
+    return packageName.length() > 0 ? packageName + "." + className : className;
   }
 
   public String methodSpec() {

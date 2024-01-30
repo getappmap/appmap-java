@@ -22,7 +22,7 @@ setup_file() {
   run \
     ./gradlew ${BATS_VERSION+-q} -PappmapJar="$AGENT_JAR" run --args "TestProxy"
   assert_success
-  assert_json_eq ".events[0].defined_class" "com.appland.appmap.classloading.helloworld.HelloWorld"
+  assert_json_eq ".events[0].defined_class" "com.appland.appmap.test.fixture.helloworld.HelloWorld"
   assert_json_eq ".events[0].method_id" "getGreeting"
-  assert_json_eq ".events[0].path" "lib/src/main/java/com/appland/appmap/classloading/helloworld/HelloWorld.java"
+  assert_json_eq ".events[0].path" "lib/src/main/java/com/appland/appmap/test/fixture/helloworld/HelloWorld.java"
 }

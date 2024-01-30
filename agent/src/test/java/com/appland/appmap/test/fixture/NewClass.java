@@ -1,4 +1,6 @@
-package com.appland.appmap.test.util;
+package com.appland.appmap.test.fixture;
+
+import com.appland.appmap.test.util.ClassBuilder;
 
 import javassist.CtClass;
 
@@ -16,6 +18,7 @@ public class NewClass {
 
   /**
    * Get this class.
+   * 
    * @return As a CtClass
    */
   public CtClass asCtClass() {
@@ -24,6 +27,7 @@ public class NewClass {
 
   /**
    * Get this class.
+   * 
    * @return As a System Class
    */
   public Class<?> asClass() {

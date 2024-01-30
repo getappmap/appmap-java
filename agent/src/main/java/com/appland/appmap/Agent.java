@@ -1,5 +1,7 @@
 package com.appland.appmap;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.net.URISyntaxException;
@@ -12,20 +14,29 @@ import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.tinylog.TaggedLogger;
 import org.tinylog.provider.ProviderRegistry;
 
 import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.config.Properties;
+import com.appland.appmap.process.hooks.MethodCall;
+import com.appland.appmap.process.hooks.MethodReturn;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recorder.Metadata;
 import com.appland.appmap.record.Recording;
+import com.appland.appmap.runtime.HookFunctions;
 import com.appland.appmap.transform.ClassFileTransformer;
 import com.appland.appmap.transform.annotations.HookFactory;
 import com.appland.appmap.transform.instrumentation.BBTransformer;
 import com.appland.appmap.util.GitUtil;
+
+import javassist.CtClass;
 
 public class Agent {
 
@@ -41,6 +52,7 @@ public class Agent {
    *      java.lang.instrument</a>
    */
   public static void premain(String agentArgs, Instrumentation inst) {
+
     long start = System.currentTimeMillis();
     try {
       AppMapConfig.initialize(FileSystems.getDefault());
@@ -61,17 +73,26 @@ public class Agent {
     logger.info("System properties: {}", System.getProperties());
     logger.debug(new Exception(), "whereAmI");
 
-    addAgentJar(inst);
+    addAgentJars(agentArgs, inst);
 
 
-    try {
-      GitUtil.findSourceRoots();
-      logger.debug("done finding source roots, {}", () -> {
-        long now = System.currentTimeMillis();
-        return String.format("%d, %d", now - start, start);
-      });
-    } catch (IOException e) {
-      logger.warn(e);
+    if (!Properties.DisableGit) {
+      try {
+        GitUtil.findSourceRoots();
+        logger.debug("done finding source roots, {}", () -> {
+          long now = System.currentTimeMillis();
+          return String.format("%d, %d", now - start, start);
+        });
+      } catch (IOException e) {
+        logger.warn(e);
+      }
+    }
+
+    if (Properties.SaveInstrumented) {
+      CtClass.debugDump =
+          Paths.get(System.getProperty("java.io.tmpdir"), "appmap", "ja").toString();
+      logger.info("Saving instrumented files to {}", CtClass.debugDump);
+
     }
 
     // First, install a javassist-based transformer that will annotate app
@@ -135,7 +156,7 @@ public class Agent {
     }));
   }
 
-  private static void addAgentJar(Instrumentation inst) {
+  private static void addAgentJars(String agentArgs, Instrumentation inst) {
     ProtectionDomain protectionDomain = Agent.class.getProtectionDomain();
     CodeSource codeSource;
     URL jarURL;
@@ -145,9 +166,9 @@ public class Agent {
       return;
     }
 
-    Path agentJar = null;
+    Path agentJarPath = null;
     try {
-      agentJar = Paths.get(jarURL.toURI());
+      agentJarPath = Paths.get(jarURL.toURI());
     } catch (URISyntaxException e) {
       // Doesn't seem like this should ever happen....
       System.err.println("Failed getting path to agent jar");
@@ -157,18 +178,52 @@ public class Agent {
     // During testing of the agent itself, classes get loaded from a directory.
     // The rest of the time (i.e. when it's actually deployed), they'll always
     // come from a jar file.
-    JarFile jarFile = null;
-    if (!Files.isDirectory(agentJar)) {
+    JarFile agentJar = null;
+    if (!Files.isDirectory(agentJarPath)) {
       try {
-        jarFile = new JarFile(agentJar.toFile());
-        inst.appendToSystemClassLoaderSearch(jarFile);
-      } catch (IOException e) {
-        System.err.println("Failed to load the agent jar");
+        agentJar = new JarFile(agentJarPath.toFile());
+        inst.appendToSystemClassLoaderSearch(agentJar);
+
+        setupRuntime(agentJarPath, agentJar, inst);
+      } catch (IOException | SecurityException | IllegalArgumentException e) {
+        System.err.println("Failed loading agent jars");
         e.printStackTrace();
         System.exit(1);
       }
     }
   }
 
+  private static void setupRuntime(Path agentJarPath, JarFile agentJar, Instrumentation inst)
+      throws IOException, FileNotFoundException {
+    Path runtimeJar = null;
+    for (Enumeration<JarEntry> entries = agentJar.entries(); entries.hasMoreElements();) {
+      JarEntry entry = entries.nextElement();
+      String entryName = entry.getName();
+      if (entryName.startsWith("runtime-")) {
+        Path installDir = agentJarPath.getParent();
+        runtimeJar = installDir.resolve(FilenameUtils.getBaseName(entryName) + ".jar");
+        if (!Files.exists(runtimeJar)) {
+          IOUtils.copy(agentJar.getInputStream(entry),
+              new FileOutputStream(runtimeJar.toFile()));
+        }
+        break;
+      }
+    }
 
+    if (runtimeJar == null) {
+      System.err.println("Couldn't find runtime jar in " + agentJarPath);
+      System.exit(1);
+    }
+
+    // Adding the runtime jar to the boot class loader means the classes it
+    // contains will be available everywhere. This avoids issues caused by any
+    // filtering the app's class loader might be doing (e.g. the Scala runtime
+    // when running a Play app).
+    inst.appendToBootstrapClassLoaderSearch(new JarFile(runtimeJar.toFile()));
+
+    // HookFunctions can only be referenced after the runtime jar has been
+    // appended to the boot class loader.
+    HookFunctions.onMethodCall = MethodCall::onCall;
+    HookFunctions.onMethodReturn = MethodReturn::onReturn;
+  }
 }

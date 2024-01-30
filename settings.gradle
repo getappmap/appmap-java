@@ -8,6 +8,4 @@
  */
 
 rootProject.name = 'appmap-java'
-include 'agent'
-include 'annotation'
-include 'pomupdater'
+include 'agent', 'annotation', 'pomupdater', 'runtime'

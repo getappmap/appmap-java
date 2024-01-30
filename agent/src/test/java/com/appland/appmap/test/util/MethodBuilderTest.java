@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.appland.appmap.output.v1.Parameters;
+import com.appland.appmap.test.fixture.NewClass;
 import com.appland.appmap.util.ClassPoolExtension;
 
 import javassist.CtClass;
