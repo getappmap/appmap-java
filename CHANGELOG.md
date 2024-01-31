@@ -1,3 +1,13 @@
+## [1.26.2](https://github.com/getappmap/appmap-java/compare/v1.26.1...v1.26.2) (2024-01-31)
+
+
+### Bug Fixes
+
+* handle a framework classloader that filters ([690d187](https://github.com/getappmap/appmap-java/commit/690d187b3354f8e120fefab5cee572d9642d2f98))
+* skip some JDK packages ([0958324](https://github.com/getappmap/appmap-java/commit/09583240dbf1f863eb52349755292f94a6fe9c45))
+* strip annotations when instrumenting ([d297955](https://github.com/getappmap/appmap-java/commit/d2979554aceb27f6882a2156eed428ec3bf17dee))
+* support class in unnamed package ([2667f83](https://github.com/getappmap/appmap-java/commit/2667f83ed6ac05403be8b617a7dd1910abd62052))
+
 ## [1.26.1](https://github.com/getappmap/appmap-java/compare/v1.26.0...v1.26.1) (2024-01-16)
 
 
