@@ -80,7 +80,7 @@ public class ProxyHooks {
 
   void invokeReturn(Object proxy, Object ret, Object[] methodArgs) {
     logger.trace("returnHook: {}, method event: {}, ret: {}", returnHook::toString,
-        returnHook::getMethodEvent, ret::toString);
+        returnHook::getMethodEvent, () -> ret != null ? ret.toString() : "void");
     Event event = EventTemplateRegistry.get().buildReturnEvent(returnHook.getBehaviorOrdinal());
     MethodReturn.handle(event, proxy, ret, methodArgs);
   }
