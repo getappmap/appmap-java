@@ -1,3 +1,11 @@
+## [1.26.3](https://github.com/getappmap/appmap-java/compare/v1.26.2...v1.26.3) (2024-02-02)
+
+
+### Bug Fixes
+
+* avoid NPE when a Proxy method returns void ([fe538f2](https://github.com/getappmap/appmap-java/commit/fe538f2a6f9d2dc079abfcb711215019bb2500b9))
+* don't locate agent jar using a CodeSource ([fd1dcd8](https://github.com/getappmap/appmap-java/commit/fd1dcd880a972877890ccb23c45bd04de652bb82))
+
 ## [1.26.2](https://github.com/getappmap/appmap-java/compare/v1.26.1...v1.26.2) (2024-01-31)
 
 
