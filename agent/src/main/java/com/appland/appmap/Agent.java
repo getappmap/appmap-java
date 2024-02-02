@@ -4,14 +4,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
@@ -157,37 +156,34 @@ public class Agent {
   }
 
   private static void addAgentJars(String agentArgs, Instrumentation inst) {
-    ProtectionDomain protectionDomain = Agent.class.getProtectionDomain();
-    CodeSource codeSource;
-    URL jarURL;
-    if (((codeSource = protectionDomain.getCodeSource()) == null)
-        || ((jarURL = codeSource.getLocation()) == null)) {
-      // Nothing we can do if we can't locate the agent jar
-      return;
-    }
 
     Path agentJarPath = null;
     try {
-      agentJarPath = Paths.get(jarURL.toURI());
-    } catch (URISyntaxException e) {
-      // Doesn't seem like this should ever happen....
-      System.err.println("Failed getting path to agent jar");
-      e.printStackTrace();
+      Class<Agent> agentClass = Agent.class;
+      URL resourceURL = agentClass.getClassLoader()
+          .getResource(agentClass.getName().replace('.', '/') + ".class");
+      // During testing of the agent itself, classes get loaded from a directory, and will have the
+      // protocol "file". The rest of the time (i.e. when it's actually deployed), they'll always
+      // come from a jar file.
+      if (resourceURL.getProtocol().equals("jar")) {
+        String resourcePath = resourceURL.getPath();
+        URL jarURL = new URL(resourcePath.substring(0, resourcePath.indexOf('!')));
+        logger.debug("jarURL: {}", jarURL);
+        agentJarPath = Paths.get(jarURL.toURI());
+      }
+    } catch (URISyntaxException | MalformedURLException e) {
+      // Doesn't seem like these should ever happen....
+      logger.error(e, "Failed getting path to agent jar");
       System.exit(1);
     }
-    // During testing of the agent itself, classes get loaded from a directory.
-    // The rest of the time (i.e. when it's actually deployed), they'll always
-    // come from a jar file.
-    JarFile agentJar = null;
-    if (!Files.isDirectory(agentJarPath)) {
+    if (agentJarPath != null) {
       try {
-        agentJar = new JarFile(agentJarPath.toFile());
+        JarFile agentJar = new JarFile(agentJarPath.toFile());
         inst.appendToSystemClassLoaderSearch(agentJar);
 
         setupRuntime(agentJarPath, agentJar, inst);
       } catch (IOException | SecurityException | IllegalArgumentException e) {
-        System.err.println("Failed loading agent jars");
-        e.printStackTrace();
+        logger.error(e, "Failed loading agent jars");
         System.exit(1);
       }
     }
@@ -195,23 +191,23 @@ public class Agent {
 
   private static void setupRuntime(Path agentJarPath, JarFile agentJar, Instrumentation inst)
       throws IOException, FileNotFoundException {
-    Path runtimeJar = null;
+    Path runtimeJarPath = null;
     for (Enumeration<JarEntry> entries = agentJar.entries(); entries.hasMoreElements();) {
       JarEntry entry = entries.nextElement();
       String entryName = entry.getName();
       if (entryName.startsWith("runtime-")) {
         Path installDir = agentJarPath.getParent();
-        runtimeJar = installDir.resolve(FilenameUtils.getBaseName(entryName) + ".jar");
-        if (!Files.exists(runtimeJar)) {
+        runtimeJarPath = installDir.resolve(FilenameUtils.getBaseName(entryName) + ".jar");
+        if (!Files.exists(runtimeJarPath)) {
           IOUtils.copy(agentJar.getInputStream(entry),
-              new FileOutputStream(runtimeJar.toFile()));
+              new FileOutputStream(runtimeJarPath.toFile()));
         }
         break;
       }
     }
 
-    if (runtimeJar == null) {
-      System.err.println("Couldn't find runtime jar in " + agentJarPath);
+    if (runtimeJarPath == null) {
+      logger.error("Couldn't find runtime jar in {}", runtimeJarPath);
       System.exit(1);
     }
 
@@ -219,7 +215,9 @@ public class Agent {
     // contains will be available everywhere. This avoids issues caused by any
     // filtering the app's class loader might be doing (e.g. the Scala runtime
     // when running a Play app).
-    inst.appendToBootstrapClassLoaderSearch(new JarFile(runtimeJar.toFile()));
+    JarFile runtimeJar = new JarFile(runtimeJarPath.toFile());
+    inst.appendToSystemClassLoaderSearch(runtimeJar);
+    // inst.appendToBootstrapClassLoaderSearch(runtimeJar);
 
     // HookFunctions can only be referenced after the runtime jar has been
     // appended to the boot class loader.

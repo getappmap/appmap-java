@@ -52,6 +52,9 @@ public class TestProxy implements TestClass {
           Object proxy = Proxy.newProxyInstance(cl, hwClass, hwHandler);
           Method getGreeting = proxy.getClass().getMethod("getGreeting", Integer.TYPE);
           getGreeting.invoke(proxy, Integer.valueOf(1));
+
+          Method doSomething = proxy.getClass().getMethod("doSomething");
+          doSomething.invoke(proxy);
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
