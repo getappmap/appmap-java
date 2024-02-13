@@ -1,26 +1,21 @@
-package http_client;
+package httpclient;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-import org.apache.http.HttpHost;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.fluent.Request;
 
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recording;
 
-public class HttpHostTest {
-  private String host;
-  private int port;
-  private String path;
+public class HttpClientTest {
+  private String url;
 
   public static void main(String[] argv) throws IOException {
 
     final Recording recording = Recorder.getInstance().record(() -> {
       try {
-        new HttpHostTest(argv[0], Integer.parseInt(argv[1]), argv[2]).run();
+        new HttpClientTest(argv[0], argv.length > 1 ? argv[1] : null).run();
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -33,10 +28,8 @@ public class HttpHostTest {
     }
   }
 
-  HttpHostTest(String host, int port, String path) {
-    this.host = host;
-    this.port = port;
-    this.path = path;
+  HttpClientTest(String url, String contentType) {
+    this.url = url;
   }
 
   public void run() throws IOException {
@@ -44,7 +37,6 @@ public class HttpHostTest {
   }
 
   public int getURL() throws IOException {
-    HttpClient client = HttpClients.createDefault();
-    return client.execute(new HttpHost(host, port), new HttpGet(path)).getStatusLine().getStatusCode();
+    return Request.Get(url).execute().returnResponse().getStatusLine().getStatusCode();
   }
 }

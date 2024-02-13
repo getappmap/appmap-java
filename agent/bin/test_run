@@ -3,8 +3,21 @@ set -e
 
 export PATH="$BATS_DIR"/bin:"$BASHUNIT_DIR":$PATH
 
+shopt -s extglob
 set -x
-# bats has a mechanism to discover test files recursively, but it doesn't report errors properly.
-bats $(find "${@-test}" -name \*.bats)
+
+# Use -r to discover tests. It comes with a couple of caveats:
+#
+#   * it has problems reporting test scripts errors, i.e. problems in the scripts themselves, not
+#     with commands they run. If you see failures that don't have sensible errors messages, try
+#     something like
+#
+#     $ bats $(find test/!(http_client) -name \*.bats)
+#
+#   * just doing bats -r test doesn't discover a setup_suite.bash file correctly. http_client uses
+#     one, so it needs to be run separately
+
+bats -r test/!(http_client)
+bats -r test/http_client
 
 bashunit 'test/**/*_test.sh'

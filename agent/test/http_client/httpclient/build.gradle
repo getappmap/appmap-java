@@ -1,3 +1,4 @@
+
 plugins {
   id 'application'
   id 'java'
@@ -16,13 +17,13 @@ sourceSets {
 }
 
 // TODO: look at consolidating this with the gradle config in httpcore
-def appmapJar = fileTree('../../build/libs').matching {
+def appmapJar = fileTree('../../../build/libs').matching {
       include {
         it.file.name ==~ /.*appmap-[0-9.]*(-SNAPSHOT)*.jar$/
       }
     }.getFiles()[0]
 
-def annotationJar = fileTree('../../../annotation/build/libs').matching {
+def annotationJar = fileTree('../../../../annotation/build/libs').matching {
       include {
         it.file.name ==~ /.*annotation-[0-9.]*(-SNAPSHOT)*.jar$/
       }
@@ -47,7 +48,6 @@ application {
     System.env.JAVA_OUTPUT_OPTIONS,
     "-javaagent:${appmapJar}",
     "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}",
-    "-Dappmap.config.file=appmap.yml",
     //"-Dappmap.debug=true",
     //"-Dappmap.debug.file=../../build/log/httpclient-appmap.log"
   ]
