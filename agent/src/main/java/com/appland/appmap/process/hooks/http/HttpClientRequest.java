@@ -80,7 +80,8 @@ public class HttpClientRequest {
 
   static private URIBuilder newBuilder(URI uri) {
     try {
-      Class<?> cls = Class.forName("org.apache.http.client.utils.URIBuilder");
+      Class<?> cls = Class.forName("org.apache.http.client.utils.URIBuilder", true,
+          Thread.currentThread().getContextClassLoader());
       Constructor<?> ctor = cls.getConstructor(java.net.URI.class);
       return new URIBuilder(ctor.newInstance(uri));
     } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException
@@ -88,7 +89,7 @@ public class HttpClientRequest {
         | IllegalArgumentException | InvocationTargetException e) {
       logger.error(e, "failed creating a URIBuilder");
       // This shouldn't ever happen: we've hooked a method in
-      // org.apachage.http.client, so URIBuilder should always be available.
+      // org.apache.http.client, so URIBuilder should always be available.
       throw new InternalError(e);
     }
   }
