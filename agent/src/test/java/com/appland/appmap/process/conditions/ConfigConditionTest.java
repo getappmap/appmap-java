@@ -152,7 +152,6 @@ public class ConfigConditionTest {
       @Override
       public Object resolveParameter(ParameterContext parameterContext,
           ExtensionContext extensionContext) throws ParameterResolutionException {
-        Thread.dumpStack();
         return new ClassBuilder("TestClass");
       }
     }
