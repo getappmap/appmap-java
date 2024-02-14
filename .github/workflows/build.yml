@@ -44,5 +44,5 @@ jobs:
               run: |
                 set -e
                 bin/disable-gradle-daemon
-                ./gradlew -i check integrationTest
+                ./gradlew check integrationTest
                 bin/test
