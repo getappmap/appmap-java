@@ -1,3 +1,10 @@
+## [1.26.4](https://github.com/getappmap/appmap-java/compare/v1.26.3...v1.26.4) (2024-02-16)
+
+
+### Bug Fixes
+
+* use the correct ClassLoader ([9803d25](https://github.com/getappmap/appmap-java/commit/9803d25ac098d31bc9215053e9cd16c8a3950559))
+
 ## [1.26.3](https://github.com/getappmap/appmap-java/compare/v1.26.2...v1.26.3) (2024-02-02)
 
 
