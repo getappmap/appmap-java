@@ -145,11 +145,16 @@ public class Spark {
     if (!argClass.equals(jettyHandlerClass)) {
       if (argClass.equals("org.eclipse.jetty.server.handler.HandlerList")) {
         HandlerList hl = new HandlerList(handler);
-        boolean match = Arrays.stream(hl.getHandlers()).anyMatch(h -> h.getClass().getName().equals(jettyHandlerClass));
+        boolean match = Arrays.stream(hl.getHandlers())
+            .anyMatch(h -> h.getClass().getName().equals(jettyHandlerClass));
         if (!match) {
           return;
         }
       }
+
+      // If it's not either the Spark JettyHandler or a HandlerList, we're not running in a Spark
+      // server.
+      return;
     }
     HandlerWrapper server = new HandlerWrapper(receiver);
     logger.trace("handler: {}", handler);
