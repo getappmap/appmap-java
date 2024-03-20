@@ -138,30 +138,35 @@ public class Spark {
     }
 
     Object handler = args[0];
-    // Spark will set the server's handler to be either a JettyHandler, or a
-    // HandlerList that contains a JettyHandler.
-    String argClass = handler.getClass().getName();
-    String jettyHandlerClass = "spark.embeddedserver.jetty.JettyHandler";
-    if (!argClass.equals(jettyHandlerClass)) {
-      if (argClass.equals("org.eclipse.jetty.server.handler.HandlerList")) {
-        HandlerList hl = new HandlerList(handler);
-        boolean match = Arrays.stream(hl.getHandlers())
-            .anyMatch(h -> h.getClass().getName().equals(jettyHandlerClass));
-        if (!match) {
-          return;
-        }
-      }
-
-      // If it's not either the Spark JettyHandler or a HandlerList, we're not running in a Spark
-      // server.
+    if (!isSparkHandler(handler)) {
       return;
     }
+
     HandlerWrapper server = new HandlerWrapper(receiver);
     logger.trace("handler: {}", handler);
     server.setHandler(Handler.build(handler));
 
     // We just set the handler, don't continue with the method
     throw new ExitEarly();
+  }
+
+  private static boolean isSparkHandler(Object handler) {
+    // Spark will set the server's handler to be either a Spark JettyHandler, or a
+    // HandlerList that contains a JettyHandler.
+    String argClass = handler.getClass().getName();
+    String jettyHandlerClass = "spark.embeddedserver.jetty.JettyHandler";
+    if (argClass.equals(jettyHandlerClass)) {
+      return true;
+    }
+
+    if (argClass.equals("org.eclipse.jetty.server.handler.HandlerList")) {
+      HandlerList hl = new HandlerList(handler);
+      return Arrays.stream(hl.getHandlers())
+          .anyMatch(h -> h.getClass().getName().equals(jettyHandlerClass));
+    }
+
+    // Otherwise, we're not in a Spark server
+    return false;
   }
 
 }
