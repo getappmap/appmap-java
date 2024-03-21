@@ -22,7 +22,7 @@ public class EventTemplateRegistry {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
   private static final EventTemplateRegistry instance = new EventTemplateRegistry();
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
 
   private final List<Event> eventTemplates = new ArrayList<>();
 

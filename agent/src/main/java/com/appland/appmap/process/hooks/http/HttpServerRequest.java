@@ -32,7 +32,7 @@ public class HttpServerRequest {
   private static final String URI_TEMPLATE_VARIABLES_ATTRIBUTE = "org.springframework.web.servlet.HandlerMapping.uriTemplateVariables";
 
   private static final String LAST_EVENT_KEY = PACKAGE_NAME + ".lastEvent";
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
 
   public static void recordHttpServerRequest(Event event, HttpServletRequest req) {
     if (req.getRequestURI().endsWith(RemoteRecordingManager.RecordRoute)) {

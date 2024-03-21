@@ -7,7 +7,7 @@ import com.appland.appmap.test.fixture.MyClass;
 
 public class RecordPackage {
   public static void main(String[] argv) {
-    final Recording recording = Recorder.getInstance().record(() -> {
+    final Recording recording = Recorder.INSTANCE.record(() -> {
       new MyClass().callNonPublic();
     });
 

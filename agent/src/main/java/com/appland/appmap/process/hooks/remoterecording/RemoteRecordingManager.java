@@ -22,7 +22,7 @@ interface RemoteRecordingRequest {
 public class RemoteRecordingManager {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
   public static final String RecordRoute = "/_appmap/record";
   public static final String CheckpointRoute = "/_appmap/record/checkpoint";
 

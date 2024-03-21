@@ -11,7 +11,7 @@ import com.appland.appmap.transform.annotations.MethodEvent;
  * Hooks to capture method exceptions from classes included in configuration.
  */
 public class MethodException {
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
 
   @ArgumentArray
   @HookCondition(value = ConfigCondition.class,  methodEvent = MethodEvent.METHOD_EXCEPTION)

@@ -21,7 +21,7 @@ import com.appland.appmap.test.fixture.MyClass;
 
 
 public class RecorderTest {
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
 
   @BeforeEach
   public void initialize() throws Exception {

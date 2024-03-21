@@ -43,7 +43,7 @@ public class TestProxy implements TestClass {
   @Override
   public int runTest() throws IOException {
     try {
-      Recorder recorder = Recorder.getInstance();
+      Recorder recorder = Recorder.INSTANCE;
       Recording recording = recorder.record(() -> {
         try {
           ClassLoader cl = Thread.currentThread().getContextClassLoader();

@@ -15,7 +15,7 @@ import com.appland.appmap.transform.annotations.MethodEvent;
  * Hooks to capture method returns from classes included in configuration.
  */
 public class MethodReturn {
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
   private static final EventTemplateRegistry templateRegistry = EventTemplateRegistry.get();
 
   @ArgumentArray

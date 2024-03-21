@@ -17,7 +17,7 @@ public class TestNG {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
   private static final String TESTNG_NAME = "testng";
 
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
   private static final ThreadLocal<Event> lastReturnEvent = new ThreadLocal<>();
 
   private static class ITestResult extends ReflectiveType {

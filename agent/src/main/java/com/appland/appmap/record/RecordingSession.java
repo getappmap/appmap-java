@@ -140,7 +140,7 @@ public class RecordingSession {
   }
 
   CodeObjectTree getClassMap() {
-    CodeObjectTree registeredObjects = Recorder.getInstance().getRegisteredObjects();
+    CodeObjectTree registeredObjects = Recorder.INSTANCE.getRegisteredObjects();
     CodeObjectTree classMap = new CodeObjectTree();
     for (String key : this.classReferences) {
       String[] parts = key.split(":");

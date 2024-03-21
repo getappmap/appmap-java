@@ -9,7 +9,7 @@ import com.appland.appmap.transform.annotations.HookCondition;
 import com.appland.appmap.transform.annotations.MethodEvent;
 
 public class RecordMethod {
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
 
   @ArgumentArray
   @ExcludeReceiver
