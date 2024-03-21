@@ -1,3 +1,10 @@
+## [1.26.5](https://github.com/getappmap/appmap-java/compare/v1.26.4...v1.26.5) (2024-03-21)
+
+
+### Bug Fixes
+
+* correct detection of Spark server ([571e74b](https://github.com/getappmap/appmap-java/commit/571e74b43a4cb2b165417b14bc93a761a19b5e6e))
+
 ## [1.26.4](https://github.com/getappmap/appmap-java/compare/v1.26.3...v1.26.4) (2024-02-16)
 
 
