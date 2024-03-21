@@ -178,7 +178,7 @@ start_petclinic() {
   AGENT_JAR="$(find_agent_jar)"
 
   pushd build/fixtures/spring-petclinic >/dev/null
-  ./mvnw ${BATS_VERSION+--quiet} -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
+  ./mvnw ${MAVEN_PROFILE} ${BATS_VERSION+--quiet} -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
     -Dspring-boot.run.agents=$AGENT_JAR -Dspring-boot.run.jvmArguments="-Dappmap.config.file=$WD/test/petclinic/appmap.yml $jvmargs" \
     spring-boot:run \
     &>$LOG  3>&- &

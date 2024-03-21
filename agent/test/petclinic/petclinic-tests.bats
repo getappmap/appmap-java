@@ -33,7 +33,7 @@ run_petclinic_test() {
 
   cp "../../../test/petclinic/${cfg}" ./appmap.yml
 
-  run ./mvnw ${BATS_VERSION+-q} \
+  run ./mvnw -Ptomcat ${BATS_VERSION+-q} \
     $MAVEN_TEST_PROPS \
     -DargLine="@{argLine} ${JAVA_OUTPUT_OPTIONS} -javaagent:${AGENT_JAR} " \
     clean test -Dtest="${test_name}"
@@ -68,7 +68,7 @@ run_petclinic_test() {
 }
 
 @test "test_status set for successful test" {
-  run ./mvnw \
+  run ./mvnw -Ptomcat \
     $MAVEN_TEST_PROPS \
     -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
     clean test -Dtest="JUnit5Tests#testItPasses"
