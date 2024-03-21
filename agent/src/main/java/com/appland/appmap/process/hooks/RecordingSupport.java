@@ -18,7 +18,7 @@ import com.appland.appmap.record.Recording;
 public class RecordingSupport {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
 
   public static class TestDetails {
     public String definedClass;

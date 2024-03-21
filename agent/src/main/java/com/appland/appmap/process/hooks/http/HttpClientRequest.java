@@ -27,7 +27,7 @@ import com.appland.appmap.transform.annotations.Unique;
 public class HttpClientRequest {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
 
   /*
    * See https://hc.apache.org/httpcomponents-client-4.5.x/index.html for a

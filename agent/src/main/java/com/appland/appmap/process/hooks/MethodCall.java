@@ -13,7 +13,7 @@ import com.appland.appmap.transform.annotations.HookCondition;
  * Hooks to capture method invocations from classes included in configuration.
  */
 public class MethodCall {
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
 
   @ArgumentArray
   @HookCondition(ConfigCondition.class)

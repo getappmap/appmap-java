@@ -19,7 +19,7 @@ import com.appland.appmap.util.Logger;
  */
 @Unique("sql_query")
 public class SqlQuery {
-  private static final Recorder recorder = Recorder.getInstance();
+  private static final Recorder recorder = Recorder.INSTANCE;
 
   // ================================================================================================
   // Calls

@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -50,13 +51,13 @@ public class RecorderTest {
     final Recorder.Metadata metadata =
         new Recorder.Metadata("recorder_test", "tests");
 
-    Recorder.getInstance().start(metadata);
+    Recorder.INSTANCE.start(metadata);
   }
 
   @AfterEach
   public void after() throws Exception {
-    if ( Recorder.getInstance().hasActiveSession()) {
-      Recorder.getInstance().stop();
+    if (Recorder.INSTANCE.hasActiveSession()) {
+      Recorder.INSTANCE.stop();
     }
   }
 
@@ -74,7 +75,7 @@ public class RecorderTest {
   }
 
   private Recorder recordEvents() {
-    final Recorder recorder = Recorder.getInstance();
+    final Recorder recorder = Recorder.INSTANCE;
     final Event[] events = new Event[3];
 
     for (int i = 0; i < events.length; i++) {
@@ -189,7 +190,7 @@ public class RecorderTest {
 
   @Test
   public void testMultithreadCheckpoint() throws InterruptedException {
-    final Recorder recorder = spy(Recorder.getInstance());
+    final Recorder recorder = spy(Recorder.INSTANCE);
 
     // This puts an entry in recorder.threadState, so there will be a
     // value to iterate over.
@@ -221,7 +222,7 @@ public class RecorderTest {
             iterLock.release();
             eventAddedLock.acquire();
             return ret;
-          }).when(recorder).getThreadStateIterator();
+      }).when(recorder).getThreadStateIterator();
 
         recorder.checkpoint();
       });

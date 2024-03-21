@@ -135,7 +135,7 @@ public class Agent {
     final SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss");
     final String timestamp = dateFormat.format(date);
     final Metadata metadata = new Metadata("java", "process");
-    final Recorder recorder = Recorder.getInstance();
+    final Recorder recorder = Recorder.INSTANCE;
     if (appmapName == null || appmapName.trim().isEmpty()) {
       appmapName = timestamp;
     }

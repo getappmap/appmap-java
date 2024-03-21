@@ -13,7 +13,7 @@ public class HttpClientTest {
 
   public static void main(String[] argv) throws IOException {
 
-    final Recording recording = Recorder.getInstance().record(() -> {
+    final Recording recording = Recorder.INSTANCE.record(() -> {
       try {
         new HttpClientTest(argv[0], argv.length > 1 ? argv[1] : null).run();
       } catch (IOException e) {

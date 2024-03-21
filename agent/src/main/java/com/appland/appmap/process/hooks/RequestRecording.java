@@ -33,7 +33,7 @@ public class RequestRecording {
     RecordingSession recordingSession = new RecordingSession(metadata);
 
     try {
-      Recorder.getInstance().setThreadSession(recordingSession);
+      Recorder.INSTANCE.setThreadSession(recordingSession);
       req.setAttribute(ServletListener.RECORDING_ATTRIBUTE, recordingSession);
     } catch (ActiveSessionException e) {
       ServletListener.logger.warn(e);
@@ -65,7 +65,7 @@ public class RequestRecording {
         localStart.format(Recording.RECORDING_TIME_FORMATTER));
     recordingSession.getMetadata().scenarioName = appMapName;
 
-    Recording recording = Recorder.getInstance().stopThread();
+    Recording recording = Recorder.INSTANCE.stopThread();
     String filename = String.format("%.3f_%s", startTime.toEpochMilli() / 1000.0, req.getRequestURI());
     filename = Recorder.sanitizeFilename(filename) + ".appmap.json";
     recording.moveTo(filename);
@@ -75,7 +75,7 @@ public class RequestRecording {
    * abort stops the current thread's recording and throws it away.
    */
   public static void abort() {
-    Recorder.getInstance().stopThread();
+    Recorder.INSTANCE.stopThread();
   }
 
 }

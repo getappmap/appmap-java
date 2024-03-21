@@ -18,7 +18,7 @@ public class HttpHostTest {
 
   public static void main(String[] argv) throws IOException {
 
-    final Recording recording = Recorder.getInstance().record(() -> {
+    final Recording recording = Recorder.INSTANCE.record(() -> {
       try {
         new HttpHostTest(argv[0], Integer.parseInt(argv[1]), argv[2]).run();
       } catch (IOException e) {

@@ -47,11 +47,11 @@ class ThreadState {
  * Recorder is a singleton responsible for managing recording sessions and routing events to any
  * active session. It also maintains a code object tree containing every known package/class/method.
  */
-public class Recorder {
+public enum Recorder {
+  INSTANCE;
+
   private static final String ERROR_SESSION_PRESENT = "an active recording session already exists";
   private static final String ERROR_NO_SESSION = "there is no active recording session";
-
-  private static final Recorder instance = new Recorder();
 
   private final ActiveSession activeSession = new ActiveSession();
   private final CodeObjectTree globalCodeObjects = new CodeObjectTree();
@@ -185,18 +185,6 @@ public class Recorder {
   }
 
   /**
-   * Get the global Recorder instance.
-   *
-   * @return The global recorder instance
-   */
-  public static Recorder getInstance() {
-    return Recorder.instance;
-  }
-
-  private Recorder() {
-  }
-
-  /**
    * Start a recording session.
    *
    * @param metadata Recording metadata to be written
@@ -266,7 +254,7 @@ public class Recorder {
             event.ignore();
           }
         }
-        
+
         event.setStartTime();
         ts.callStack.push(event);
       } else if ( event.event.equals("return") ) {

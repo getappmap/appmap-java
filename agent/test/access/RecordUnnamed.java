@@ -6,7 +6,7 @@ import com.appland.appmap.record.Recording;
 
 public class RecordUnnamed {
   public static void main(String[] argv) {
-    final Recording recording = Recorder.getInstance().record(() -> {
+    final Recording recording = Recorder.INSTANCE.record(() -> {
       new HelloWorld().getGreetingWithPunctuation("!");
     });
 
