@@ -1,3 +1,10 @@
+## [1.26.6](https://github.com/getappmap/appmap-java/compare/v1.26.5...v1.26.6) (2024-04-10)
+
+
+### Bug Fixes
+
+* don't create a log file by default ([883cd93](https://github.com/getappmap/appmap-java/commit/883cd93c47aba34f62a6ae2239a8c55a38fd0778))
+
 ## [1.26.5](https://github.com/getappmap/appmap-java/compare/v1.26.4...v1.26.5) (2024-03-21)
 
 
