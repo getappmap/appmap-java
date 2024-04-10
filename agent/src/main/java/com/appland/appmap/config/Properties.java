@@ -9,8 +9,7 @@ import com.appland.appmap.util.Logger;
 public class Properties {
   public static final String APPMAP_OUTPUT_DIRECTORY_KEY = "appmap.output.directory";
   public static final String DISABLE_LOG_FILE_KEY = "appmap.disableLogFile";
-  public static final Boolean DisableLogFile =
-      resolveProperty(DISABLE_LOG_FILE_KEY, (Boolean)null);
+  public static final Boolean DisableLogFile = resolveProperty(DISABLE_LOG_FILE_KEY, true);
   public static final Boolean Debug = resolveProperty("appmap.debug", false);
   public static final Boolean DebugHooks = Debug || (System.getProperty("appmap.debug.hooks") != null);
   public static final Boolean DebugLocals = (System.getProperty("appmap.debug.locals") != null);
