@@ -41,19 +41,6 @@ public class Properties {
 
 
   static Path OutputDirectory;
-  private static String resolveProperty(String propName, String defaultValue) {
-    String value = defaultValue;
-    try {
-      final String propValue = System.getProperty(propName);
-      if (propValue != null) {
-        value = propValue;
-      }
-    } catch (Exception e) {
-      Logger.printf("failed to resolve %s, falling back to default\n", propName);
-      Logger.println(e);
-    }
-    return value;
-  }
 
   public static Path getOutputDirectory() {
     if (OutputDirectory == null) {
@@ -63,14 +50,19 @@ public class Properties {
     return OutputDirectory;
   }
 
-  private static Boolean resolveProperty(String propName, Boolean defaultValue) {
+  static Boolean resolveProperty(String propName, Boolean defaultValue) {
     return resolveProperty(propName, Boolean::valueOf, defaultValue);
   }
 
-  private static Integer resolveProperty(String propName, Integer defaultValue) {
+  static Integer resolveProperty(String propName, Integer defaultValue) {
     return resolveProperty(propName, Integer::valueOf, defaultValue);
   }
-  private static <T> T resolveProperty(String propName,
+
+  static String resolveProperty(String propName, String defaultValue) {
+    return resolveProperty(propName, Object::toString, defaultValue);
+  }
+
+  static <T> T resolveProperty(String propName,
                                        Function<String, T> resolvingFunc,
                                        T defaultValue) {
     T value = defaultValue;
@@ -91,7 +83,7 @@ public class Properties {
     return value;
   }
 
-  private static String[] resolveProperty(String propName, String[] defaultValue) {
+  static String[] resolveProperty(String propName, String[] defaultValue) {
     String[] value = defaultValue;
     try {
       final String propValue = System.getProperty(propName);

@@ -295,7 +295,7 @@ public class AppMapConfig {
       System.exit(1);
     }
 
-    String outputDirectory = System.getProperty(APPMAP_OUTPUT_DIRECTORY_KEY);
+    String outputDirectory = Properties.resolveProperty(APPMAP_OUTPUT_DIRECTORY_KEY, (String)null);
     if (outputDirectory  == null) {
       if (singleton.appmapDir == null) {
         singleton.appmapDir = findDefaultOutputDirectory(fs).toString();
