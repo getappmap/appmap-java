@@ -68,9 +68,11 @@ run_petclinic_test() {
 }
 
 @test "test_status set for successful test" {
+  local cfg="../../../test/petclinic/appmap.yml"
+  local out="$(getcwd)/tmp/appmap"
   run ./mvnw -Ptomcat \
     $MAVEN_TEST_PROPS \
-    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=../../../test/petclinic/appmap.yml" \
+    -DargLine="@{argLine} -javaagent:${AGENT_JAR} -Dappmap.config.file=${cfg} -Dappmap.output.directory=${out}" \
     clean test -Dtest="JUnit5Tests#testItPasses"
   assert_success
 

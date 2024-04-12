@@ -21,28 +21,14 @@ import org.junit.jupiter.api.Test;
 
 import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder;
 
+
+
 public class OutputDirectoryTest {
   private java.util.Properties origProperties;
-  private FileSystem fs;
-  private Path appDir;
-
-  private Path configFile;
 
   @BeforeEach
   void saveProperties() throws IOException {
-    origProperties = (java.util.Properties) System.getProperties().clone();
-    String cwd = "/app";
-    fs = MemoryFileSystemBuilder.newEmpty()
-        .setCurrentWorkingDirectory(cwd)
-        .build();
-    appDir = fs.getPath(cwd);
-    Files.createDirectories(appDir);
-
-    String contents = "name: test\n";
-    configFile = Files.createFile(appDir.resolve("appmap.yml"));
-    Files.write(configFile, contents.getBytes());
-
-    System.setProperty("appmap.config.file", configFile.toAbsolutePath().toString());
+    origProperties = (java.util.Properties)System.getProperties().clone();
   }
 
   @AfterEach
@@ -50,9 +36,33 @@ public class OutputDirectoryTest {
     System.setProperties(origProperties);
   }
 
+  static class WithWorkingDirectory {
+    FileSystem fs;
+    Path appDir;
+    Path configFile;
+
+    String getCwd() {
+      return "/app";
+    }
+
+    @BeforeEach
+    void withWorkingDirectory() throws IOException {
+      String cwd = getCwd();
+      fs = MemoryFileSystemBuilder.newEmpty().setCurrentWorkingDirectory(cwd).build();
+      appDir = fs.getPath("/app");
+      Files.createDirectories(fs.getPath(cwd));
+
+      String contents = "name: test\n";
+      configFile = Files.createFile(appDir.resolve("appmap.yml"));
+      Files.write(configFile, contents.getBytes());
+
+      System.setProperty("appmap.config.file", configFile/* .toAbsolutePath() */.toString());
+    }
+  }
+
   @Nested
   @DisplayName("When choosing an output directory")
-  class WhenChoosingAnOutputDirectory {
+  class WhenChoosingAnOutputDirectory extends WithWorkingDirectory {
 
     @Nested
     @DisplayName("When appmap.output.directory is set")
@@ -89,7 +99,7 @@ public class OutputDirectoryTest {
           Files.write(configFile, contents.getBytes());
           AppMapConfig.initialize(fs);
 
-          assertEquals(EXPECTED_APPMAP_DIR, AppMapConfig.get().getAppmapDir().toString());
+          assertEquals(EXPECTED_APPMAP_DIR, Properties.OutputDirectory.toString());
 
           String actualContents = new String(Files.readAllBytes(configFile));
           assertEquals(contents, actualContents);
@@ -120,24 +130,45 @@ public class OutputDirectoryTest {
       assertNull(System.getProperty("appmap.output.directory", null), "appmap.output.directory set?");
     }
 
-    @Test
-    void configContainsAppMapDir() throws Exception {
-      String configDir = "/config/appmap";
-      final String contents = "appmap_dir: " + configDir + "\n";
-      Files.write(configFile, contents.getBytes());
-      AppMapConfig.initialize(fs);
+    @Nested
+    @DisplayName("cwd is root directory")
+    class InRootDirectory extends WithWorkingDirectory {
+      @Test
+      void configContainsAppMapDir() throws Exception {
+        String outdir = "tmp/appmap";
+        final String contents = "appmap_dir: " + outdir + "\n";
+        Files.write(configFile, contents.getBytes());
+        AppMapConfig.initialize(fs);
 
-      assertEquals(configDir, AppMapConfig.get().getAppmapDir().toString());
+        Path expected = configFile.toAbsolutePath().getParent().resolve(outdir);
+        assertEquals(expected.toString(), Properties.OutputDirectory.toString());
+      }
+
+      @Test
+      @DisplayName("the default is used")
+      void defaultChosen() throws Exception {
+        AppMapConfig.initialize(fs);
+
+        String expected = fs.getPath("tmp/appmap").toAbsolutePath().toString();
+        assertEquals(expected, Properties.OutputDirectory.toString());
+      }
     }
+    @Nested
+    @DisplayName("cwd is a subdirectory")
+    class InSubdirectory extends WithWorkingDirectory {
+      @Override
+      public String getCwd() {
+        return "/app/subdir";
+      }
 
-    @Test
-    @DisplayName("the default is used")
-    void defaultChosen() throws Exception {
-      AppMapConfig.initialize(fs);
+      @Test
+      void relativeToConfig() throws Exception {
+        AppMapConfig.initialize(fs);
 
-      assertEquals("tmp/appmap", AppMapConfig.get().getAppmapDir().toString());
+        String expected = fs.getPath("/app/tmp/appmap").toAbsolutePath().toString();
+        assertEquals(expected, Properties.OutputDirectory.toString());
+      }
     }
-
   }
 
 }

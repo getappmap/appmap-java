@@ -59,9 +59,24 @@ public class AppMapConfig {
     return org.tinylog.Logger.tag(tag);
   }
 
+  /**
+   * Search for the config file for the current application.
+   *
+   * First, check to see if the specified config file exists. If it does, return it. If it does not,
+   * and mustExist is true, throw a FileNotFoundException.
+   *
+   * If it does not, scan up the directory tree. If a file named appmap.yml is found, return it.
+   * Otherwise, throw a FileNotFoundException.
+   *
+   * @param configFile the starting config file path
+   * @param mustExist if true, throw a FileNotFoundExcpetion if configFile does not exist
+   * @return the absolute path to the discovered config file
+   * @throws FileNotFoundException if mustExist is true and configFile does not exist, or configFile
+   *         does not exist, and no appmap.yml is found in any of the parent directories
+   */
   private static Path findConfig(Path configFile, boolean mustExist) throws FileNotFoundException {
     if (Files.exists(configFile)) {
-      return configFile;
+      return configFile.toAbsolutePath();
     }
 
     if (mustExist) {
@@ -92,10 +107,10 @@ public class AppMapConfig {
 
   /**
    * Populate the configuration from a file.
-   * 
+   *
    * @param configFile The file to be loaded
-   * @param mustExist  When true, the config must already exist; when false, it
-   *                   will be created if it doesn't exist.
+   * @param mustExist When true, the config must already exist; when false, it will be created if it
+   *        doesn't exist.
    *
    * @return The AppMapConfig singleton
    */
@@ -104,10 +119,10 @@ public class AppMapConfig {
 
     try {
       configFile = AppMapConfig.findConfig(configFile, mustExist);
-      logger.debug("using config file -> {}", configFile.toAbsolutePath());
+      logger.debug("using config file -> {}", configFile);
       inputStream = Files.newInputStream(configFile);
     } catch (IOException e) {
-      Path expectedConfig = configFile.toAbsolutePath();
+      Path expectedConfig = configFile;
       logger.error("error: file not found -> {}",
           expectedConfig);
       return null;
@@ -311,7 +326,8 @@ public class AppMapConfig {
         singleton.appmapDir = outputDirectory;
       }
     }
-    Properties.OutputDirectory = fs.getPath(singleton.appmapDir);
+    Properties.OutputDirectory = singleton.configFile.getParent().resolve(singleton.appmapDir);
+
   }
 
   private static Path findDefaultOutputDirectory(FileSystem fs) {
