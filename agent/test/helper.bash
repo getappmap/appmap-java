@@ -103,7 +103,7 @@ assert_json_not_contains() {
 }
 
 _top_level() {
-  echo "$(git rev-parse --show-toplevel)"
+  git rev-parse --show-toplevel
 }
 
 
@@ -164,22 +164,27 @@ start_petclinic() {
   mkdir -p test/petclinic/classes
   javac -d test/petclinic/classes test/petclinic/Props.java
 
-  export LOG_DIR=$PWD/build/log
+  WD=$(getcwd)
+
+  export LOG_DIR=$WD/build/log
   mkdir -p ${LOG_DIR}
 
-  export LOG=$PWD/build/fixtures/spring-petclinic/petclinic.log
+  local fixture_dir="$WD/build/fixtures/spring-petclinic"
+  export LOG="${fixture_dir}/petclinic.log"
   export WS_SCHEME="http" WS_HOST="localhost" WS_PORT="8080"
   export WS_URL="${WS_SCHEME}://${WS_HOST}:${WS_PORT}"
 
   check_ws_running
 
   printf '  starting PetClinic\n'
-  WD=$PWD
   AGENT_JAR="$(find_agent_jar)"
 
+  local cfg="$WD/test/petclinic/appmap.yml"
+  local out="${fixture_dir}/tmp/appmap"
   pushd build/fixtures/spring-petclinic >/dev/null
   ./mvnw ${MAVEN_PROFILE} ${BATS_VERSION+--quiet} -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
-    -Dspring-boot.run.agents=$AGENT_JAR -Dspring-boot.run.jvmArguments="-Dappmap.config.file=$WD/test/petclinic/appmap.yml $jvmargs" \
+    -Dspring-boot.run.agents=$AGENT_JAR \
+    -Dspring-boot.run.jvmArguments="-Dappmap.config.file='${cfg}' -Dappmap.output.directory='${out}' $jvmargs" \
     spring-boot:run \
     &>$LOG  3>&- &
   export JVM_MAIN_CLASS=PetClinicApplication
@@ -192,11 +197,14 @@ start_petclinic() {
 }
 
 start_petclinic_fw() {
-  WD="$(git rev-parse --show-toplevel)/agent"
+  WD=$(getcwd)
   export LOG_DIR="$WD/build/log"
   mkdir -p ${LOG_DIR}
 
-  export LOG="$WD/build/fixtures/spring-framework-petclinic/petclinic.log"
+  local fixture_dir="$WD/build/fixtures/spring-framework-petclinic"
+  export LOG="${fixture_dir}/petclinic.log"
+
+  export LOG="${fixture_dir}/petclinic.log"
   export WS_SCHEME="http" WS_HOST="localhost" WS_PORT="8080"
   export WS_URL="${WS_SCHEME}://${WS_HOST}:${WS_PORT}"
 
@@ -205,9 +213,11 @@ start_petclinic_fw() {
   printf '  starting PetClinic (framework)\n'
   AGENT_JAR="$(find_agent_jar)"
 
+  local cfg="$WD/test/petclinic/appmap.yml"
+  local out="${fixture_dir}/tmp/appmap"
   pushd build/fixtures/spring-framework-petclinic >/dev/null
   ./mvnw --quiet -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
-    -Djetty.deployMode=FORK -Djetty.jvmArgs="-javaagent:$AGENT_JAR -Dappmap.config.file=$WD/test/petclinic/appmap.yml" \
+    -Djetty.deployMode=FORK -Djetty.jvmArgs="-javaagent:$AGENT_JAR -Dappmap.config.file=${cfg} -Dappmap.output.directory=${out}" \
     jetty:run-war &>$LOG  3>&- &
   export JVM_MAIN_CLASS=JettyForkedChild
   wait_for_mvn $!
@@ -240,6 +250,7 @@ stop_ws() {
 
 wait_for_glob() {
   local glob="$1"
+  echo "waiting for glob ${glob}" >&3
   for i in {1..10}; do
     if compgen -G "$glob" >/dev/null; then
       break;
@@ -254,3 +265,8 @@ _configure_logging() {
   export JUL_CONFIG="${logConfigDir}/java-logging.properties"
 }
 
+getcwd() {
+  # This seems slightly ridiculous. But, it produces a path that's understood by both Bash and Java,
+  # and it works in all dev and CI environments.
+  git rev-parse --show-toplevel --show-prefix | tr -s '\n' '/'
+}

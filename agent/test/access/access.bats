@@ -6,7 +6,7 @@ load '../helper'
 
 sep="$JAVA_PATH_SEPARATOR"
 AGENT_JAR="$(find_agent_jar)"
-wd="$(git rev-parse --show-toplevel)"/agent
+wd=$(getcwd)
 test_cp="${wd}/test/access${sep}${wd}/build/classes/java/test"
 java_cmd="java -javaagent:'${AGENT_JAR}' -cp '${test_cp}'"
 

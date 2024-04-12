@@ -12,7 +12,7 @@ load '../helper'
 setup_file() {
 mkdir -p build/log
 
-export LOG=$PWD/build/log/httpcore.log
+export LOG="$(getcwd)/build/log/httpcore.log"
 export SERVER_PORT=9090
 export WS_URL=${WS_URL:-http://localhost:9090}
   cd test/httpcore

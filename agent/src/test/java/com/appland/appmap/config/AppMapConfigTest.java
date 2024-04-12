@@ -63,8 +63,24 @@ public class AppMapConfigTest {
         assertTrue(actualErr.contains("file not found"));
     }
 
-    // If a non-existent config file in a subdirectory is specified, the
-    // config file in the current directory should be used.
+    /**
+     * Ensure that a relative path to an existing candidate config gets resolved to an absolute
+     * path.
+     */
+    @Test
+    public void resolvesRelative() {
+      System.err.println(System.getProperty("user.dir"));
+      Path f = Paths.get("appmap.yml");
+      AppMapConfig.load(f, false);
+      Path expected = Paths.get("appmap.yml").toAbsolutePath();
+      assertTrue(Files.exists(expected)); // sanity check
+      assertEquals(expected, AppMapConfig.get().configFile);
+    }
+
+    /**
+     * Check that if a non-existent config file in a subdirectory is specified, the config file in a
+     * parent directory will be used. Also checks that the resulting config file path is absolute.
+     */
     @Test
     public void loadParent() {
         System.err.println(System.getProperty("user.dir"));
