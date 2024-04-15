@@ -1,3 +1,11 @@
+## [1.26.7](https://github.com/getappmap/appmap-java/compare/v1.26.6...v1.26.7) (2024-04-15)
+
+
+### Bug Fixes
+
+* APPMAP_OUTPUT_DIRECTORY can be set from env ([c933c45](https://github.com/getappmap/appmap-java/commit/c933c45174da6baddaaaf66b8399d91165990d92))
+* resolve output directory relative to config ([deb2a84](https://github.com/getappmap/appmap-java/commit/deb2a84538006aeba42cc2171876e21187dd739e))
+
 ## [1.26.6](https://github.com/getappmap/appmap-java/compare/v1.26.5...v1.26.6) (2024-04-10)
 
 
