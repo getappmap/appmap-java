@@ -28,6 +28,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -237,6 +239,18 @@ public class RecorderTest {
     }
 
     es.shutdown();
+  }
+
+  @Test
+  public void testSanitizeFilename() {
+    assertEquals("foo.appmap.json", Recorder.sanitizeFilename("foo"));
+
+    String longFilename = StringUtils.repeat("foo", 100);
+    Pattern p = Pattern.compile("([fo]*?)-538355d.appmap.json");
+    Matcher m = p.matcher(Recorder.sanitizeFilename(longFilename));
+    assertTrue(m.find());
+    assertEquals(255, m.group(0).length());
+    assertEquals(235, m.group(1).length());
   }
 
 }

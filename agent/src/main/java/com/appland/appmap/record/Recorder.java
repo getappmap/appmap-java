@@ -1,6 +1,9 @@
 package com.appland.appmap.record;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -13,6 +16,7 @@ import com.appland.appmap.config.AppMapConfig;
 import com.appland.appmap.output.v1.CodeObject;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.util.Logger;
+import org.apache.commons.lang3.RandomStringUtils;
 
 /**
  * Keep track of what's going on in the current thread.
@@ -51,6 +55,10 @@ public class Recorder {
   private static final String ERROR_SESSION_PRESENT = "an active recording session already exists";
   private static final String ERROR_NO_SESSION = "there is no active recording session";
 
+  private static final Integer FILENAME_MAX_LENGTH = 255; // Max length of a filename on most filesystems
+  private static final Integer HASH_LENGTH = 7; // Arbitrary but Git provides it's a reasonable value
+  private static final String APPMAP_SUFFIX = ".appmap.json";
+
   private static final Recorder instance = new Recorder();
 
   private final ActiveSession activeSession = new ActiveSession();
@@ -58,7 +66,33 @@ public class Recorder {
   private final Map<Long, ThreadState> threadState = new ConcurrentHashMap<>();
 
   public static String sanitizeFilename(String filename) {
-    return filename.replaceAll("[^a-zA-Z0-9-_]", "_");
+    String sanitizedFilename = filename.replaceAll("[^a-zA-Z0-9-_]", "_");
+
+    if (sanitizedFilename.length() > FILENAME_MAX_LENGTH - APPMAP_SUFFIX.length()) {
+      int part = FILENAME_MAX_LENGTH - APPMAP_SUFFIX.length() - 1 - HASH_LENGTH;
+      sanitizedFilename = sanitizedFilename.substring(0, part) + "-" + hashFilename(sanitizedFilename.substring(part));
+    }
+
+    return sanitizedFilename + APPMAP_SUFFIX;
+  }
+
+  private static String hashFilename(String filename) {
+    MessageDigest digest;
+    try {
+      digest = MessageDigest.getInstance("SHA-256");
+    } catch (NoSuchAlgorithmException e) {
+      return RandomStringUtils.random(HASH_LENGTH);
+    }
+    byte[] hash = digest.digest(filename.getBytes(StandardCharsets.UTF_8));
+    StringBuilder hexString = new StringBuilder(2 * hash.length);
+    for (byte b : hash) {
+      String hex = Integer.toHexString(0xff & b);
+      if (hex.length() == 1) {
+        hexString.append('0');
+      }
+      hexString.append(hex);
+    }
+    return hexString.substring(0, HASH_LENGTH);
   }
 
   /**
@@ -363,7 +397,7 @@ public class Recorder {
     this.start(metadata);
     fn.run();
     Recording recording = this.stop();
-    recording.moveTo(fileName + ".appmap.json");
+    recording.moveTo(fileName);
   }
 
   // Mockito can't stub methods on the Collection<ThreadState>
