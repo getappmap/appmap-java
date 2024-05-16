@@ -1,3 +1,10 @@
+## [1.26.8](https://github.com/getappmap/appmap-java/compare/v1.26.7...v1.26.8) (2024-05-16)
+
+
+### Bug Fixes
+
+* filename too long in some cases ([fc74f0a](https://github.com/getappmap/appmap-java/commit/fc74f0adc9b9891b3189a755cb25bb234e2c3815))
+
 ## [1.26.7](https://github.com/getappmap/appmap-java/compare/v1.26.6...v1.26.7) (2024-04-15)
 
 
