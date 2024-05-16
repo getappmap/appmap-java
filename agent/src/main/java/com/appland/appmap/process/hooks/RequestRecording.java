@@ -67,7 +67,7 @@ public class RequestRecording {
 
     Recording recording = Recorder.getInstance().stopThread();
     String filename = String.format("%.3f_%s", startTime.toEpochMilli() / 1000.0, req.getRequestURI());
-    filename = Recorder.sanitizeFilename(filename) + ".appmap.json";
+    filename = Recorder.sanitizeFilename(filename);
     recording.moveTo(filename);
   }
 

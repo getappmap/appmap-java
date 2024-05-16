@@ -79,7 +79,6 @@ public class RecordingSupport {
     logger.debug("Recording stopped for {}",
         canonicalName(details.definedClass, details.isStatic, details.methodId));
     String filePath = Recorder.sanitizeFilename(String.join("_", details.definedClass, details.methodId));
-    filePath += ".appmap.json";
 
     Metadata metadata = recorder.getMetadata();
     if (succeeded != null) {
