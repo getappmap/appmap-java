@@ -97,7 +97,7 @@ public class AppMapConfig {
       Files.createDirectories(projectDirectory);
       Files.write(configFile, getDefault(projectDirectory.toString()).getBytes());
 
-      return configFile;
+      return configFile.toAbsolutePath();
     } catch (IOException e) {
       logger.error(e, "Failed to create default config");
     }

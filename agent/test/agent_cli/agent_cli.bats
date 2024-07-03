@@ -7,11 +7,16 @@ load '../helper'
 setup_file() {
   export AGENT_JAR="$(find_agent_jar)"
 
-  rm -rf test/agent_cli/spring-petclinic
-  tar -C build/fixtures -c -f - ./spring-petclinic | tar -x -f - -C test/agent_cli
-  cp -v test/petclinic/appmap.yml test/agent_cli/spring-petclinic/.
+  TEST_DIR="$BATS_FILE_TMPDIR/agent_cli"
+  mkdir -p "$TEST_DIR"
+  rm -rf "$TEST_DIR"/spring-petclinic
 
-  cd test/agent_cli
+  tar -C build/fixtures -c -f - ./spring-petclinic | tar -x -f - -C "$TEST_DIR"
+  cp -v test/petclinic/appmap.yml "$TEST_DIR"/spring-petclinic/.
+
+  tar -c -f - -C test/agent_cli ./sampleproj | tar -x -f - -C "$TEST_DIR"
+
+  cd "$TEST_DIR"
   _configure_logging
 
 }
