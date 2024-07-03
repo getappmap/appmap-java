@@ -35,9 +35,9 @@ jobs:
                   distribution: temurin
                   java-version: ${{ matrix.java }}
 
-            - name: Install Bash on macOS
+            - name: Install extras on macOS
               if: runner.os == 'macOS'
-              run: brew install bash
+              run: brew install bash sbt
 
             - name: Run Tests
               shell: bash
