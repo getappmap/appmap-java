@@ -1,3 +1,10 @@
+## [1.26.9](https://github.com/getappmap/appmap-java/compare/v1.26.8...v1.26.9) (2024-07-05)
+
+
+### Bug Fixes
+
+* NPE running init when no appmap.yml found ([6dcd0d9](https://github.com/getappmap/appmap-java/commit/6dcd0d915e4419c852d07fe213463117d63587e7))
+
 ## [1.26.8](https://github.com/getappmap/appmap-java/compare/v1.26.7...v1.26.8) (2024-05-16)
 
 
