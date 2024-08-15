@@ -34,6 +34,7 @@ public class Properties {
   public static final Integer PatternThreshold =
       resolveProperty("appmap.config.patternThreshold", 10);
 
+  public static final Boolean DisableValue = resolveProperty("appmap.event.disableValue", false);
   public static final Integer MaxValueSize = resolveProperty("appmap.event.valueSize", 1024);
 
   public static final String[] Records = resolveProperty("appmap.record", new String[0]);
