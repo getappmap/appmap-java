@@ -1,3 +1,10 @@
+## [1.26.10](https://github.com/getappmap/appmap-java/compare/v1.26.9...v1.26.10) (2024-08-21)
+
+
+### Bug Fixes
+
+* crash due to config packages key with missing value ([ef48399](https://github.com/getappmap/appmap-java/commit/ef4839987d2de935dba444d6041216877338d125))
+
 ## [1.26.9](https://github.com/getappmap/appmap-java/compare/v1.26.8...v1.26.9) (2024-07-05)
 
 
