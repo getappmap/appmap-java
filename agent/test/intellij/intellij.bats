@@ -31,8 +31,7 @@ setup() {
 }
 
 @test 'it works' {
-  # TODO: remove this ideVersion pin
-  run ./gradlew -PideVersion=IC-2023.3.3 :plugin-core:test --tests 'AppMapConfigFileTest.readConfigWithPath'
+  run ./gradlew :plugin-core:test --tests 'AppMapConfigFileTest.readConfigWithPath'
   assert_success
 
   output="$(< tmp/appmap/junit/appland_config_AppMapConfigFileTest_readConfigWithPath.appmap.json)"

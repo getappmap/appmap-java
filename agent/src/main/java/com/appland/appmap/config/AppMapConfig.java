@@ -131,9 +131,13 @@ public class AppMapConfig {
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     try {
       singleton = mapper.readValue(inputStream, AppMapConfig.class);
+      if (singleton.packages == null) {
+        logger.error("AppMap: missing value for the 'packages' entry in appmap.yml");
+        return null;
+      }
     } catch (IOException e) {
       logger.error("AppMap: encountered syntax error in appmap.yml {}", e.getMessage());
-      System.exit(1);
+      return null;
     }
     singleton.configFile = configFile;
     logger.debug("config: {}", singleton);

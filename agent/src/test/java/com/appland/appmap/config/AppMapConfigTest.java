@@ -100,6 +100,24 @@ public class AppMapConfigTest {
         AppMapConfig.load(configFile, true);
         assertEquals("/appmap", AppMapConfig.get().getAppmapDir());
     }
+
+    @Test
+    public void loadPackagesKeyWithMissingValue() throws Exception {
+        Path configFile = tmpdir.resolve("appmap.yml");
+        final String contents = "name: test\npackages:\npath: xyz";
+        Files.write(configFile, contents.getBytes());
+        String actualErr = tapSystemErr(() -> AppMapConfig.load(configFile, false));
+        assertTrue(actualErr.contains("AppMap: missing value for the 'packages'"));
+    }
+
+    @Test
+    public void loadPackagesKeyWithScalarValue() throws Exception {
+        Path configFile = Files.createTempFile("appmap", ".yml");
+        final String contents = "name:q test\npackages: abc\n";
+        Files.write(configFile, contents.getBytes());
+        String actualErr = tapSystemErr(() -> AppMapConfig.load(configFile, false));
+        assertTrue(actualErr.contains("AppMap: encountered syntax error in appmap.yml"));
+    }
 }
 
 
