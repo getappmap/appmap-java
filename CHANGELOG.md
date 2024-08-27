@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/getappmap/appmap-java/compare/v1.26.10...v1.27.0) (2024-08-27)
+
+
+### Features
+
+* add config parameter to disable custom stringification ([cb18931](https://github.com/getappmap/appmap-java/commit/cb1893110a459a1f24fe92057e01691345880253))
+
 ## [1.26.10](https://github.com/getappmap/appmap-java/compare/v1.26.9...v1.26.10) (2024-08-21)
 
 
