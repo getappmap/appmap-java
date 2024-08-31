@@ -37,7 +37,7 @@ public class AppMapConfigTest {
     public void createDefault() throws IOException {
         // Just verify that the file gets created when it should. The contents
         // get verified elsewhere.
-        Path configFile = Paths.get(System.getProperty("java.io.tmpdir"), "appmap.yml");
+        Path configFile = tmpdir.resolve("appmap.yml");
         Files.deleteIfExists(configFile);
         AppMapConfig.load(configFile, false);
         assertTrue(Files.exists(configFile));
@@ -55,7 +55,7 @@ public class AppMapConfigTest {
 
     @Test
     public void requiresExisting() throws Exception {
-        Path configFile = Paths.get(System.getProperty("java.io.tmpdir"), "appmap.yml");
+        Path configFile = tmpdir.resolve("appmap.yml");
         Files.deleteIfExists(configFile);
 
         String actualErr = tapSystemErr(() -> AppMapConfig.load(configFile, true));
