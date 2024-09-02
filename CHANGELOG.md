@@ -1,3 +1,10 @@
+## [1.27.1](https://github.com/getappmap/appmap-java/compare/v1.27.0...v1.27.1) (2024-09-02)
+
+
+### Bug Fixes
+
+* detect packages in multi-project repositories ([b60aac6](https://github.com/getappmap/appmap-java/commit/b60aac60bbdff790619a53bef168a3099bb45f28))
+
 # [1.27.0](https://github.com/getappmap/appmap-java/compare/v1.26.10...v1.27.0) (2024-08-27)
 
 
