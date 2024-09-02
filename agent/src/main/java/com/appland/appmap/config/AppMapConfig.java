@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import org.tinylog.Logger;
@@ -224,31 +225,29 @@ public class AppMapConfig {
     pw.println("# https://appmap.io/docs/reference/appmap-java.html#configuration");
     pw.format("name: %s\n", CLI.projectName(new File(directory)));
 
-    // For now, this only works in this type of standardize repo structure.
-    Path javaDir = Paths.get(directory).resolve("src/main/java");
-    if (Files.isDirectory(javaDir)) {
-      int pkgStart = javaDir.getNameCount();
-      // Collect package names in src/main/java
-      Set<Path> packages = new HashSet<>();
-      Files.walkFileTree(javaDir, new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-          if (file.getFileName().toString().endsWith(".java")) {
-            int pkgEnd = file.getParent().getNameCount();
-            if (pkgStart == pkgEnd) {
-              // We're in the the unnamed package, ignore
-              return FileVisitResult.CONTINUE;
-            }
+    // Set to collect packages from all relevant src/main/java directories
+    Set<Path> packages = new HashSet<>();
+    AtomicBoolean srcMainJavaDirExists = new AtomicBoolean(false);
 
-            Path packagePath = file.getParent().subpath(pkgStart, pkgEnd);
-            if (packagePath.getNameCount() > 0) {
-              packages.add(packagePath);
-            }
-          }
-          return FileVisitResult.CONTINUE;
+    // Traverse the root directory to find all src/main/java directories
+    Files.walkFileTree(Paths.get(directory), new SimpleFileVisitor<Path>() {
+      @Override
+      public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+        if (dir.endsWith("src/main/java")) {
+          srcMainJavaDirExists.set(true);
+          collectPackages(dir, packages);
         }
-      });
+        return FileVisitResult.CONTINUE;
+      }
 
+      @Override
+      public FileVisitResult visitFileFailed(Path file, IOException io)
+      {
+        return FileVisitResult.SKIP_SUBTREE;
+      }
+    });
+    
+    if (srcMainJavaDirExists.get()) {
       pw.print("\n"
           + "# Your project contains the directory src/main/java. AppMap has\n"
           + "# auto-detected the following Java packages in this directory:\n"
@@ -287,6 +286,32 @@ public class AppMapConfig {
     }
     return sw.toString();
   }
+
+  private static void collectPackages(Path javaDir, Set<Path> packages) {
+    int pkgStart = javaDir.getNameCount();
+    try {
+        Files.walkFileTree(javaDir, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                if (file.getFileName().toString().endsWith(".java")) {
+                    int pkgEnd = file.getParent().getNameCount();
+                    if (pkgStart == pkgEnd) {
+                        // We're in the unnamed package, ignore
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    Path packagePath = file.getParent().subpath(pkgStart, pkgEnd);
+                    if (packagePath.getNameCount() > 0) {
+                        packages.add(packagePath);
+                    }
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
 
   public static TaggedLogger configureLogging() {
     // tinylog freezes its configuration after the first call to any of its

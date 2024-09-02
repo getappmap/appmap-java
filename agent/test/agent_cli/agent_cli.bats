@@ -29,6 +29,8 @@ setup_file() {
   assert_success
   assert_json_contains '.configuration.contents' 'path: pkg1'
   assert_json_contains '.configuration.contents' 'path: pkg2'
+  assert_json_contains '.configuration.contents' 'path: com.example.subprojpkg1'
+  assert_json_contains '.configuration.contents' 'path: com.example.subprojpkg2'
 }
 
 @test "appmap agent init empty project" {
