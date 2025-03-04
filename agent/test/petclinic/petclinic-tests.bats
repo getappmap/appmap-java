@@ -96,7 +96,7 @@ run_petclinic_test() {
 
 @test "NoAppMap on method disables test recording" {
   run_petclinic_test "JUnit5Tests#testAnnotatedMethodNotRecorded"
-  assert_output 'passing annotated test, not recorded'
+  assert_output --partial 'passing annotated test, not recorded'
 
   run test \! -f ./tmp/appmap/junit/org_springframework_samples_petclinic_JUnit5Tests_testAnnotatedMethodNotRecorded.appmap.json
   assert_success
@@ -104,7 +104,7 @@ run_petclinic_test() {
 
 @test "NoAppMap on class disables test recording" {
   run_petclinic_test "JUnit5Tests\$TestClass#testAnnotatedClassNotRecorded"
-  assert_output "passing annotated class, not recorded"
+  assert_output --partial "passing annotated class, not recorded"
 
   run test \! -f ./tmp/appmap/junit/org_springframework_samples_petclinic_JUnit5Tests_testAnnotatedMethodNotRecorded.appmap.json
   assert_success

@@ -1,6 +1,7 @@
 package com.appland.appmap.util;
 
 import com.appland.appmap.config.AppMapConfig;
+import com.appland.appmap.config.Properties;
 
 public class Logger {
   private static final org.tinylog.TaggedLogger logger = AppMapConfig.getLogger(null);
@@ -23,6 +24,17 @@ public class Logger {
 
   public static void error(Throwable t) {
     println(t);
+  }
+
+  /**
+   * Print a message on stderr unless the silent flag is set.
+   * @param format
+   * @param args
+   */
+  public static void printUserMessage(String format, Object... args) {
+    if (!Properties.Silent) {
+      System.err.printf(format, args);
+    }
   }
 
 }

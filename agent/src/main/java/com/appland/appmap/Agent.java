@@ -17,6 +17,7 @@ import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import com.appland.appmap.util.Logger;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.tinylog.TaggedLogger;
@@ -66,8 +67,10 @@ public class Agent {
           "To disable the automatic creation of this log file, set the system property {} to 'true'",
           Properties.DISABLE_LOG_FILE_KEY);
     }
+    String implementationVersion = Agent.class.getPackage().getImplementationVersion();
+    Logger.printUserMessage("AppMap agent version %s starting\n", implementationVersion);
     logger.info("Agent version {}, current time mills: {}",
-        Agent.class.getPackage().getImplementationVersion(), start);
+            implementationVersion, start);
     logger.info("config: {}", AppMapConfig.get());
     logger.info("System properties: {}", System.getProperties());
     logger.debug(new Exception(), "whereAmI");
