@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import com.appland.appmap.util.Logger;
 import org.tinylog.TaggedLogger;
 
 import com.appland.appmap.config.AppMapConfig;
@@ -94,6 +95,7 @@ public class Recording {
             throw new RuntimeException(String.join(", ", errors));
         }
 
+        Logger.printUserMessage("AppMap recording saved to %s\n", targetPath.toAbsolutePath());
         return targetPath;
     }
 

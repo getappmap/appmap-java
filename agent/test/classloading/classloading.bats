@@ -17,7 +17,7 @@ setup_file() {
 }
 
 @test "Proxy" {
-  run \
+  run --separate-stderr \
     ./gradlew ${BATS_VERSION+-q} -PappmapJar="$AGENT_JAR" run --args "TestProxy"
   assert_success
   assert_json_eq ".events[0].defined_class" "com.appland.appmap.test.fixture.helloworld.HelloWorld"
