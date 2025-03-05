@@ -79,47 +79,37 @@ public class Parameters implements Iterable<Value> {
       logger.debug("No code attribute for {}", fqn);
     }
 
-    String[] paramNames = null;
     int numParams = paramTypes.length;
+    String[] paramNames = new String[numParams];
     if (locals != null && numParams > 0) {
       int numLocals = locals.tableLength();
-      
+
       // This is handy when debugging this code, but produces too much
       // noise for general use.
       if (Properties.DebugLocals) {
-        Logger.println("local variables for " + fqn);
+        logger.debug("local variables for {}", fqn);
         for (int idx = 0; idx < numLocals; idx++) {
-          Logger.printf("  %d %s %d\n", idx, locals.variableName(idx), locals.index(idx));
+          logger.debug("  {} {} {}", idx, locals.variableName(idx), locals.index(idx));
         }
       }
 
-      paramNames = new String[numParams];
-      Boolean isStatic = (behavior.getModifiers() & Modifier.STATIC) != 0;
-      int firstParamIdx = isStatic ? 0 : 1; // ignore `this`
-      int localVarIdx = 0;
-      
-      // Scan the local variables until we find the one with an index
-      // that matches the first parameter index.
-      //
-      // In some cases, though, there aren't local variables for the
-      // parameters. For example, the class file for
-      // org.springframework.samples.petclinic.owner.PetTypeFormatter,
-      // has the method
-      // print(Ljava/lang/Object;Ljava/util/Locale;)Ljava/lang/String
-      // in it, which only has a local variable for `this`. This
-      // method isn't in the source file, so I'm not sure where it's
-      // coming from.
-      for (; localVarIdx < numLocals; localVarIdx++) {
-        if (locals.index(localVarIdx) == firstParamIdx) {
-          break;
-        }
-      }
-
-      if (localVarIdx < numLocals) {
-        // Assume the rest of the parameters follow the first.
-        paramNames[0] = locals.variableName(localVarIdx);
-        for (int idx = 1; idx < numParams; idx++) {
-          paramNames[idx] = locals.variableName(localVarIdx + idx);
+      // Iterate through the local variables to find the ones that match the argument slots.
+      // Arguments are pushed into consecutive slots, starting at 0 (for this or the first argument),
+      // and then incrementing by 1 for each argument, unless the argument is an unboxed long or double,
+      // in which case it takes up two slots.
+      int slot = Modifier.isStatic(behavior.getModifiers()) ? 0 : 1; // ignore `this`
+      for (int i = 0; i < numParams; i++) {
+        try {
+          // note that the slot index is not the same as the
+          // parameter index or the local variable index
+          paramNames[i] = locals.variableNameByIndex(slot);
+        } catch (Exception e) {
+          // the debug info might be corrupted or partial, let's not crash in this case
+          logger.debug(e, "Failed to get local variable name for slot {} in {}", slot, fqn);
+        } finally {
+          // note these only correspond to unboxed types — boxed double and long will still have width 1
+          int width = paramTypes[i] == CtClass.doubleType || paramTypes[i] == CtClass.longType ? 2 : 1;
+          slot += width;
         }
       }
     }
@@ -128,7 +118,10 @@ public class Parameters implements Iterable<Value> {
     for (int i = 0; i < paramTypes.length; ++i) {
       // Use a real parameter name if we have it, a fake one if we
       // don't.
-      String paramName = paramNames != null ? paramNames[i] : "p" + i;
+      String paramName = paramNames[i];
+      if (paramName == null) {
+        paramName = "p" + i;
+      }
       Value param = new Value()
           .setClassType(paramTypes[i].getName())
           .setName(paramName)
