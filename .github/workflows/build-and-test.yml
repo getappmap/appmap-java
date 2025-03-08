@@ -1,0 +1,145 @@
+name: Build and test
+on: [push]
+
+jobs:
+  build-and-check:
+    name: Build and check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v4
+        if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Build, check and test
+        run: ./gradlew shadowJar annotation:jar check integrationTest
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Jars
+          path: |
+            agent/build/libs/*.jar
+            annotation/build/libs/*.jar
+
+  test-suite:
+    strategy:
+      matrix:
+        java: ['17', '11', '8']
+    runs-on: ubuntu-latest
+    name: Run test suite with Java ${{ matrix.java }}
+    needs: build-and-check
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        name: Set up Java
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+
+      - name: Suid root tar
+        # Required for the bats libraries cache to restore properly
+        run: sudo chmod +s /bin/tar
+
+      - name: Setup Bats and bats libs
+        id: setup-bats
+        uses: bats-core/bats-action@3.0.0
+
+      - name: Remove suid root tar
+        run: sudo chmod -s /bin/tar
+
+      - uses: sbt/setup-sbt@v1
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Jars
+
+      - name: Clone test projects
+        shell: bash
+        env:
+          BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+          TERM: xterm
+        working-directory: ./agent
+        run: bin/test_projects
+
+      - uses: actions/setup-java@v4
+        name: Set up Gradle cache
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+          cache: gradle
+
+      - uses: actions/setup-java@v4
+        name: Set up Maven cache
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+          cache: maven
+
+      - uses: actions/setup-java@v4
+        name: Set up sbt cache
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
+          cache: sbt
+
+      - name: Build test projects
+        shell: bash
+        env:
+          BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+          TERM: xterm
+        working-directory: ./agent
+        run: bin/test_install
+
+      - name: Run tests
+        shell: bash
+        env:
+          BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+          TERM: xterm
+        working-directory: ./agent
+        run: bin/test_run
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: test-suite
+    if: ${{ github.ref == 'refs/heads/master' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Jars
+      - name: Install semantic-release
+        run: |
+          npm i -g \
+              semantic-release \
+              @semantic-release/exec \
+              @semantic-release/git \
+              @semantic-release/changelog \
+              @google/semantic-release-replace-plugin
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGKEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGPASSWORD }}
+          ORG_GRADLE_PROJECT_ossrhUsername: ${{ secrets.ORG_GRADLE_PROJECT_OSSRHUSERNAME }}
+          ORG_GRADLE_PROJECT_ossrhPassword: ${{ secrets.ORG_GRADLE_PROJECT_OSSRHPASSWORD }}
+        run: semantic-release
