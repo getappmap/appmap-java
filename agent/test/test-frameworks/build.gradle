@@ -17,17 +17,8 @@ sourceSets {
   }
 }
 
-def buildAppmapJar = fileTree('../../../agent/build/libs').matching {
-      include {
-        it.file.name ==~ /appmap-[0-9.]*(-SNAPSHOT)*.jar$/
-      }
-    }.getFiles()[0]
-
-def buildAnnotationJar = fileTree('../../../annotation/build/libs').matching {
-      include {
-        it.file.name ==~ /annotation-[0-9.]*(-SNAPSHOT)*.jar$/
-      }
-    }.getFiles()[0]
+def buildAppmapJar = "$System.env.AGENT_JAR"
+def buildAnnotationJar = "$System.env.ANNOTATION_JAR"
 
 def agentJar = findProperty("agentJar") ?: buildAppmapJar
 def annotationJar = findProperty("annotationJar") ?: buildAnnotationJar

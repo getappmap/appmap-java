@@ -20,11 +20,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-def appmapJar = fileTree('../../build/libs').matching {
-      include {
-        it.file.name ==~ /.*appmap-[0-9.]*(-SNAPSHOT)*.jar$/
-      }
-    }.getFiles()[0]
+def appmapJar = "$System.env.AGENT_JAR"
 
 test {
 	useJUnitPlatform()

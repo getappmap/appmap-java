@@ -122,12 +122,24 @@ _top_level() {
 
 
 find_agent_jar() {
-  find "$(_top_level)/agent/build/libs" -name 'appmap-[[:digit:]]*.jar'
+  if [[ -n "$AGENT_JAR" ]]; then
+    echo "$AGENT_JAR"
+    return
+  fi
+  find "$(_top_level)" -name 'appmap-[[:digit:]]*.jar'
 }
 
+export AGENT_JAR="$(find_agent_jar)"
+
 find_annotation_jar() {
-  find "$(_top_level)/annotation/build/libs" -name 'annotation-[[:digit:]]*.jar'
+  if [[ -n "$ANNOTATION_JAR" ]]; then
+    echo "$ANNOTATION_JAR"
+    return
+  fi
+  find "$(_top_level)" -name 'annotation-[[:digit:]]*.jar'
 }
+
+export ANNOTATION_JAR="$(find_annotation_jar)"
 
 check_ws_running() {
   printf 'checking for running web server\n'

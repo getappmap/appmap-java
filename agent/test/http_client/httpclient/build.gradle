@@ -16,18 +16,8 @@ sourceSets {
   }
 }
 
-// TODO: look at consolidating this with the gradle config in httpcore
-def appmapJar = fileTree('../../../build/libs').matching {
-      include {
-        it.file.name ==~ /.*appmap-[0-9.]*(-SNAPSHOT)*.jar$/
-      }
-    }.getFiles()[0]
-
-def annotationJar = fileTree('../../../../annotation/build/libs').matching {
-      include {
-        it.file.name ==~ /.*annotation-[0-9.]*(-SNAPSHOT)*.jar$/
-      }
-    }.getFiles()[0]
+def appmapJar = "$System.env.AGENT_JAR"
+def annotationJar = "$System.env.ANNOTATION_JAR"
 
 if (!appmapJar || !annotationJar) {
   throw new GradleException("missing jars\n  appmapJar: ${appmapJar}\n  annotationJar: ${annotationJar}");
