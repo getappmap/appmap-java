@@ -137,7 +137,7 @@ setup() {
   eval $(java -cp test/petclinic/classes petclinic.Props java.vm.version java.vm.name)
   assert_json '.metadata.name'
   assert_json_eq '.metadata.language.name' 'java'
-  assert_json_eq '.metadata.language.version' "${JAVA_VM_VERSION}"
+  assert_json_eq '.metadata.language.version' "${JAVA_RUNTIME_VERSION}"
   assert_json_eq '.metadata.language.engine' "${JAVA_VM_NAME}"
 
   assert_json_eq '.metadata.git.repository' 'https://github.com/spring-projects/spring-petclinic.git'
