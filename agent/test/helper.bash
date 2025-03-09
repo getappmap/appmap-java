@@ -36,6 +36,8 @@ _tests_helper() {
 
 _tests_helper
 
+export LC_ALL=C
+
 stop_recording() {
   local out="${1:-$BATS_TEST_TMPDIR/stop_recording_output}"
   _curl -sXDELETE -o "$out" "${WS_URL}/_appmap/record" || true
