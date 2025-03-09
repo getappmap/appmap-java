@@ -6,8 +6,6 @@
 # If running locally, keep in mind that this application will cache SQL results,
 # likely causing subsequent test runs to fail.
 
-load '../../build/bats/bats-support/load'
-load '../../build/bats/bats-assert/load'
 load '../helper'
 load '../petclinic-shared/shared-setup.bash'
 

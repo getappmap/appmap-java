@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 
-load '../../build/bats/bats-support/load'
-load '../../build/bats/bats-assert/load'
 load '../helper'
 
 load '../petclinic-shared/shared-setup.bash'

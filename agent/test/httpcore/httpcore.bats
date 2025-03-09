@@ -5,8 +5,6 @@
 # return the appropriate response.
 
 
-load '../../build/bats/bats-support/load'
-load '../../build/bats/bats-assert/load'
 load '../helper'
 
 setup_file() {

@@ -4,6 +4,6 @@ set -e
 
 java -version
 
-source ./bin/test_install
+./bin/test_install
 
 ./bin/test_run "$@"
