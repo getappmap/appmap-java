@@ -54,3 +54,5 @@ install_petclinic "spring-projects/spring-petclinic" 9cb8dde9
   -PannotationJar="${ANNOTATION_JAR}"
 
 install_petclinic "spring-petclinic/spring-framework-petclinic"
+
+../gradlew testClasses
