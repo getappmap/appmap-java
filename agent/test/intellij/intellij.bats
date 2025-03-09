@@ -24,7 +24,7 @@ setup() {
   rm -rf tmp/appmap
 
   ./gradlew clean
-  mkdir build
+  mkdir -p build
   cp "${AGENT_JAR}" build/appmap-agent.jar
 }
 
