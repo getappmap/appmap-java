@@ -49,7 +49,7 @@ teardown() {
   if [[ -z "$BATS_TEST_COMPLETED" ]]; then
     # Letting output go to stdout is more helpful than redirecting to fd 3.
     echo "${BATS_TEST_NAME} failed"
-    cat "${FIXTURE_DIR}/appmap.log"
+    [[ -n "$FIXTURE_DIR" ]] && cat "${FIXTURE_DIR}/appmap.log"
   fi
 }
 
