@@ -45,6 +45,10 @@ task test_junit(type: Test) {
 
 task test_testng(type: Test) {
   useTestNG()
+  testLogging {
+    showStandardStreams = true
+  }
+
   jvmArgs += addAgentArgs
 }
 
