@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+fixture_dir=$PWD/build/fixtures
+mkdir -p build/fixtures
+
+source "test/helper.bash"
+export ANNOTATION_JAR="$(find_annotation_jar)"
+
+function is_old_java {
+  local version="$1"
+  [[ "$version" == 1.8* ]] || [[ "$version" == 11.* ]]
+}
+
+function install_petclinic (
+  local repo="$1"; shift
+  local branch=${1:-main}
+  local pkg="$(basename $repo)"
+
+  if [[ -d "build/fixtures/${pkg}" ]]; then
+    echo "Fixture already exists: ${pkg}"
+    return
+  fi
+
+  cd build/fixtures
+
+  rm -rf "${pkg}"
+  git clone https://github.com/"${repo}".git --depth 1 --branch "${branch}"
+  cd "${pkg}"
+
+  cd ../../..
+)
+
+function install_scala_test_app {
+  if [[ -d "test/scala/play-samples" ]]; then
+    echo "Fixture already exists: play-samples"
+    return
+  fi
+  cd test/scala
+  rm -rf play-samples
+  local branch=3.0.x
+  case "${JAVA_VERSION}" in
+    1.8*)
+      branch=2.8.x
+      ;;
+    11.*)
+      branch=2.9.x
+      ;;
+  esac
+  git clone --no-checkout https://github.com/playframework/play-samples.git --depth 1 --branch $branch
+  cd play-samples
+  git sparse-checkout set play-scala-rest-api-example
+  git checkout
+  cp ../logback-test.xml play-scala-rest-api-example/conf/.
+  cd ../../..
+}
+
+if is_old_java "$JAVA_VERSION"; then
+  install_petclinic "land-of-apps/spring-petclinic" old-java-support
+else
+  install_petclinic "spring-projects/spring-petclinic"
+  install_petclinic "spring-petclinic/spring-framework-petclinic"
+fi
+
+../gradlew :pomupdater:run -PmainClass=com.appland.appmap.util.PomUpdater \
+  -PpomFile="$PWD/build/fixtures/spring-petclinic/pom.xml" \
+  -PannotationJar="${ANNOTATION_JAR}"
+
+install_scala_test_app

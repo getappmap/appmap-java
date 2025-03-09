@@ -1,22 +1,5 @@
 load '../helper'
 
-init_example() (
-    git clone --no-checkout https://github.com/playframework/play-samples.git
-    cd play-samples
-    git sparse-checkout set play-scala-rest-api-example
-    local branch=3.0.x
-    case "${JAVA_VERSION}" in
-      1.8*)
-        branch=2.8.x
-        ;;
-      11.*)
-        branch=2.9.x
-        ;;
-    esac
-    git checkout $branch
-    cp ../logback-test.xml play-scala-rest-api-example/conf/.
-)
-
 setup_file() {
   export AGENT_JAR="$(find_agent_jar)"
   export FIXTURE_DIR="play-samples/play-scala-rest-api-example"
@@ -24,7 +7,8 @@ setup_file() {
   _configure_logging
 
   if [[ ! -d "${FIXTURE_DIR}" ]]; then
-    init_example
+    echo Run test_install first.
+    exit 1
   fi
 }
 
