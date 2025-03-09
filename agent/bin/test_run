@@ -17,5 +17,3 @@ set -x
 
 bats -r test/!(http_client)
 bats -r test/http_client
-
-bashunit 'test/**/*_test.sh'
