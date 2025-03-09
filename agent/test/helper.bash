@@ -3,6 +3,8 @@
 # Helper methods for tests
 
 export JAVA_PATH_SEPARATOR="$(java -XshowSettings:properties 2>&1 | awk '/path.separator/ {printf("%s", $3)}')"
+[ -z "$JAVA_HOME" ] && export JAVA_HOME="$(java -XshowSettings:properties 2>&1 | awk '/java.home/ {printf("%s", $3)}')"
+export JAVA_HOME
 source "$JAVA_HOME/release"
 export JAVA_VERSION
 
