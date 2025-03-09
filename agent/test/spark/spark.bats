@@ -1,5 +1,3 @@
-load '../../build/bats/bats-support/load'
-load '../../build/bats/bats-assert/load'
 load '../helper'
 
 recording_dir="app/tmp/appmap/request_recording"

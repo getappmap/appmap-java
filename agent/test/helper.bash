@@ -24,6 +24,16 @@ start_recording() {
   _curl -sXPOST "${WS_URL}/_appmap/record"
 }
 
+_tests_helper() {
+  export BATS_LIB_PATH=${BATS_LIB_PATH:-"/usr/lib"}
+  if type -t bats_load_library &>/dev/null; then
+    bats_load_library bats-support
+    bats_load_library bats-assert
+  fi
+}
+
+_tests_helper
+
 stop_recording() {
   local out="${1:-$BATS_TEST_TMPDIR/stop_recording_output}"
   _curl -sXDELETE -o "$out" "${WS_URL}/_appmap/record" || true

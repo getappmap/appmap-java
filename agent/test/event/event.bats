@@ -1,7 +1,5 @@
 #!/usr/bin/env bats
 
-load '../../build/bats/bats-support/load'
-load '../../build/bats/bats-assert/load'
 load '../helper'
 
 sep="$JAVA_PATH_SEPARATOR"
