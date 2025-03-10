@@ -9,11 +9,9 @@ _test_form_data_is_recorded_as_message_parameters() {
   local out="$BATS_TEST_TMPDIR/stop_recording_output"
   stop_recording "${out}"
 
-  # run npx in a subshell so we can redirect stderr
-  run bash -c "npx --yes @appland/appmap@latest prune --output-data \"${out}\" 2>/dev/null"
-  assert_success
 
-  run jq -r '[.events[] | select(.http_server_request.normalized_path_info == "/owners/{ownerId}/edit") | .message[] | .name] | join(",")' <<< "${output}"
+
+  run jq -r '[(.events[], .eventUpdates[]) | select(.http_server_request.normalized_path_info == "/owners/{ownerId}/edit") | .message[] | .name] | join(",")' <<< "${output}"
   assert_output 'firstName,lastName,address,city,telephone'
 }
 
