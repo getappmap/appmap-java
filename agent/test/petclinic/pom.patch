@@ -1,0 +1,51 @@
+diff --git a/pom.xml b/pom.xml
+index 27fb9a6..d17781f 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -57,6 +57,19 @@
+     <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-web</artifactId>
++      <exclusions>
++        <exclusion>
++          <groupId>org.springframework.boot</groupId>
++          <artifactId>spring-boot-starter-tomcat</artifactId>
++        </exclusion>
++      </exclusions>
++    </dependency>
++    <dependency>
++      <groupId>com.appland</groupId>
++      <artifactId>annotation</artifactId>
++      <version>LATEST</version>
++      <scope>system</scope>
++      <systemPath>${env.ANNOTATION_JAR}</systemPath>
+     </dependency>
+     <dependency>
+       <groupId>org.springframework.boot</groupId>
+@@ -451,5 +464,26 @@
+         </pluginManagement>
+       </build>
+     </profile>
++    <profile>
++      <id>tomcat</id>
++      <activation>
++        <activeByDefault>true</activeByDefault>
++      </activation>
++      <dependencies>
++        <dependency>
++          <groupId>org.springframework.boot</groupId>
++          <artifactId>spring-boot-starter-tomcat</artifactId>
++        </dependency>
++      </dependencies>
++    </profile>
++    <profile>
++      <id>jetty</id>
++      <dependencies>
++        <dependency>
++          <groupId>org.springframework.boot</groupId>
++          <artifactId>spring-boot-starter-jetty</artifactId>
++        </dependency>
++      </dependencies>
++    </profile>
+   </profiles>
+ </project>
