@@ -61,8 +61,7 @@ else
   install_petclinic "spring-petclinic/spring-framework-petclinic"
 fi
 
-../gradlew :pomupdater:run -PmainClass=com.appland.appmap.util.PomUpdater \
-  -PpomFile="$PWD/build/fixtures/spring-petclinic/pom.xml" \
-  -PannotationJar="${ANNOTATION_JAR}"
+patch -N -p1 -d build/fixtures/spring-petclinic < test/petclinic/pom.patch
+
 
 install_scala_test_app

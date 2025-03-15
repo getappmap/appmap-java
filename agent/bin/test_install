@@ -2,6 +2,8 @@
 
 set -e
 
+. test/helper.bash
+
 for d in build/fixtures/*; do
   cd "$d"
   ./mvnw package -quiet -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true
