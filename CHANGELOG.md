@@ -1,3 +1,10 @@
+## [1.27.2](https://github.com/getappmap/appmap-java/compare/v1.27.1...v1.27.2) (2025-03-24)
+
+
+### Bug Fixes
+
+* More robust java metadata matching ([102adfa](https://github.com/getappmap/appmap-java/commit/102adfac9d4f174b8246a8a3a0cb709311003a3d))
+
 ## [1.27.1](https://github.com/getappmap/appmap-java/compare/v1.27.0...v1.27.1) (2024-09-02)
 
 
