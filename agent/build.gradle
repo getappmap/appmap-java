@@ -57,7 +57,7 @@ dependencies {
   implementation 'org.apache.commons:commons-lang3:3.10'
   implementation 'commons-io:commons-io:2.15.1'
   implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2'
-  implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.2.2'
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.4.2'
   implementation 'org.slf4j:slf4j-nop:1.7.30'
   implementation 'info.picocli:picocli:4.6.1'
   implementation 'org.apache.httpcomponents:httpcore-nio:4.4.15'
