@@ -14,8 +14,6 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: false
 
       - name: Generate and submit dependency graph
         uses: gradle/actions/dependency-submission@v4
@@ -118,6 +116,8 @@ jobs:
     if: ${{ github.ref == 'refs/heads/master' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
