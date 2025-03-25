@@ -1,3 +1,15 @@
+# [1.28.0](https://github.com/getappmap/appmap-java/compare/v1.27.2...v1.28.0) (2025-03-25)
+
+
+### Bug Fixes
+
+* More robust handling of LVT when resolving parameters ([1f630ff](https://github.com/getappmap/appmap-java/commit/1f630ff02f271e10f0ce0a7b93c1875d80b575e7)), closes [#293](https://github.com/getappmap/appmap-java/issues/293)
+
+
+### Features
+
+* Show basic information messages ([d71b1a1](https://github.com/getappmap/appmap-java/commit/d71b1a127c02273fee084a7046a677f29db19237))
+
 ## [1.27.2](https://github.com/getappmap/appmap-java/compare/v1.27.1...v1.27.2) (2025-03-24)
 
 
