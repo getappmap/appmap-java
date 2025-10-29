@@ -6,14 +6,9 @@ mkdir -p build/fixtures
 source "test/helper.bash"
 export ANNOTATION_JAR="$(find_annotation_jar)"
 
-function is_old_java {
-  local version="$1"
-  [[ "$version" == 1.8* ]] || [[ "$version" == 11.* ]]
-}
-
 function install_petclinic (
   local repo="$1"; shift
-  local branch=${1:-main}
+  local ref=${1:-main}
   local pkg="$(basename $repo)"
 
   if [[ -d "build/fixtures/${pkg}" ]]; then
@@ -24,8 +19,28 @@ function install_petclinic (
   cd build/fixtures
 
   rm -rf "${pkg}"
-  git clone https://github.com/"${repo}".git --depth 1 --branch "${branch}"
-  cd "${pkg}"
+
+  if [[ "${#ref}" == 40 ]]; then
+    # It's a commit hash, download archive
+    echo "Downloading archive for ${repo} at commit ${ref}"
+    curl -L "https://github.com/${repo}/archive/${ref}.tar.gz" | tar xz
+    mv "${pkg}-${ref}" "${pkg}"
+    cd "${pkg}"
+    # The archive doesn't include git history, but the tests rely on it for
+    # metadata. We create a fresh git repo to satisfy the tests.
+    git init
+    git config user.email "test@example.com"
+    git config user.name "Test User"
+    git remote add origin "https://github.com/${repo}.git"
+    git add .
+    git commit -m "Initial commit"
+  else
+    # It's a branch, use git clone
+    echo "Cloning ${repo} at branch ${ref}"
+    git clone https://github.com/"${repo}".git --depth 1 --branch "${ref}"
+    cd "${pkg}"
+  fi
+
 
   cd ../../..
 )
@@ -54,12 +69,20 @@ function install_scala_test_app {
   cd ../../..
 }
 
-if is_old_java "$JAVA_VERSION"; then
-  install_petclinic "land-of-apps/spring-petclinic" old-java-support
-else
-  install_petclinic "spring-projects/spring-petclinic"
-  install_petclinic "spring-petclinic/spring-framework-petclinic"
-fi
+case "${JAVA_VERSION}" in
+  1.8*|11.*)
+    install_petclinic "land-of-apps/spring-petclinic" old-java-support
+    ;;
+  17.*)
+    # The spring-petclinic main branch now requires Java 25. This is the last commit that supports Java 17.
+    install_petclinic "spring-projects/spring-petclinic" "3aa79e3944ab1b626288f5d0629e61643ab8fb4a"
+    install_petclinic "spring-petclinic/spring-framework-petclinic"
+    ;;
+  *) # For Java 25+
+    install_petclinic "spring-projects/spring-petclinic" "main"
+    install_petclinic "spring-petclinic/spring-framework-petclinic"
+    ;;
+esac
 
 patch -N -p1 -d build/fixtures/spring-petclinic < test/petclinic/pom.patch
 
