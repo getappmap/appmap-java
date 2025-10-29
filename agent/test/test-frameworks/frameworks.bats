@@ -52,7 +52,7 @@ run_framework_test() {
   
   assert_json_eq '.metadata.test_status' "failed"
   assert_json_contains '.metadata.test_failure.message' 'false is not true'
-  assert_json_eq '.metadata.test_failure.location' "src/test/java/org/springframework/samples/petclinic/JunitTests.java:20"
+  assert_json_eq '.metadata.test_failure.location' "src/test/java/org/springframework/samples/petclinic/JunitTests.java:23"
 }
 
 @test "test status set for failed test in testng" {
@@ -104,4 +104,12 @@ run_framework_test() {
   
   output="$(< tmp/appmap/testng/org_springframework_samples_petclinic_TestngTests_testItThrows.appmap.json)"
   assert_json_eq '.metadata.test_status' "succeeded"
+}
+
+@test "No InternalError on different thread exception" {
+  run_framework_test "junit" "JunitTests.offThreadExceptionTest"
+  assert_failure
+  # The test should fail with a RuntimeException, but not an InternalError
+  assert_output --partial "java.lang.RuntimeException"
+  refute_output --partial "java.lang.InternalError"
 }

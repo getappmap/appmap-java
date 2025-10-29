@@ -63,19 +63,61 @@ class TestSupport {
     RecordingSupport.startRecording(details, metadata);
   }
 
+  /**
+   * Finds the most relevant stack frame for a test failure.
+   *
+   * The primary goal is to find the stack frame that corresponds to the test
+   * class itself. However, in some scenarios (e.g., when an assertion fails on
+   * a different thread), the test class may not be in the stack trace at all.
+   *
+   * To handle this, we use a fallback heuristic: we find the stack frame that
+   * has the longest common package prefix with the test class. This is usually
+   * the entry point into the user's code and the most likely source of the
+   * failure.
+   *
+   * @param self      The test class instance
+   * @param exception The exception that caused the failure
+   * @return The most relevant stack frame
+   * @throws InternalError if no suitable stack frame can be found
+   */
   static StackTraceElement findErrorFrame(Object self, Throwable exception) throws InternalError {
     String selfClass = self.getClass().getName();
-    StackTraceElement errorFrame = null;
+    StackTraceElement bestMatch = null;
+    int bestMatchLength = 0;
+
     for (StackTraceElement frame : exception.getStackTrace()) {
-      if (frame.getClassName().equals(selfClass)) {
-        errorFrame = frame;
-        break;
+      final String frameClassName = frame.getClassName();
+      if (frameClassName.equals(selfClass)) {
+        // This is the ideal case: we found the test class in the stack trace.
+        return frame;
+      }
+
+      int commonPrefix = commonPrefixLength(selfClass, frameClassName);
+      if (commonPrefix >= bestMatchLength) {
+        // We use >= to get the last best match, which is the most likely to be
+        // the entry point into the user's code.
+        bestMatch = frame;
+        bestMatchLength = commonPrefix;
       }
     }
-    if (errorFrame == null) {
-      throw new InternalError("no stack frame matched test class");
+
+    if (bestMatch != null) {
+      // We didn't find the test class, but we have a good fallback.
+      return bestMatch;
     }
-    return errorFrame;
+
+    // This can happen if the exception has an empty stack trace, which is rare
+    // but possible.
+    throw new InternalError("no stack frame matched test class");
+  }
+
+  private static int commonPrefixLength(String s1, String s2) {
+    int len = Math.min(s1.length(), s2.length());
+    int i = 0;
+    while (i < len && s1.charAt(i) == s2.charAt(i)) {
+      i++;
+    }
+    return i;
   }
 
   private static boolean hasTestAnnotation(ClassLoader cl, Method stackMethod) {
