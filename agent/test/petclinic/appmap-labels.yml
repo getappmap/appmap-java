@@ -8,3 +8,8 @@ packages:
     name: (info|debug)
     labels: [log]
 
+- path: org.apache.commons.logging.impl
+  methods:
+  - class: Slf4jLogFactory\$Slf4jLocationAwareLog
+    name: (info|debug)
+    labels: [log]
