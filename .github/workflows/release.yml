@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: ["Build and test"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run in dry-run mode (no publish)"
+        required: false
+        default: "true"
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    concurrency:
+      group: "release"
+      cancel-in-progress: true
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master')
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: gradle
+      - name: Setup node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+      - name: Install semantic-release
+        shell: bash
+        run: |
+          npm i -g \
+              semantic-release \
+              @semantic-release/exec \
+              @semantic-release/git \
+              @semantic-release/changelog \
+              @google/semantic-release-replace-plugin
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGKEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGPASSWORD }}
+          ORG_GRADLE_PROJECT_ossrhUsername: ${{ secrets.ORG_GRADLE_PROJECT_OSSRHUSERNAME }}
+          ORG_GRADLE_PROJECT_ossrhPassword: ${{ secrets.ORG_GRADLE_PROJECT_OSSRHPASSWORD }}
+        shell: bash
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            semantic-release --dry-run
+          else
+            semantic-release
+          fi

@@ -108,38 +108,3 @@ jobs:
           TERM: xterm
         working-directory: ./agent
         run: bin/test_run
-
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    needs: test-suite
-    if: ${{ github.ref == 'refs/heads/master' }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: Jars
-      - name: Install semantic-release
-        run: |
-          npm i -g \
-              semantic-release \
-              @semantic-release/exec \
-              @semantic-release/git \
-              @semantic-release/changelog \
-              @google/semantic-release-replace-plugin
-      - name: Run semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGKEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGPASSWORD }}
-          ORG_GRADLE_PROJECT_ossrhUsername: ${{ secrets.ORG_GRADLE_PROJECT_OSSRHUSERNAME }}
-          ORG_GRADLE_PROJECT_ossrhPassword: ${{ secrets.ORG_GRADLE_PROJECT_OSSRHPASSWORD }}
-        run: semantic-release
