@@ -124,9 +124,6 @@ jobs:
           distribution: 'temurin'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: Jars
       - name: Install semantic-release
         run: |
           npm i -g \

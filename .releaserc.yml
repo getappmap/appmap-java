@@ -22,3 +22,4 @@ plugins:
   - - '@semantic-release/github'
     - assets:
         - agent/build/libs/appmap-*.jar*
+        - annotation/build/libs/annotation-*.jar*
