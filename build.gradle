@@ -29,8 +29,8 @@ nexusPublishing {
             // solely in order to allow building artifacts 
             // without runtime configuration (e.g. in context of Docker build)
 
-            // see https://central.sonatype.org/pages/gradle.html
-            def default_base        = "https://s01.oss.sonatype.org"
+            // see https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/
+            def default_base        = "https://ossrh-staging-api.central.sonatype.com"
             def url_base            = findProperty("mavenRepoURL") ?: default_base
 
             nexusUrl                = uri(  url_base + "/service/local/")
