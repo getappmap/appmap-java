@@ -54,7 +54,7 @@ dependencies {
   implementation "org.javassist:javassist:${javassistVersion}"
   implementation 'org.reflections:reflections:0.9.11'
   implementation 'net.bytebuddy:byte-buddy:1.14.10'
-  implementation 'org.apache.commons:commons-lang3:3.10'
+  implementation 'org.apache.commons:commons-lang3:3.18.0'
   implementation 'commons-io:commons-io:2.15.1'
   implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2'
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.4.2'
