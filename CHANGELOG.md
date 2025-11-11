@@ -1,3 +1,10 @@
+## [1.28.1](https://github.com/getappmap/appmap-java/compare/v1.28.0...v1.28.1) (2025-11-11)
+
+
+### Bug Fixes
+
+* Prevent crash when test fails on a different thread ([c7525c6](https://github.com/getappmap/appmap-java/commit/c7525c6da909cb2ad73baef320f0bb490e356469))
+
 # [1.28.0](https://github.com/getappmap/appmap-java/compare/v1.27.2...v1.28.0) (2025-03-25)
 
 
