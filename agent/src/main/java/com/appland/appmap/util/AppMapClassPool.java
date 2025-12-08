@@ -3,6 +3,7 @@ package com.appland.appmap.util;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import com.appland.appmap.Agent;
 import javassist.ClassPool;
 import javassist.LoaderClassPath;
 
@@ -13,6 +14,7 @@ public class AppMapClassPool {
   public static ClassPool acquire(ClassLoader classLoader) {
     ClassPool ret = new ClassPool();
     ret.appendClassPath(new LoaderClassPath(classLoader));
+    ret.appendClassPath(new LoaderClassPath(Agent.class.getClassLoader()));
     threadPoolQueue.get().push(ret);
     return ret;
   }
