@@ -154,7 +154,8 @@ check_ws_running() {
 }
 
 wait_for_ws() {
-  while ! curl -Isf "${WS_URL}" >/dev/null; do
+  local url="${1:-$WS_URL}"
+  while ! curl -Isf "${url}" >/dev/null; do
     if ! jcmd $JVM_MAIN_CLASS VM.uptime >&/dev/null; then
       echo "$JVM_MAIN_CLASS failed"
       exit 1

@@ -1,0 +1,27 @@
+plugins {
+  id 'war'
+  id 'org.gretty' version '4.1.6'
+}
+
+repositories {
+  mavenCentral()
+}
+
+def appmapJar = System.env.AGENT_JAR
+
+gretty {
+  servletContainer = 'tomcat10'
+  contextPath = '/'
+  jvmArgs = [
+    "-Dappmap.config.file=appmap.yml",
+    "-Dappmap.debug.file=../../build/logs/gretty-tomcat-appmap.log"
+  ]
+  if (appmapJar) {
+      jvmArgs << "-javaagent:${appmapJar}"
+  }
+}
+
+dependencies {
+  providedCompile 'jakarta.servlet:jakarta.servlet-api:5.0.0'
+}
+
