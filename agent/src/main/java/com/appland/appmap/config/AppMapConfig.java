@@ -365,6 +365,25 @@ public class AppMapConfig {
 
   @Override
   public String toString() {
-    return JSON.toJSONString(this, true);
+    StringBuilder sb = new StringBuilder();
+    sb.append("name: ").append(name).append("\n");
+    if (configFile != null) {
+      sb.append("configFile: ").append(configFile).append("\n");
+    }
+    sb.append("packages: ");
+    if (packages == null || packages.length == 0) {
+      sb.append("[]");
+    } else {
+      for (AppMapPackage pkg : packages) {
+        sb.append("\n  - path: ").append(pkg.path);
+        if (pkg.shallow) {
+          sb.append("\n    shallow: true");
+        }
+        if (pkg.exclude != null && pkg.exclude.length > 0) {
+          sb.append("\n    exclude: ").append(Arrays.toString(pkg.exclude));
+        }
+      }
+    }
+    return sb.toString();
   }
 }

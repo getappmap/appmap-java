@@ -213,7 +213,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
           }
 
           if (traceClass) {
-            logger.trace("hooked {}.{}{} on ({},{}) with {}",
+            logger.debug("hooked {}.{}{} on ({},{}) with {}",
                 className,
                 behavior.getName(),
                 behavior.getMethodInfo().getDescriptor(),
@@ -292,7 +292,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       try {
         ClassPool classPool = AppMapClassPool.get();
         if (traceClass) {
-          logger.debug("className: {}", className);
+          logger.trace("className: {}", className);
         }
 
         ctClass = classPool.makeClass(new ByteArrayInputStream(bytes));
@@ -347,7 +347,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         AnnotationUtil.setAnnotation(new AnnotatedClass(ctClass), annot);
 
         if (traceClass) {
-          logger.trace("hooks applied to {}", className);
+          logger.debug("hooks applied to {}", className);
         }
         if (logger.isDebugEnabled()) {
           packagesHooked.compute(ctClass.getPackageName(), (k, v) -> v == null ? 1 : v + 1);

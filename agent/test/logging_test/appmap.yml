@@ -1,0 +1,3 @@
+name: logging-test-app
+packages:
+  - path: com.example
