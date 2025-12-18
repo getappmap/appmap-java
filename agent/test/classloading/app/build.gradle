@@ -47,12 +47,21 @@ application {
     // Define the main class for the application.
     mainClass = 'com.appland.appmap.test.fixture.Runner'
     def libJar = tasks.getByPath(':lib:jar').outputs.files.singleFile
+
+    // Allow testing with bootstrap classpath instead of javaagent
+    def useBootstrapClasspath = findProperty("useBootstrapClasspath") == "true"
+
     applicationDefaultJvmArgs += [
-      "-javaagent:${appmapJar}",
-      /*"-Dsun.misc.URLClassPath.debug",*/
-      "-DtestJars=${configurations.servlet.asPath};${libJar}",
-      "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}"
+        "-javaagent:${appmapJar}",
+        /*"-Dsun.misc.URLClassPath.debug",*/
+        "-DtestJars=${configurations.servlet.asPath};${libJar}",
+        "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}"
     ]
+    if (useBootstrapClasspath) {
+        applicationDefaultJvmArgs += [
+          "-Xbootclasspath/a:${appmapJar}",
+        ]
+    }
 }
 
 tasks.named('test') {
