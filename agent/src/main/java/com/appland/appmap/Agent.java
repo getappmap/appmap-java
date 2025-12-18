@@ -74,6 +74,10 @@ public class Agent {
     logger.info("config: {}", AppMapConfig.get());
     logger.debug("System properties: {}", System.getProperties());
 
+    if (Agent.class.getClassLoader() == null) {
+      logger.warn("AppMap agent is running on the bootstrap classpath. This is not a recommended configuration and should only be used for troubleshooting. Git integration will be disabled.");
+    }
+
     addAgentJars(agentArgs, inst);
 
 
@@ -162,12 +166,18 @@ public class Agent {
     Path agentJarPath = null;
     try {
       Class<Agent> agentClass = Agent.class;
-      URL resourceURL = agentClass.getClassLoader()
-          .getResource(agentClass.getName().replace('.', '/') + ".class");
+      // When the agent is loaded by the bootstrap class loader (e.g., via -Xbootclasspath/a:),
+      // agentClass.getClassLoader() returns null, leading to a NullPointerException. To handle
+      // this, we use Class.getResource() which correctly resolves resources even when the
+      // class is loaded by the bootstrap class loader. The leading '/' in the resource name
+      // is crucial for absolute path resolution when using Class.getResource().
+      URL resourceURL = agentClass.getResource("/" + agentClass.getName().replace('.', '/') + ".class");
+
       // During testing of the agent itself, classes get loaded from a directory, and will have the
       // protocol "file". The rest of the time (i.e. when it's actually deployed), they'll always
-      // come from a jar file.
-      if (resourceURL.getProtocol().equals("jar")) {
+      // come from a jar file. We must also check that resourceURL is not null before using it,
+      // as getResource() can return null if the resource is not found.
+      if (resourceURL != null && resourceURL.getProtocol().equals("jar")) {
         String resourcePath = resourceURL.getPath();
         URL jarURL = new URL(resourcePath.substring(0, resourcePath.indexOf('!')));
         logger.debug("jarURL: {}", jarURL);
