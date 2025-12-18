@@ -14,6 +14,13 @@ export JAVA_VERSION
 export JAVA_OUTPUT_OPTIONS="-Xshare:off"
 
 
+_require_java_version() {
+  local required_version=$1
+  if [[ "$(echo -e "$required_version\n$JAVA_VERSION" | sort -V | head -n1)" != "$required_version" ]]; then
+    skip "Java version $required_version or higher is required (current: $JAVA_VERSION)"
+  fi
+}
+
 _curl() {
   curl -sfH 'Accept: application/json,*/*' "${@}"
 }

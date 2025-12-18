@@ -3,6 +3,8 @@
 load '../helper'
 
 setup_file() {
+  _require_java_version 11
+
   mkdir -p build/log
 
   export LOG="$(getcwd)/build/log/gretty-tomcat.log"
