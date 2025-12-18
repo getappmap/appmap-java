@@ -21,7 +21,12 @@ public class Properties {
   public static final String DebugClassPrefix = resolveProperty("appmap.debug.classPrefix", (String) null);
   public static final Boolean SaveInstrumented =
       resolveProperty("appmap.debug.saveInstrumented", false);
-  public static final Boolean DisableGit = resolveProperty("appmap.debug.disableGit", false);
+  public static final Boolean DisableGit =
+      // Git integration (JGit) uses resource bundles, which are not reliably available
+      // when the agent is loaded by the bootstrap class loader (i.e., when
+      // getClassLoader() returns null). In such cases, automatically disable Git
+      // to prevent NullPointerExceptions during initialization.
+      resolveProperty("appmap.debug.disableGit", Properties.class.getClassLoader() == null);
 
   public static final Boolean RecordingAuto = resolveProperty("appmap.recording.auto", false);
   public static final String RecordingName = resolveProperty("appmap.recording.name", (String) null);
