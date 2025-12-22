@@ -153,7 +153,21 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     return methodHooks != null ? methodHooks : sortedUnkeyedHooks;
   }
 
+  private boolean isExcludedHook(String className) {
+    for (String excluded : Properties.ExcludedHooks) {
+      if (className.equals(excluded)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private void processClass(CtClass ctClass) {
+    if (isExcludedHook(ctClass.getName())) {
+      logger.debug("excluding hook class {}", ctClass.getName());
+      return;
+    }
+
     boolean traceClass = tracePrefix == null || ctClass.getName().startsWith(tracePrefix);
 
     if (traceClass) {
