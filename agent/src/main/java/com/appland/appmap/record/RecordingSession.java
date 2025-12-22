@@ -1,12 +1,7 @@
 package com.appland.appmap.record;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.RandomAccessFile;
-import java.io.Writer;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -98,7 +93,7 @@ public class RecordingSession {
         public void write(int b) throws IOException {
           raf.write(b);
         }
-      });
+      }, StandardCharsets.UTF_8);
       raf.seek(targetPath.toFile().length());
 
       if (  eventReceived ) {
@@ -162,7 +157,7 @@ public class RecordingSession {
     try {
       this.tmpPath = Files.createTempFile(null, ".appmap.json");
       this.tmpPath.toFile().deleteOnExit();
-      this.serializer = AppMapSerializer.open(new FileWriter(this.tmpPath.toFile()));
+      this.serializer = AppMapSerializer.open(new OutputStreamWriter(new FileOutputStream(this.tmpPath.toFile()), StandardCharsets.UTF_8));
     } catch (IOException e) {
       this.tmpPath = null;
       this.serializer = null;
