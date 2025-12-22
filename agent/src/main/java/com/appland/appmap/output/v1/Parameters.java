@@ -98,6 +98,8 @@ public class Parameters implements Iterable<Value> {
       // and then incrementing by 1 for each argument, unless the argument is an unboxed long or double,
       // in which case it takes up two slots.
       int slot = Modifier.isStatic(behavior.getModifiers()) ? 0 : 1; // ignore `this`
+      boolean lookupFailed = false;
+      String failureMessage = "";
       for (int i = 0; i < numParams; i++) {
         try {
           // note that the slot index is not the same as the
@@ -105,12 +107,17 @@ public class Parameters implements Iterable<Value> {
           paramNames[i] = locals.variableNameByIndex(slot);
         } catch (Exception e) {
           // the debug info might be corrupted or partial, let's not crash in this case
-          logger.debug(e, "Failed to get local variable name for slot {} in {}", slot, fqn);
+          lookupFailed = true;
+          failureMessage = e.toString();
         } finally {
           // note these only correspond to unboxed types — boxed double and long will still have width 1
           int width = paramTypes[i] == CtClass.doubleType || paramTypes[i] == CtClass.longType ? 2 : 1;
           slot += width;
         }
+      }
+
+      if (lookupFailed) {
+        logger.debug("Failed to get local variable name for some slots in {}: {}", fqn, failureMessage);
       }
     }
 

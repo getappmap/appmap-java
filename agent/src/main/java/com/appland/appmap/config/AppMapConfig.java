@@ -317,6 +317,8 @@ public class AppMapConfig {
     // tinylog freezes its configuration after the first call to any of its
     // methods other than those in Configuration. So, get everything ready
     // before returning the logger for this class;
+    Configuration.set("writer.format", "{date:yyyy-MM-dd HH:mm:ss} [{thread}] AppMap {level}: {message}");
+
     if (Properties.Debug) {
       Configuration.set("level", "debug");
     }
