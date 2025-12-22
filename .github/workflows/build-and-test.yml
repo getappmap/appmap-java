@@ -1,6 +1,10 @@
 name: Build and test
 on: [push]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-check:
     name: Build and check
