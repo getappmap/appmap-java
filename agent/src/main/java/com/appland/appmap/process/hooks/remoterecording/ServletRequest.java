@@ -2,6 +2,7 @@ package com.appland.appmap.process.hooks.remoterecording;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.reflect.HttpServletRequest;
@@ -29,8 +30,8 @@ public class ServletRequest implements RemoteRecordingRequest {
   }
   
   public void writeJson(String responseJson) throws IOException {
-    res.setContentType("application/json");
-    res.setContentLength(responseJson.length());
+    res.setContentType("application/json; charset=UTF-8");
+    res.setContentLength(responseJson.getBytes(StandardCharsets.UTF_8).length);
     res.setStatus(HttpServletResponse.SC_OK);
 
     PrintWriter writer = res.getWriter();
@@ -39,7 +40,7 @@ public class ServletRequest implements RemoteRecordingRequest {
   }
 
   public void writeRecording(Recording recording) throws IOException {
-    res.setContentType("application/json");
+    res.setContentType("application/json; charset=UTF-8");
     res.setContentLength(recording.size());
     recording.readFully(true, res.getWriter());
   }
