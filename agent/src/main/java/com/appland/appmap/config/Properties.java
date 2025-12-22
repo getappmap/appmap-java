@@ -30,6 +30,8 @@ public class Properties {
   public static final Boolean RecordingRequests = resolveProperty("appmap.recording.requests", true);
   public static final String[] IgnoredPackages =
       resolveProperty("appmap.recording.ignoredPackages", new String[] {"java.", "jdk.", "sun."});
+  public static final String[] ExcludedHooks =
+      resolveProperty("appmap.hooks.exclude", new String[0]);
 
 
   public static final String DefaultConfigFile = "appmap.yml";
