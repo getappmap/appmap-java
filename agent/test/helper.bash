@@ -162,11 +162,23 @@ check_ws_running() {
 
 wait_for_ws() {
   local url="${1:-$WS_URL}"
+  local timeout=60
+  local start_time=$(date +%s)
+
   while ! curl -Isf "${url}" >/dev/null; do
     if ! jcmd $JVM_MAIN_CLASS VM.uptime >&/dev/null; then
       echo "$JVM_MAIN_CLASS failed"
+      if [[ -f "$LOG" ]]; then cat "$LOG"; fi
       exit 1
     fi
+
+    local current_time=$(date +%s)
+    if (( current_time - start_time > timeout )); then
+        echo "Timed out waiting for $url"
+        if [[ -f "$LOG" ]]; then cat "$LOG"; fi
+        exit 1
+    fi
+
     sleep 1
   done
   printf '  ok\n\n'
