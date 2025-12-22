@@ -31,6 +31,18 @@ jobs:
             annotation/build/libs/*.jar
 
   test-suite:
+    services:
+      oracle:
+        image: docker.io/gvenzl/oracle-free:slim-faststart
+        ports:
+          - 1521:1521
+        env:
+          ORACLE_PASSWORD: oracle
+        options: >-
+          --health-cmd healthcheck.sh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     strategy:
       matrix:
         java: ['17', '11', '8']
@@ -106,5 +118,8 @@ jobs:
         env:
           BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
           TERM: xterm
+          ORACLE_URL: jdbc:oracle:thin:@localhost:1521
+          ORACLE_USERNAME: system
+          ORACLE_PASSWORD: oracle
         working-directory: ./agent
         run: bin/test_run

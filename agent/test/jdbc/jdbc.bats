@@ -33,5 +33,13 @@ setup() {
   assert_json_eq '.metadata.test_failure.message' 'expected: <true> but was: <false>'
 }
 
+# Requires a running Oracle instance.
+# Locally: docker-compose up -d (in agent/test/jdbc)
+# CI: Service is configured in .github/workflows/build-and-test.yml
+@test "oracle integration test" {
+  run ./gradlew -q test --tests 'OracleRepositoryTests'
+  assert_success
+}
+
 
 
