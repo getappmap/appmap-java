@@ -9,6 +9,8 @@ java_cmd="java -cp ${BATS_TEST_DIRNAME}/build -javaagent:'${AGENT_JAR}'"
 
 setup() {
   cd "${BATS_TEST_DIRNAME}"
+
+  mkdir -p build
   # Compile tests. Output to test/encoding so package structure 'pkg' works.
   # We need to compile both UnicodeTest.java and pkg/Target.java.
   javac -d ./build UnicodeTest.java
