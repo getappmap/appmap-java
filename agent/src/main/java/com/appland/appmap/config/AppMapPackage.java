@@ -21,6 +21,17 @@ public class AppMapPackage {
   public boolean shallow = false;
   public Boolean allMethods = true;
 
+  @JsonCreator
+  public AppMapPackage(@JsonProperty("path") String path,
+                         @JsonProperty("exclude") String[] exclude,
+                         @JsonProperty("shallow") Boolean shallow,
+                         @JsonProperty("allMethods") Boolean allMethods) {
+    this.path = path;
+    this.exclude = exclude == null ? new String[] {} : exclude;
+    this.shallow = shallow != null && shallow;
+    this.allMethods = allMethods == null ? true : allMethods;
+  }
+
   public static class LabelConfig {
 
     private Pattern className = null;

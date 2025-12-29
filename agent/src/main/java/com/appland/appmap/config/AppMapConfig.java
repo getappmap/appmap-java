@@ -145,7 +145,7 @@ public class AppMapConfig {
 
     int count = singleton.packages.length;
     count = Arrays.stream(singleton.packages).map(p -> p.exclude).reduce(count,
-        (acc, e) -> acc += e.length, Integer::sum);
+        (acc, e) -> acc += e == null ? 0 : e.length, Integer::sum);
 
     int pattern_threshold = Properties.PatternThreshold;
     if (count > pattern_threshold) {
