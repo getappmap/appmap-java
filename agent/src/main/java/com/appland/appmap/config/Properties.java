@@ -36,8 +36,6 @@ public class Properties {
 
   public static final String DefaultConfigFile = "appmap.yml";
   public static final String ConfigFile = resolveProperty("appmap.config.file", (String) null);
-  public static final Integer PatternThreshold =
-      resolveProperty("appmap.config.patternThreshold", 10);
 
   public static final Boolean DisableValue = resolveProperty("appmap.event.disableValue", false);
   public static final Integer MaxValueSize = resolveProperty("appmap.event.valueSize", 1024);
