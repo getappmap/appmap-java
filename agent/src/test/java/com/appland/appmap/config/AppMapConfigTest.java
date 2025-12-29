@@ -118,6 +118,19 @@ public class AppMapConfigTest {
         String actualErr = tapSystemErr(() -> AppMapConfig.load(configFile, false));
         assertTrue(actualErr.contains("AppMap: encountered syntax error in appmap.yml"));
     }
-}
 
+    @Test
+    public void loadEmptyExcludeField() throws Exception {
+        Path configFile = tmpdir.resolve("appmap.yml");
+        final String contents = "name: test\npackages:\n- path: com.example\n  exclude:\n";
+        Files.write(configFile, contents.getBytes());
+        
+        AppMapConfig config = AppMapConfig.load(configFile, false);
+        assertNotNull(config);
+        assertEquals(1, config.packages.length);
+        assertEquals("com.example", config.packages[0].path);
+        assertNotNull(config.packages[0].exclude);
+        assertEquals(0, config.packages[0].exclude.length);
+    }
+}
 
