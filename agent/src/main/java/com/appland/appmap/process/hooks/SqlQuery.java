@@ -2,7 +2,6 @@ package com.appland.appmap.process.hooks;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
 import java.sql.Statement;
 
 import com.appland.appmap.output.v1.Event;
@@ -55,7 +54,7 @@ public class SqlQuery {
       }
 
       dbname = metadata.getDatabaseProductName();
-    } catch (SQLException e) {
+    } catch (Throwable e) {
       Logger.println("WARNING, failed to get database name");
       e.printStackTrace(System.err);
     }
@@ -74,7 +73,7 @@ public class SqlQuery {
       }
 
       dbname = getDbName(s.getConnection());
-    } catch (SQLException e) {
+    } catch (Throwable e) {
       Logger.println("WARNING, failed to get statement's connection");
       e.printStackTrace(System.err);
     }
