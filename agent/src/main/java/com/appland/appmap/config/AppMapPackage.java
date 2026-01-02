@@ -132,7 +132,9 @@ public class AppMapPackage {
       if (fqClass.startsWith(exclusion)) {
         return true;
       } else {
-        if (candidateName == null) candidateName = fqClass + "." + behavior.getName();
+        if (candidateName == null) {
+          candidateName = fqClass + "." + behavior.getName();
+        }
 
         if (candidateName.startsWith(exclusion.replace('#', '.'))) {
           return true;
