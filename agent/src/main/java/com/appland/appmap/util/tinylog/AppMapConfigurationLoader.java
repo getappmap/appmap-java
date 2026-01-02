@@ -16,7 +16,7 @@ import org.tinylog.runtime.RuntimeProvider;
 public class AppMapConfigurationLoader implements ConfigurationLoader {
 
   @Override
-  public Properties load() throws IOException {
+  public Properties load() {
     Properties properties = new Properties();
     final File localConfigFile = new File("appmap-log.local.properties");
     final String[] configFiles = {"appmap-log.properties", localConfigFile.getName()};
@@ -28,6 +28,8 @@ public class AppMapConfigurationLoader implements ConfigurationLoader {
           if (stream != null) {
             properties.load(stream);
           }
+        } catch (IOException e) {
+          InternalLogger.log(Level.ERROR, e, "Failed to load " + configFile + " from classloader " + cl);
         }
       }
     }
