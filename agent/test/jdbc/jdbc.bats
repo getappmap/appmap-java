@@ -3,7 +3,7 @@
 load '../helper'
 
 setup_file() {
-  cd test/jdbc
+  cd "$BATS_TEST_DIR" || true
   _configure_logging
 
   ./gradlew -q clean
@@ -19,9 +19,9 @@ setup() {
 
   output="$(<./tmp/appmap/junit/com_example_accessingdatajpa_CustomerRepositoryTests_testFindFromBogusTable.appmap.json)"
   assert_json_eq '.metadata.test_status' succeeded
-  assert_json_eq '.events | length' 6
-  assert_json_eq '.events[3].exceptions | length' 1
-  assert_json_eq '.events[3].exceptions[0].class' org.h2.jdbc.JdbcSQLSyntaxErrorException
+  assert_json_eq '.events | length' 4
+  assert_json_eq '.events[2].exceptions | length' 3
+  assert_json_eq '.events[2].exceptions[2].class' org.h2.jdbc.JdbcSQLSyntaxErrorException
 }
 
 @test "failing test" {

@@ -90,6 +90,11 @@ public class Value {
     return this;
   }
 
+
+  public String getName() {
+    return name;
+  }
+
   /**
    * Sets the "kind" field.
    * @return {@code this}
