@@ -44,7 +44,9 @@ public class SqlQuery {
     if (sql == null && args.length > 0 && args[0] instanceof String) {
       sql = (String) args[0];
     }
-    if (sql == null) sql = "[unknown sql]";
+    if (sql == null) {
+      sql = "[unknown sql]";
+    }
     recordSql(event, s, sql);
   }
 
@@ -218,7 +220,9 @@ public class SqlQuery {
   public static void prepareCall(Event event, Connection c, Object returnValue, Object[] args) {
     if (returnValue != null) {
       String sql = "[unknown sql]";
-      if (args.length > 0 && args[0] instanceof String) sql = (String) args[0];
+      if (args.length > 0 && args[0] instanceof String) {
+        sql = (String) args[0];
+      }
       statementSql.put((Statement) returnValue, sql);
     }
   }
@@ -232,7 +236,9 @@ public class SqlQuery {
   public static void prepareStatement(Event event, Connection c, Object returnValue, Object[] args) {
     if (returnValue != null) {
       String sql = "[unknown sql]";
-      if (args.length > 0 && args[0] instanceof String) sql = (String) args[0];
+      if (args.length > 0 && args[0] instanceof String) {
+        sql = (String) args[0];
+      }
       statementSql.put((Statement) returnValue, sql);
     }
   }
