@@ -69,6 +69,20 @@ public class ArgumentArraySystem extends BaseSystem {
 
   @Override
   public Boolean validate(HookBinding binding) {
+    Parameters runtimeParams = binding.getHook().getRuntimeParameters(binding);
+    int providedArgCount = 0;
+    for (Value v : runtimeParams) {
+      if ("$$".equals(v.getName())) {
+        providedArgCount += binding.getTargetParameters().size();
+      } else {
+        providedArgCount += 1;
+      }
+    }
+
+    if (providedArgCount != binding.getHook().getParameters().size()) {
+      return false;
+    }
+
     if (this.wantsArgumentArray) {
       return true;
     }
