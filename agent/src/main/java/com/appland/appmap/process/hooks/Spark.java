@@ -86,11 +86,9 @@ public class Spark {
 
         String requestURI = req.getRequestURI();
         logger.trace("handling {}", requestURI);
-        if (requestURI.equals("/_appmap/record")) {
-          if (RemoteRecordingManager.service(new ServletRequest(req, resp))) {
-            jettyReq.setHandled(true);
-            return null;
-          }
+        if (RemoteRecordingManager.service(new ServletRequest(req, resp))) {
+          jettyReq.setHandled(true);
+          return null;
         }
 
         RequestRecording.start(req);
@@ -125,6 +123,70 @@ public class Spark {
     }
   }
 
+  private static class LifeCycleListener implements InvocationHandler {
+    private final TaggedLogger logger;
+
+    public LifeCycleListener(TaggedLogger logger) {
+      this.logger = logger;
+    }
+
+    @SuppressWarnings("SuspiciousInvocationHandlerImplementation") // handled by DynamicReflectiveType
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) {
+      if (method.getName().equals("lifeCycleStarted")) {
+        try {
+          Object server = args[0];
+          Server serverRef = new Server(server);
+          Object[] connectors = serverRef.getConnectors();
+          if (connectors != null) {
+            for (Object connector : connectors) {
+              if (connector != null && connector.getClass().getName().equals("org.eclipse.jetty.server.ServerConnector")) {
+                ServerConnector serverConnector = new ServerConnector(connector);
+                int port = serverConnector.getLocalPort();
+                RemoteRecordingManager.logServerStart(port, null);
+              }
+            }
+          }
+        } catch (Exception e) {
+          logger.debug(e, "Failed to retrieve server port in Spark hook");
+        }
+      }
+      return null;
+    }
+  }
+
+  private static class Server extends HandlerWrapper {
+    private static final String GET_CONNECTORS = "getConnectors";
+    private static final String ADD_LIFE_CYCLE_LISTENER = "addLifeCycleListener";
+
+    public Server(Object self) {
+      super(self);
+      addMethods(GET_CONNECTORS);
+      addMethod(ADD_LIFE_CYCLE_LISTENER, "org.eclipse.jetty.util.component.LifeCycle$Listener");
+    }
+
+    public Object[] getConnectors() {
+      return (Object[]) invokeObjectMethod(GET_CONNECTORS);
+    }
+
+    public void addLifeCycleListener(Object listener) {
+      invokeVoidMethod(ADD_LIFE_CYCLE_LISTENER, listener);
+    }
+  }
+
+  private static class ServerConnector extends ReflectiveType {
+    private static final String GET_LOCAL_PORT = "getLocalPort";
+
+    public ServerConnector(Object self) {
+      super(self);
+      addMethods(GET_LOCAL_PORT);
+    }
+
+    public int getLocalPort() {
+      return (int) invokeObjectMethod(GET_LOCAL_PORT);
+    }
+  }
+
   @HookClass(value = "org.eclipse.jetty.server.handler.HandlerWrapper")
   @ArgumentArray
   public static void setHandler(Event event, Object receiver, Object[] args) {
@@ -142,7 +204,17 @@ public class Spark {
       return;
     }
 
-    HandlerWrapper server = new HandlerWrapper(receiver);
+    ClassLoader cl = receiver.getClass().getClassLoader();
+    Server server = new Server(receiver);
+
+    try {
+      // Add lifecycle listener to print port when started
+      Object listenerProxy = DynamicReflectiveType.build(new LifeCycleListener(logger), cl, "org.eclipse.jetty.util.component.LifeCycle$Listener");
+      server.addLifeCycleListener(listenerProxy);
+    } catch (Exception e) {
+      logger.debug(e, "Failed to add appmap listener to Jetty Server");
+    }
+
     logger.trace("handler: {}", handler);
     server.setHandler(Handler.build(handler));
 

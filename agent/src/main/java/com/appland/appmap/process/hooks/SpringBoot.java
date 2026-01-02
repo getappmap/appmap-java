@@ -9,12 +9,19 @@ import com.appland.appmap.config.Properties;
 import com.appland.appmap.output.v1.Event;
 import com.appland.appmap.process.hooks.http.ServletContext;
 import com.appland.appmap.process.hooks.http.ServletListener;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+
+import com.appland.appmap.reflect.DynamicReflectiveType;
 import com.appland.appmap.process.hooks.remoterecording.RemoteRecordingFilter;
+import com.appland.appmap.process.hooks.remoterecording.RemoteRecordingManager;
 import com.appland.appmap.reflect.ReflectiveType;
 import com.appland.appmap.transform.annotations.ArgumentArray;
 import com.appland.appmap.transform.annotations.HookClass;
 import com.appland.appmap.transform.annotations.MethodEvent;
 import com.appland.appmap.util.ClassUtil;
+
 public class SpringBoot {
   private static final String SERVLET_CONTEXT_INITIALIZED = "com.appland.appmap.ServletContextInitialized";
   private static final String LISTENER_BEAN = "appmap.listener";
@@ -58,6 +65,118 @@ public class SpringBoot {
     }
   }
 
+  private static class ApplicationListener implements InvocationHandler {
+    private final TaggedLogger logger;
+
+    public ApplicationListener(TaggedLogger logger) {
+      this.logger = logger;
+    }
+
+    public static Object build(ClassLoader cl, TaggedLogger logger) {
+      return DynamicReflectiveType.build(new ApplicationListener(logger), cl, "org.springframework.context.ApplicationListener");
+    }
+
+    @SuppressWarnings("SuspiciousInvocationHandlerImplementation") // handled by DynamicReflectiveType
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) {
+      if (method.getName().equals("onApplicationEvent")) {
+        Object event = args[0];
+        // WebServerInitializedEvent is a base class for generic web server events
+        if (event.getClass().getSimpleName().contains("WebServerInitializedEvent")) {
+          try {
+            WebServerInitializedEvent webServerEvent = new WebServerInitializedEvent(event);
+            WebServer webServer = new WebServer(webServerEvent.getWebServer());
+            int port = webServer.getPort();
+
+            String contextPath = getContextPath(event);
+
+            RemoteRecordingManager.logServerStart(port, contextPath);
+          } catch (Exception e) {
+            logger.debug(e, "Failed to retrieve server URL in SpringBoot hook");
+          }
+        }
+      }
+      return null;
+    }
+
+    private static String getContextPath(Object event) {
+      String contextPath = null;
+      if (event.getClass().getSimpleName().equals("ServletWebServerInitializedEvent")) {
+        ServletWebServerInitializedEvent servletEvent = new ServletWebServerInitializedEvent(event);
+        ApplicationContext appCtx = servletEvent.getApplicationContext();
+        ServletContext servletCtx = appCtx.getServletContext();
+        if (servletCtx != null) {
+          contextPath = servletCtx.getContextPath();
+        }
+      }
+      return contextPath;
+    }
+  }
+
+  private static class ServletWebServerInitializedEvent extends WebServerInitializedEvent {
+    private static final String GET_APPLICATION_CONTEXT = "getApplicationContext";
+
+    public ServletWebServerInitializedEvent(Object self) {
+      super(self);
+      addMethods(GET_APPLICATION_CONTEXT);
+    }
+
+    public ApplicationContext getApplicationContext() {
+      return new ApplicationContext(invokeObjectMethod(GET_APPLICATION_CONTEXT));
+    }
+  }
+
+  private static class WebServerInitializedEvent extends ReflectiveType {
+    private static final String GET_WEB_SERVER = "getWebServer";
+
+    public WebServerInitializedEvent(Object self) {
+      super(self);
+      addMethods(GET_WEB_SERVER);
+    }
+
+    public Object getWebServer() {
+      return invokeObjectMethod(GET_WEB_SERVER);
+    }
+  }
+
+  private static class WebServer extends ReflectiveType {
+    private static final String GET_PORT = "getPort";
+
+    public WebServer(Object self) {
+      super(self);
+      addMethods(GET_PORT);
+    }
+
+    public int getPort() {
+      return (int) invokeObjectMethod(GET_PORT);
+    }
+  }
+
+  private static class SpringApplication extends ReflectiveType {
+    private static final String ADD_LISTENERS = "addListeners";
+
+    public SpringApplication(Object self) {
+      super(self);
+      // Parameter type is ApplicationListener... which is an array
+      addMethod(ADD_LISTENERS, "[Lorg.springframework.context.ApplicationListener;");
+    }
+
+    public void addListeners(Object... listeners) {
+      // Create an array of the expected type
+      try {
+        ClassLoader cl = self.getClass().getClassLoader();
+        Class<?> listenerClass = safeClassForNames(cl, "org.springframework.context.ApplicationListener");
+        Object listenerArray = java.lang.reflect.Array.newInstance(listenerClass, listeners.length);
+        for (int i = 0; i < listeners.length; i++) {
+          java.lang.reflect.Array.set(listenerArray, i, listeners[i]);
+        }
+        invokeVoidMethod(ADD_LISTENERS, listenerArray);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
   // applyInitializers is part of the documented interface of SpringApplication,
   // and has been available since at least v2.7. Should be ok to depend on it.
   @ArgumentArray
@@ -65,6 +184,16 @@ public class SpringBoot {
   public static void applyInitializers(Event event, Object receiver, Object ret, Object[] args) {
     ApplicationContext appCtx = new ApplicationContext(args[0]);
     logger.trace("ctx: {}", appCtx);
+
+    try {
+      ClassLoader cl = receiver.getClass().getClassLoader();
+      SpringApplication springApp = new SpringApplication(receiver);
+      Object listenerProxy = ApplicationListener.build(cl, logger);
+      springApp.addListeners(listenerProxy);
+    } catch (Exception e) {
+      logger.error("Failed to add appmap listener to SpringApplication", e);
+    }
+
     ServletContext servletCtx = appCtx.getServletContext();
     if (servletCtx != null) {
       Object initializedAttr = servletCtx.getAttribute(SERVLET_CONTEXT_INITIALIZED);
@@ -119,7 +248,7 @@ public class SpringBoot {
             safeClassForNames(cl, "javax.servlet.DispatcherType", "jakarta.servlet.DispatcherType")
                 .asSubclass(Enum.class),
             "REQUEST"),
-        true, "/_appmap/record");
+        true, RemoteRecordingManager.RecordRoute);
 
     ctx.setAttribute(SERVLET_CONTEXT_INITIALIZED, Boolean.TRUE);
   }

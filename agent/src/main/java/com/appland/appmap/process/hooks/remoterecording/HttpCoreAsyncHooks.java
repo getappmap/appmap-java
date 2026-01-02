@@ -48,7 +48,7 @@ public class HttpCoreAsyncHooks {
       Logger.println("HttpCoreAsyncRequestHandler.lookup: " + req);
     }
 
-    if (req.getRequestLine().getUri().startsWith(RemoteRecordingManager.RecordRoute)) {
+    if (req.getRequestLine().getUri().endsWith(RemoteRecordingManager.RecordRoute)) {
       throw new ExitEarly(new AppMapHandler());
     }
   } 

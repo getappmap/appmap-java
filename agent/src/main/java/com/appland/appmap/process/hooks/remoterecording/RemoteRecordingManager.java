@@ -10,6 +10,7 @@ import com.appland.appmap.process.ExitEarly;
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recording;
 import com.appland.appmap.reflect.HttpServletResponse;
+import com.appland.appmap.util.Logger;
 
 interface RemoteRecordingRequest {
   String getRequestURI();
@@ -123,5 +124,10 @@ public class RemoteRecordingManager {
     logger.debug("handled appmap request? {}", handled);
 
     return handled;
+  }
+
+  public static void logServerStart(int port, String contextPath) {
+    String path = (contextPath == null || contextPath.equals("/")) ? "" : contextPath;
+    Logger.printUserMessage("AppMap remote recording is enabled at http://localhost:%d%s%s\n", port, path, RecordRoute);
   }
 }

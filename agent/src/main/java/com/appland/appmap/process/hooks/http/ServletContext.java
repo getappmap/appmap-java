@@ -11,6 +11,7 @@ public class ServletContext extends ReflectiveType {
   private static String ADD_FILTER = "addFilter";
   private static String GET_ATTRIBUTE = "getAttribute";
   private static String SET_ATTRIBUTE = "setAttribute";
+  private static String GET_CONTEXT_PATH = "getContextPath";
 
   public static class FilterRegistration extends ReflectiveType {
     private static String ADD_MAPPING_FOR_URL_PATTERNS = "addMappingForUrlPatterns";
@@ -36,10 +37,15 @@ public class ServletContext extends ReflectiveType {
     }
     addMethod(GET_ATTRIBUTE, String.class);
     addMethod(SET_ATTRIBUTE, String.class, Object.class);
+    addMethods(GET_CONTEXT_PATH);
   }
 
   public String getServletContextName() {
     return invokeStringMethod(GET_SERVLET_CONTEXT_NAME);
+  }
+
+  public String getContextPath() {
+    return invokeStringMethod(GET_CONTEXT_PATH);
   }
 
   public void addListener(Object listener) {
