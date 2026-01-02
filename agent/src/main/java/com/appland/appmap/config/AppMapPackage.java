@@ -120,20 +120,23 @@ public class AppMapPackage {
   }
 
   /**
-   * Returns whether or not the canonical name is explicitly excluded
-   * 
-   * @param canonicalName the canonical name of the class/method to be checked
+   * Checks whether the behavior is explicitly excluded
+   *
+   * @param behavior the behavior to be checked
+   * @return {@code true} if the behavior is excluded
    */
   public Boolean excludes(CtBehavior behavior) {
-    FullyQualifiedName fqn = null;
+    final String fqClass = behavior.getDeclaringClass().getName();
+    String candidateName = null;
     for (String exclusion : this.exclude) {
-      if (behavior.getDeclaringClass().getName().startsWith(exclusion)) {
+      if (fqClass.startsWith(exclusion)) {
         return true;
       } else {
-        if (fqn == null) {
-          fqn = new FullyQualifiedName(behavior);
+        if (candidateName == null) {
+          candidateName = fqClass + "." + behavior.getName();
         }
-        if (fqn.toString().startsWith(exclusion)) {
+
+        if (candidateName.startsWith(exclusion.replace('#', '.'))) {
           return true;
         }
       }
