@@ -216,7 +216,7 @@ public class SqlQuery {
   @ArgumentArray
   @HookClass(value = "java.sql.Connection", methodEvent = MethodEvent.METHOD_RETURN)
   public static void prepareCall(Event event, Connection c, Object returnValue, Object[] args) {
-    if (returnValue instanceof Statement) {
+    if (returnValue != null) {
       String sql = "[unknown sql]";
       if (args.length > 0 && args[0] instanceof String) sql = (String) args[0];
       statementSql.put((Statement) returnValue, sql);
@@ -230,7 +230,7 @@ public class SqlQuery {
   @ArgumentArray
   @HookClass(value = "java.sql.Connection", methodEvent = MethodEvent.METHOD_RETURN)
   public static void prepareStatement(Event event, Connection c, Object returnValue, Object[] args) {
-    if (returnValue instanceof Statement) {
+    if (returnValue != null) {
       String sql = "[unknown sql]";
       if (args.length > 0 && args[0] instanceof String) sql = (String) args[0];
       statementSql.put((Statement) returnValue, sql);
