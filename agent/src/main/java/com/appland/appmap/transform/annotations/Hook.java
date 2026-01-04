@@ -73,7 +73,7 @@ public class Hook {
   }
 
   public Parameters getRuntimeParameters(HookBinding binding) {
-    Parameters runtimeParameters = this.staticParameters.clone();
+    Parameters runtimeParameters = this.staticParameters.freshCopy();
     Stream.concat(Stream.of(this.sourceSystem), this.optionalSystems.stream())
         .sorted(Comparator.comparingInt(ISystem::getParameterPriority))
         .forEach(system -> {
