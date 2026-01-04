@@ -72,8 +72,7 @@ public class Agent {
     logger.info("Agent version {}, current time mills: {}",
             implementationVersion, start);
     logger.info("config: {}", AppMapConfig.get());
-    logger.info("System properties: {}", System.getProperties());
-    logger.debug(new Exception(), "whereAmI");
+    logger.debug("System properties: {}", System.getProperties());
 
     addAgentJars(agentArgs, inst);
 
