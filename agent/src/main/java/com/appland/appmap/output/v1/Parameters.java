@@ -7,11 +7,10 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javassist.bytecode.AttributeInfo;
 import org.tinylog.TaggedLogger;
 
 import com.appland.appmap.config.AppMapConfig;
-import com.appland.appmap.config.Properties;
-import com.appland.appmap.util.Logger;
 
 import javassist.CtBehavior;
 import javassist.CtClass;
@@ -30,7 +29,7 @@ import javassist.bytecode.MethodInfo;
 public class Parameters implements Iterable<Value> {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
-  private final ArrayList<Value> values = new ArrayList<Value>();
+  private final ArrayList<Value> values = new ArrayList<>();
 
   public Parameters() { }
 
@@ -48,7 +47,7 @@ public class Parameters implements Iterable<Value> {
       "." + behavior.getName() +
       methodInfo.getDescriptor();
 
-    CtClass[] paramTypes = null;
+    CtClass[] paramTypes;
     try {
       paramTypes = behavior.getParameterTypes();
     } catch (NotFoundException e) {
@@ -71,51 +70,11 @@ public class Parameters implements Iterable<Value> {
       return;
     }
 
-    CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
-    LocalVariableAttribute locals = null;
-    if (codeAttribute != null) {
-      locals = (LocalVariableAttribute) codeAttribute.getAttribute(javassist.bytecode.LocalVariableAttribute.tag);
-    } else {
-      logger.debug("No code attribute for {}", fqn);
-    }
-
+    String[] paramNames = getParameterNames(methodInfo, paramTypes);
     int numParams = paramTypes.length;
-    String[] paramNames = new String[numParams];
-    if (locals != null && numParams > 0) {
-      int numLocals = locals.tableLength();
-
-      // This is handy when debugging this code, but produces too much
-      // noise for general use.
-      if (Properties.DebugLocals) {
-        logger.debug("local variables for {}", fqn);
-        for (int idx = 0; idx < numLocals; idx++) {
-          logger.debug("  {} {} {}", idx, locals.variableName(idx), locals.index(idx));
-        }
-      }
-
-      // Iterate through the local variables to find the ones that match the argument slots.
-      // Arguments are pushed into consecutive slots, starting at 0 (for this or the first argument),
-      // and then incrementing by 1 for each argument, unless the argument is an unboxed long or double,
-      // in which case it takes up two slots.
-      int slot = Modifier.isStatic(behavior.getModifiers()) ? 0 : 1; // ignore `this`
-      for (int i = 0; i < numParams; i++) {
-        try {
-          // note that the slot index is not the same as the
-          // parameter index or the local variable index
-          paramNames[i] = locals.variableNameByIndex(slot);
-        } catch (Exception e) {
-          // the debug info might be corrupted or partial, let's not crash in this case
-          logger.debug(e, "Failed to get local variable name for slot {} in {}", slot, fqn);
-        } finally {
-          // note these only correspond to unboxed types — boxed double and long will still have width 1
-          int width = paramTypes[i] == CtClass.doubleType || paramTypes[i] == CtClass.longType ? 2 : 1;
-          slot += width;
-        }
-      }
-    }
 
     Value[] paramValues = new Value[numParams];
-    for (int i = 0; i < paramTypes.length; ++i) {
+    for (int i = 0; i < numParams; ++i) {
       // Use a real parameter name if we have it, a fake one if we
       // don't.
       String paramName = paramNames[i];
@@ -130,9 +89,59 @@ public class Parameters implements Iterable<Value> {
       paramValues[i] = param;
     }
 
-    for (int i = 0; i < paramValues.length; ++i) {
-      this.add(paramValues[i]);
+    for (Value paramValue : paramValues) {
+      this.add(paramValue);
     }
+  }
+
+  /**
+   * Iterate through the LocalVariableTables to get parameter names.
+   * Local variable tables are debugging metadata containing information about local variables.
+   * Variables are organized into slots; first slots are used for parameters, then for local variables.
+   *
+   * @param methodInfo for the method
+   * @param paramTypes types of the parameters (used to calculate slot positions)
+   * @return Array of parameter names (ignoring this), with null for any names that could not be determined.
+   * Length of the array matches length of paramTypes.
+   * @see <a href="https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.7.13">The Java Virtual Machine Specification: The LocalVariableTable Attribute</a>
+   */
+  private static String[] getParameterNames(MethodInfo methodInfo, CtClass[] paramTypes) {
+    String[] paramNames = new String[paramTypes.length];
+
+    CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
+    if (codeAttribute != null) {
+      boolean isStatic = Modifier.isStatic(methodInfo.getAccessFlags());
+
+      // count number of slots taken by all the parameters
+      int slotCount = isStatic ? 0 : 1; // account for `this`
+      for (CtClass paramType : paramTypes) {
+        slotCount += (paramType == CtClass.doubleType || paramType == CtClass.longType) ? 2 : 1;
+      }
+
+      String[] namesBySlot = new String[slotCount];
+
+      for (AttributeInfo attr : codeAttribute.getAttributes()) {
+        if (attr instanceof LocalVariableAttribute) {
+          LocalVariableAttribute localVarAttr = (LocalVariableAttribute) attr;
+
+          for (int i = 0; i < localVarAttr.tableLength(); i++) {
+            int index = localVarAttr.index(i);
+            if (index < slotCount) {
+              namesBySlot[index] = localVarAttr.variableName(i);
+            }
+          }
+        }
+      }
+
+      int slot = isStatic ? 0 : 1; // ignore `this`
+      for (int i = 0; i < paramTypes.length; i++) {
+        paramNames[i] = namesBySlot[slot];
+        int width = paramTypes[i] == CtClass.doubleType || paramTypes[i] == CtClass.longType ? 2 : 1;
+        slot += width;
+      }
+    }
+
+    return paramNames;
   }
 
   /**
@@ -172,26 +181,16 @@ public class Parameters implements Iterable<Value> {
     return this.values.size();
   }
 
-
   /**
-   * Clears the internal value array.
-   */
-  public void clear() {
-    this.values.clear();
-  }
-
-  /**
-   * Gets a {@Value} object stored by this Parameters object by name/identifier.
+   * Gets a {@link Value} object stored by this Parameters object by name/identifier.
    * @param name The name or identifier of the @{link Value} to be returned
    * @return The {@link Value} object found
-   * @throws NoSuchElementException If no @{link Value} object is found
+   * @throws NoSuchElementException If no {@link Value} object is found
    */
   public Value get(String name) throws NoSuchElementException {
-    if (this.values != null) {
-      for (Value param : this.values) {
-        if (param.name.equals(name)) {
-          return param;
-        }
+    for (Value param : this.values) {
+      if (param.name.equals(name)) {
+        return param;
       }
     }
 
@@ -199,16 +198,12 @@ public class Parameters implements Iterable<Value> {
   }
 
   /**
-   * Gets a {@Value} object stored by this Parameters object by index.
+   * Gets a {@link Value} object stored by this Parameters object by index.
    * @param index The index of the @{link Value} to be returned
    * @return The {@link Value} object at the given index
-   * @throws NoSuchElementException if no @{link Value} object is found at the given index
+   * @throws NoSuchElementException if no {@link Value} object is found at the given index
    */
   public Value get(Integer index) throws NoSuchElementException {
-    if (this.values == null) {
-      throw new NoSuchElementException();
-    }
-
     try {
       return this.values.get(index);
     } catch (NullPointerException | IndexOutOfBoundsException e) {
@@ -233,10 +228,10 @@ public class Parameters implements Iterable<Value> {
   }
 
   /**
-   * Performs a deep copy of the Parameters object and all of its values.
+   * Creates a copy of the parameters object with the value types, kinds and names preserved.
    * @return A new Parameters object
    */
-  public Parameters clone() {
+  public Parameters freshCopy() {
     Parameters clonedParams = new Parameters();
     for (Value param : this.values) {
       clonedParams.add(new Value(param));
