@@ -2,6 +2,7 @@ package com.appland.appmap.transform.annotations;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -107,25 +108,72 @@ public class Hook {
     return new HookSite(this, behaviorOrdinal, binding);
   }
 
-  public static void apply(CtBehavior targetBehavior, List<HookSite> hookSites) {
+  public enum ApplicationAction {
+    MARKED,
+    INSTRUMENTED
+  }
+
+  // We only log the first exception to avoid flooding the logs at the debug level.
+  // Note this variable is not thread safe, but this is okay; the worst that can happen is
+  // that we log more than one exception in a multi-threaded scenario.
+  private static boolean exceptionLogged = false;
+
+  public static Set<ApplicationAction> apply(CtBehavior targetBehavior, List<HookSite> hookSites, boolean traceClass) {
+    Set<ApplicationAction> actions = EnumSet.noneOf(ApplicationAction.class);
     MethodInfo methodInfo = targetBehavior.getMethodInfo();
     AnnotationsAttribute attr =
         (AnnotationsAttribute)methodInfo.getAttribute(AnnotationsAttribute.visibleTag);
 
-    // If the behavior is marked as an app method, update the annotation with
-    // the behavior ordinals so the bytebuddy transformer can instrument it.
-    if (attr.getAnnotation(AppMapAppMethod.class.getName()) != null) {
-      setBehaviorOrdinals(targetBehavior, hookSites);
+    if (attr != null) {
+      // If the behavior is marked as an app method, update the annotation with
+      // the behavior ordinals so the bytebuddy transformer can instrument it.
+      if (attr.getAnnotation(AppMapAppMethod.class.getName()) != null) {
+        setBehaviorOrdinals(targetBehavior, hookSites);
+        actions.add(ApplicationAction.MARKED);
+        if (traceClass) {
+          logger.debug("tracing {}.{}{}",
+              targetBehavior.getDeclaringClass().getName(),
+              targetBehavior.getName(),
+              targetBehavior.getMethodInfo().getDescriptor());
+        }
+      }
+
+      // If it's (also) marked as an agent method, it needs to be instrumented
+      // by javassist.
+      if (attr.getAnnotation(AppMapAgentMethod.class.getName()) != null) {
+        try {
+          instrument(targetBehavior, hookSites);
+          actions.add(ApplicationAction.INSTRUMENTED);
+          if (traceClass) {
+            String hooks = hookSites.stream()
+                .map(h -> h.getHook().toString())
+                .collect(Collectors.joining(", "));
+            logger.debug("{}.{}{} instrumented with hooks: {}",
+                targetBehavior.getDeclaringClass().getName(),
+                targetBehavior.getName(),
+                targetBehavior.getMethodInfo().getDescriptor(),
+                hooks);
+          }
+        } catch (CannotCompileException | NotFoundException e) {
+          String msg = String.format("failed to instrument %s.%s: %s",
+              targetBehavior.getDeclaringClass().getName(), targetBehavior.getName(), e.getMessage());
+          if (!exceptionLogged) {
+            logger.debug(e, msg);
+            exceptionLogged = true;
+          } else {
+            // Log at trace level after the first one to avoid flooding the debug logs
+            logger.trace(e, msg);
+            logger.debug(msg);
+          }
+        }
+      }
     }
 
-    // If it's (also) marked as an agent method, it needs to be instrumented
-    // by javassist.
-    if (attr.getAnnotation(AppMapAgentMethod.class.getName()) != null) {
-      instrument(targetBehavior, hookSites);
-    }
+    return actions;
   }
 
-  public static void instrument(CtBehavior targetBehavior, List<HookSite> hookSites) {
+  public static void instrument(CtBehavior targetBehavior, List<HookSite> hookSites)
+      throws CannotCompileException, NotFoundException {
     final CtClass returnType = getReturnType(targetBehavior);
     final Boolean returnsVoid = (returnType == CtClass.voidType);
 
@@ -150,44 +198,36 @@ public class Hook {
 
     }
 
-    try {
-      String beforeSrcBlock = beforeSrcBlock(uniqueLocks.toString(),
-          invocations[MethodEvent.METHOD_INVOCATION.getIndex()]);
-      logger.trace("{}: beforeSrcBlock:\n{}", targetBehavior::getName, beforeSrcBlock::toString);
-      targetBehavior.insertBefore(
-          beforeSrcBlock);
+    String beforeSrcBlock = beforeSrcBlock(uniqueLocks.toString(),
+        invocations[MethodEvent.METHOD_INVOCATION.getIndex()]);
+    logger.trace("{}: beforeSrcBlock:\n{}", targetBehavior::getName, beforeSrcBlock::toString);
+    targetBehavior.insertBefore(
+        beforeSrcBlock);
 
-      String afterSrcBlock = afterSrcBlock(invocations[MethodEvent.METHOD_RETURN.getIndex()]);
-      logger.trace("{}: afterSrcBlock:\n{}", targetBehavior::getName, afterSrcBlock::toString);
+    String afterSrcBlock = afterSrcBlock(invocations[MethodEvent.METHOD_RETURN.getIndex()]);
+    logger.trace("{}: afterSrcBlock:\n{}", targetBehavior::getName, afterSrcBlock::toString);
 
-      targetBehavior.insertAfter(
-          afterSrcBlock);
+    targetBehavior.insertAfter(
+        afterSrcBlock);
 
-      ClassPool cp = AppMapClassPool.get();
-      String exitEarlyCatchSrc = "{com.appland.appmap.process.ThreadLock.current().exit();return;}";
-      if (returnsVoid) {
-        targetBehavior.addCatch(exitEarlyCatchSrc,
-            cp.get("com.appland.appmap.process.ExitEarly"));
-      } else if (!returnType.isPrimitive()) {
-        exitEarlyCatchSrc = "{com.appland.appmap.process.ThreadLock.current().exit();return("
-            + returnType.getName() + ")$e.getReturnValue();}";
-        targetBehavior
-            .addCatch(exitEarlyCatchSrc, cp.get("com.appland.appmap.process.ExitEarly"));
-      }
-      logger.trace("{}: catch1Src:\n{}", targetBehavior::getName, exitEarlyCatchSrc::toString);
-
-      String catchSrcBlock = catchSrcBlock(invocations[MethodEvent.METHOD_EXCEPTION.getIndex()]);
-      targetBehavior.addCatch(
-          catchSrcBlock,
-          cp.get("java.lang.Throwable"));
-      logger.trace("{}: catchSrcBlock:\n{}", targetBehavior::getName, catchSrcBlock::toString);
-
-    } catch (CannotCompileException e) {
-      logger.debug(e, "failed to compile {}.{}", targetBehavior.getDeclaringClass().getName(),
-          targetBehavior.getName());
-    } catch (NotFoundException e) {
-      logger.debug(e);
+    ClassPool cp = AppMapClassPool.get();
+    String exitEarlyCatchSrc = "{com.appland.appmap.process.ThreadLock.current().exit();return;}";
+    if (returnsVoid) {
+      targetBehavior.addCatch(exitEarlyCatchSrc,
+          cp.get("com.appland.appmap.process.ExitEarly"));
+    } else if (!returnType.isPrimitive()) {
+      exitEarlyCatchSrc = "{com.appland.appmap.process.ThreadLock.current().exit();return("
+          + returnType.getName() + ")$e.getReturnValue();}";
+      targetBehavior
+          .addCatch(exitEarlyCatchSrc, cp.get("com.appland.appmap.process.ExitEarly"));
     }
+    logger.trace("{}: catch1Src:\n{}", targetBehavior::getName, exitEarlyCatchSrc::toString);
+
+    String catchSrcBlock = catchSrcBlock(invocations[MethodEvent.METHOD_EXCEPTION.getIndex()]);
+    targetBehavior.addCatch(
+        catchSrcBlock,
+        cp.get("java.lang.Throwable"));
+    logger.trace("{}: catchSrcBlock:\n{}", targetBehavior::getName, catchSrcBlock::toString);
   }
 
   private static void setBehaviorOrdinals(CtBehavior behavior,
