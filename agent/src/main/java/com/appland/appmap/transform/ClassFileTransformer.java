@@ -189,9 +189,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
     }
   }
 
-  private boolean applyHooks(CtBehavior behavior) {
-    boolean traceClass = tracePrefix == null || behavior.getDeclaringClass().getName().startsWith(tracePrefix);
-
+  private Set<Hook.ApplicationAction> applyHooks(CtBehavior behavior, boolean traceClass) {
     try {
       List<HookSite> hookSites = getHookSites(behavior);
 
@@ -199,37 +197,16 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         if (traceClass) {
           logger.trace("no hook sites");
         }
-        return false;
+        return java.util.Collections.emptySet();
       }
 
-      Hook.apply(behavior, hookSites);
-
-      if (logger.isDebugEnabled()) {
-        for (HookSite hookSite : hookSites) {
-          final Hook hook = hookSite.getHook();
-          String className = behavior.getDeclaringClass().getName();
-          if (tracePrefix != null && !className.startsWith(tracePrefix)) {
-            continue;
-          }
-
-          if (traceClass) {
-            logger.trace("hooked {}.{}{} on ({},{}) with {}",
-                className,
-                behavior.getName(),
-                behavior.getMethodInfo().getDescriptor(),
-                hook.getMethodEvent().getEventString(),
-                hook.getPosition(),
-                hook);
-          }
-        }
-      }
-      return true;
+      return Hook.apply(behavior, hookSites, traceClass);
 
     } catch (NoSourceAvailableException e) {
       Logger.println(e);
     }
 
-    return false;
+    return java.util.Collections.emptySet();
   }
 
   public List<HookSite> getHookSites(CtBehavior behavior) {
@@ -292,7 +269,7 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
       try {
         ClassPool classPool = AppMapClassPool.get();
         if (traceClass) {
-          logger.debug("className: {}", className);
+          logger.trace("className: {}", className);
         }
 
         ctClass = classPool.makeClass(new ByteArrayInputStream(bytes));
@@ -317,7 +294,8 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         return null;
       }
 
-      boolean hookApplied = false;
+      boolean bytecodeModified = false;
+      boolean needsByteBuddy = false;
       for (CtBehavior behavior : ctClass.getDeclaredBehaviors()) {
         if (traceClass) {
           logger.trace("behavior: {}", behavior.getLongName());
@@ -331,24 +309,27 @@ public class ClassFileTransformer implements java.lang.instrument.ClassFileTrans
         }
 
         methodsExamined++;
-        if (this.applyHooks(behavior)) {
-          hookApplied = true;
+        Set<Hook.ApplicationAction> actions = this.applyHooks(behavior, traceClass);
+        if (!actions.isEmpty()) {
+          bytecodeModified = true;
           methodsHooked++;
+          if (actions.contains(Hook.ApplicationAction.MARKED)) {
+            needsByteBuddy = true;
+          }
         }
       }
 
-      if (hookApplied) {
-        // One or more of the methods in the the class were marked as needing to
+      if (bytecodeModified) {
+        // One or more of the methods in the class were marked as needing to
         // be instrumented. Mark the class so the bytebuddy transformer will
         // know it needs to be instrumented.
-        ClassFile classFile = ctClass.getClassFile();
-        ConstPool constPool = classFile.getConstPool();
-        Annotation annot = new Annotation(AppMapInstrumented.class.getName(), constPool);
-        AnnotationUtil.setAnnotation(new AnnotatedClass(ctClass), annot);
-
-        if (traceClass) {
-          logger.trace("hooks applied to {}", className);
+        if (needsByteBuddy) {
+          ClassFile classFile = ctClass.getClassFile();
+          ConstPool constPool = classFile.getConstPool();
+          Annotation annot = new Annotation(AppMapInstrumented.class.getName(), constPool);
+          AnnotationUtil.setAnnotation(new AnnotatedClass(ctClass), annot);
         }
+
         if (logger.isDebugEnabled()) {
           packagesHooked.compute(ctClass.getPackageName(), (k, v) -> v == null ? 1 : v + 1);
         }
