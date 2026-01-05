@@ -11,6 +11,8 @@ import com.appland.appmap.util.FullyQualifiedName;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import com.appland.appmap.util.PrefixTrie;
+
 import javassist.CtBehavior;
 public class AppMapPackage {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
@@ -20,6 +22,7 @@ public class AppMapPackage {
   public String[] exclude = new String[] {};
   public boolean shallow = false;
   public Boolean allMethods = true;
+  private final PrefixTrie excludeTrie = new PrefixTrie();
 
   @JsonCreator
   public AppMapPackage(@JsonProperty("path") String path,
@@ -29,7 +32,20 @@ public class AppMapPackage {
     this.path = path;
     this.exclude = exclude == null ? new String[] {} : exclude;
     this.shallow = shallow != null && shallow;
-    this.allMethods = allMethods == null ? true : allMethods;
+    this.allMethods = allMethods == null || allMethods;
+
+    if (exclude != null) {
+      final String packagePrefix = this.path + ".";
+      for (String exclusion : exclude) {
+        if (exclusion.startsWith(packagePrefix)) {
+          // Absolute path, strip the package path and add the rest
+          this.excludeTrie.insert(exclusion.substring(packagePrefix.length()));
+        } else {
+          // Relative path, add as-is
+          this.excludeTrie.insert(exclusion);
+        }
+      }
+    }
   }
 
   public static class LabelConfig {
@@ -77,7 +93,7 @@ public class AppMapPackage {
 
   /**
    * Check if a class/method is included in the configuration.
-   * 
+   *
    * @param canonicalName the canonical name of the class/method to be checked
    * @return {@code true} if the class/method is included in the configuration. {@code false} if it
    *         is not included or otherwise explicitly excluded.
@@ -119,6 +135,14 @@ public class AppMapPackage {
     return null;
   }
 
+  private String getRelativeClassName(String fqcn) {
+    final String packagePrefix = this.path + ".";
+    if (fqcn.startsWith(packagePrefix)) {
+      return fqcn.substring(packagePrefix.length());
+    }
+    return fqcn;
+  }
+
   /**
    * Checks whether the behavior is explicitly excluded
    *
@@ -126,32 +150,22 @@ public class AppMapPackage {
    * @return {@code true} if the behavior is excluded
    */
   public Boolean excludes(CtBehavior behavior) {
-    final String fqClass = behavior.getDeclaringClass().getName();
-    String candidateName = null;
-    for (String exclusion : this.exclude) {
-      if (fqClass.startsWith(exclusion)) {
-        return true;
-      } else {
-        if (candidateName == null) {
-          candidateName = fqClass + "." + behavior.getName();
-        }
-
-        if (candidateName.startsWith(exclusion.replace('#', '.'))) {
-          return true;
-        }
-      }
+    String fqClass = behavior.getDeclaringClass().getName();
+    String relativeClassName = getRelativeClassName(fqClass);
+    if (this.excludeTrie.startsWith(relativeClassName)) {
+      return true;
     }
 
-    return false;
+    // Also check method-specific exclusions
+    String methodName = behavior.getName();
+    String relativeMethodName = String.format("%s.%s", relativeClassName, methodName)
+        .replace('#', '.');
+    return this.excludeTrie.startsWith(relativeMethodName);
   }
 
   public Boolean excludes(FullyQualifiedName canonicalName) {
-    for (String exclusion : this.exclude) {
-      if (canonicalName.toString().startsWith(exclusion)) {
-        return true;
-      }
-    }
-
-    return false;
+    String fqcn = canonicalName.toString();
+    String relativeName = getRelativeClassName(fqcn);
+    return this.excludeTrie.startsWith(relativeName);
   }
 }
