@@ -5,7 +5,7 @@
 load '../helper'
 
 setup_file() {
-  cd "$BATS_TEST_DIR" || true
+  cd "$BATS_TEST_DIRNAME" || exit 1
   _configure_logging
 
   ./gradlew -q clean

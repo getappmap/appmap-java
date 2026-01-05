@@ -24,6 +24,7 @@ import com.appland.appmap.util.Logger;
 public class SqlQuery {
   private static final Recorder recorder = Recorder.getInstance();
   private static final Map<Statement, String> statementSql = Collections.synchronizedMap(new WeakHashMap<>());
+  private static final Map<Statement, java.util.List<String>> statementBatchSql = Collections.synchronizedMap(new WeakHashMap<>());
 
   public static void recordSql(Event event, String databaseType, String sql) {
     event.setSqlQuery(databaseType, sql);
@@ -101,45 +102,85 @@ public class SqlQuery {
   }
 
   // ================================================================================================
-  // nativeSQL
-  // ================================================================================================
-
-  @HookClass("java.sql.Connection")
-  public static void nativeSQL(Event event, Connection c, String sql) {
-    recordSql(event, c, sql);
-  }
-
-  @HookClass(value = "java.sql.Connection", methodEvent = MethodEvent.METHOD_RETURN)
-  public static void nativeSQL(Event event, Connection c, Object returnValue, String sql) {
-    recorder.add(event);
-  }
-
-  @ArgumentArray
-  @HookClass(value = "java.sql.Connection", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void nativeSQL(Event event, Connection c, Throwable exception, Object[] args) {
-    event.setException(exception);
-    recorder.add(event);
-  }
-
-  // ================================================================================================
   // addBatch
   // ================================================================================================
 
+  @HookClass(value = "java.sql.PreparedStatement", methodEvent = MethodEvent.METHOD_RETURN)
+  public static void addBatch(Event event, Statement s) {
+    String sql = statementSql.get(s);
+    if (sql != null) {
+      statementBatchSql.computeIfAbsent(s, k -> new java.util.ArrayList<>()).add(sql);
+    }
+  }
+
   @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_RETURN)
   public static void addBatch(Event event, Statement s, String sql) {
-    recordSql(event, s, sql);
+    statementBatchSql.computeIfAbsent(s, k -> new java.util.ArrayList<>()).add(sql);
+  }
+
+  // ================================================================================================
+  // clearBatch
+  // ================================================================================================
+
+  @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_RETURN)
+  public static void clearBatch(Event event, Statement s) {
+    statementBatchSql.remove(s);
+  }
+
+  // ================================================================================================
+  // executeBatch
+  // ================================================================================================
+
+  @HookClass("java.sql.Statement")
+  public static void executeBatch(Event event, Statement s) {
+    recordSqlBatch(event, s);
   }
 
   @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_RETURN)
-  public static void addBatch(Event event, Statement s, Object returnValue, String sql) {
+  public static void executeBatch(Event event, Statement s, Object returnValue) {
     recorder.add(event);
   }
 
-  @ArgumentArray
   @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_EXCEPTION)
-  public static void addBatch(Event event, Statement s, Throwable exception, Object[] args) {
+  public static void executeBatch(Event event, Statement s, Throwable exception) {
     event.setException(exception);
     recorder.add(event);
+  }
+
+  // ================================================================================================
+  // executeLargeBatch
+  // ================================================================================================
+
+  @HookClass("java.sql.Statement")
+  public static void executeLargeBatch(Event event, Statement s) {
+    recordSqlBatch(event, s);
+  }
+
+  @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_RETURN)
+  public static void executeLargeBatch(Event event, Statement s, Object returnValue) {
+    recorder.add(event);
+  }
+
+  @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_EXCEPTION)
+  public static void executeLargeBatch(Event event, Statement s, Throwable exception) {
+    event.setException(exception);
+    recorder.add(event);
+  }
+
+  private static void recordSqlBatch(Event event, Statement s) {
+    // According to the JDBC spec, calling executeBatch clears the batch
+    // on the statement. So, we'll remove our copy of it.
+    java.util.List<String> sqls = statementBatchSql.remove(s);
+    String sqlToRecord;
+
+    if (sqls != null && !sqls.isEmpty()) {
+      // In order to represent the batch as a single query, we'll join
+      // the SQL statements together.
+      sqlToRecord = String.join(";\n", sqls);
+    } else {
+      sqlToRecord = "[empty batch]";
+    }
+    recordSql(event, s, sqlToRecord);
   }
 
   // ================================================================================================
@@ -207,6 +248,29 @@ public class SqlQuery {
   @ArgumentArray
   @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_EXCEPTION)
   public static void executeUpdate(Event event, Statement s, Throwable exception, Object[] args) {
+    event.setException(exception);
+    recorder.add(event);
+  }
+
+  // ================================================================================================
+  // executeLargeUpdate
+  // ================================================================================================
+
+  @ArgumentArray
+  @HookClass("java.sql.Statement")
+  public static void executeLargeUpdate(Event event, Statement s, Object[] args) {
+    recordSql(event, s, args);
+  }
+
+  @ArgumentArray
+  @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_RETURN)
+  public static void executeLargeUpdate(Event event, Statement s, Object returnValue, Object[] args) {
+    recorder.add(event);
+  }
+
+  @ArgumentArray
+  @HookClass(value = "java.sql.Statement", methodEvent = MethodEvent.METHOD_EXCEPTION)
+  public static void executeLargeUpdate(Event event, Statement s, Throwable exception, Object[] args) {
     event.setException(exception);
     recorder.add(event);
   }
