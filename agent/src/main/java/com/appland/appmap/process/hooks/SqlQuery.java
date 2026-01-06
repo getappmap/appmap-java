@@ -23,8 +23,8 @@ import com.appland.appmap.util.Logger;
 @SuppressWarnings("unused")
 public class SqlQuery {
   private static final Recorder recorder = Recorder.getInstance();
-  private static final Map<Statement, String> statementSql = Collections.synchronizedMap(new WeakHashMap<>());
-  private static final Map<Statement, java.util.List<String>> statementBatchSql = Collections.synchronizedMap(new WeakHashMap<>());
+  private static final Map<Object, String> statementSql = Collections.synchronizedMap(new WeakHashMap<>());
+  private static final Map<Object, java.util.List<String>> statementBatchSql = Collections.synchronizedMap(new WeakHashMap<>());
 
   public static void recordSql(Event event, String databaseType, String sql) {
     event.setSqlQuery(databaseType, sql);
@@ -287,7 +287,7 @@ public class SqlQuery {
       if (args.length > 0 && args[0] instanceof String) {
         sql = (String) args[0];
       }
-      statementSql.put((Statement) returnValue, sql);
+      statementSql.put(returnValue, sql);
     }
   }
 
@@ -303,7 +303,7 @@ public class SqlQuery {
       if (args.length > 0 && args[0] instanceof String) {
         sql = (String) args[0];
       }
-      statementSql.put((Statement) returnValue, sql);
+      statementSql.put(returnValue, sql);
     }
   }
 }
