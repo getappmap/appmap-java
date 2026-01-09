@@ -8,12 +8,14 @@
 load '../helper'
 
 setup_file() {
-mkdir -p build/log
+  agent_root="$BATS_TEST_DIRNAME/../.."
+  mkdir -p "$agent_root/build/log"
 
-export LOG="$(getcwd)/build/log/httpcore.log"
-export SERVER_PORT=9090
-export WS_URL=${WS_URL:-http://localhost:9090}
-  cd test/httpcore
+  export LOG="$agent_root/build/log/httpcore.log"
+  export SERVER_PORT=46406
+  export WS_URL=${WS_URL:-http://localhost:${SERVER_PORT}}
+
+  cd "$BATS_TEST_DIRNAME" || exit
   _configure_logging
 
   printf 'getting set up' >&3
