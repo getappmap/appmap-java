@@ -1,10 +1,10 @@
+package event;
+
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 import com.appland.appmap.record.Recorder;
 import com.appland.appmap.record.Recording;
-
-import com.appland.appmap.test.fixture.Example;
 
 public class DisabledValue {
 

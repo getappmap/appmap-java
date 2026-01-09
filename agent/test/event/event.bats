@@ -2,21 +2,20 @@
 
 load '../helper'
 
-sep="$JAVA_PATH_SEPARATOR"
 AGENT_JAR="$(find_agent_jar)"
-wd=$(getcwd)
-test_cp="${wd}/test/event${sep}${wd}/build/classes/java/test"
-java_cmd="java -javaagent:'${AGENT_JAR}' -cp '${test_cp}'"
+
+# Resolves to .../agent/test
+TEST_DIR="$(dirname "$BATS_TEST_DIRNAME")"
+java_cmd="java -javaagent:'${AGENT_JAR}' -cp '${TEST_DIR}'"
 
 setup() {
-  javac -cp "${AGENT_JAR}${sep}${test_cp}" test/event/*.java
-
-  cd test/event
+  cd "$BATS_TEST_DIRNAME" || exit
+  javac -cp "${AGENT_JAR}" -sourcepath "$TEST_DIR" ./*.java
   _configure_logging
 }
 
 @test "disabled value" {
-  local cmd="${java_cmd} -Dappmap.event.disableValue=true DisabledValue"
+  local cmd="${java_cmd} -Dappmap.event.disableValue=true event.DisabledValue"
   [[ $BATS_VERBOSE_RUN == 1 ]] && echo "cmd: $cmd" >&3
   
   local output
