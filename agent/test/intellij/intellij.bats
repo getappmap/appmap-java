@@ -5,9 +5,7 @@ init_plugin() {
 }
 
 setup_file() {
-  if [[ $JAVA_VERSION != 17.* ]]; then
-    skip "needs Java 17"
-  fi
+  is_java 17 || skip "needs Java 17"
 
   export AGENT_JAR="$(find_agent_jar)"
 

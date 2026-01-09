@@ -25,7 +25,7 @@ class ShadowRelocation extends DefaultTask {
 
   @InputFiles @Optional
   List<Configuration> getConfigurations() {
-      return target.configurations
+      return target.configurations.get().toList()
   }
 
   @TaskAction

@@ -1,15 +1,23 @@
 #!/usr/bin/env bash
 
-fixture_dir=$PWD/build/fixtures
+set -eo pipefail
+
+AGENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+cd "${AGENT_DIR}"
+
 mkdir -p build/fixtures
 
+# shellcheck source=../test/helper.bash
 source "test/helper.bash"
-export ANNOTATION_JAR="$(find_annotation_jar)"
+ANNOTATION_JAR="$(find_annotation_jar)"
+export ANNOTATION_JAR
 
-function install_petclinic (
+function install_petclinic() {
   local repo="$1"; shift
   local ref=${1:-main}
-  local pkg="$(basename $repo)"
+  local pkg
+  pkg="$(basename "$repo")"
 
   if [[ -d "build/fixtures/${pkg}" ]]; then
     echo "Fixture already exists: ${pkg}"
@@ -43,7 +51,7 @@ function install_petclinic (
 
 
   cd ../../..
-)
+}
 
 function install_scala_test_app {
   if [[ -d "test/scala/play-samples" ]]; then
@@ -53,14 +61,13 @@ function install_scala_test_app {
   cd test/scala
   rm -rf play-samples
   local branch=3.0.x
-  case "${JAVA_VERSION}" in
-    1.8*)
-      branch=2.8.x
-      ;;
-    11.*)
-      branch=2.9.x
-      ;;
-  esac
+  if is_java 17; then
+    branch=3.0.x
+  elif is_java 11; then
+    branch=2.9.x
+  else
+    branch=2.8.x
+  fi
   git clone --no-checkout https://github.com/playframework/play-samples.git --depth 1 --branch $branch
   cd play-samples
   git sparse-checkout set play-scala-rest-api-example
@@ -69,20 +76,16 @@ function install_scala_test_app {
   cd ../../..
 }
 
-case "${JAVA_VERSION}" in
-  1.8*|11.*)
-    install_petclinic "land-of-apps/spring-petclinic" old-java-support
-    ;;
-  17.*)
-    # The spring-petclinic main branch now requires Java 25. This is the last commit that supports Java 17.
-    install_petclinic "spring-projects/spring-petclinic" "3aa79e3944ab1b626288f5d0629e61643ab8fb4a"
-    install_petclinic "spring-petclinic/spring-framework-petclinic"
-    ;;
-  *) # For Java 25+
-    install_petclinic "spring-projects/spring-petclinic" "main"
-    install_petclinic "spring-petclinic/spring-framework-petclinic"
-    ;;
-esac
+if is_java 25; then
+  install_petclinic "spring-projects/spring-petclinic" "main"
+  install_petclinic "spring-petclinic/spring-framework-petclinic"
+elif is_java 17; then
+  # The spring-petclinic main branch now requires Java 25. This is the last commit that supports Java 17.
+  install_petclinic "spring-projects/spring-petclinic" "3aa79e3944ab1b626288f5d0629e61643ab8fb4a"
+  install_petclinic "spring-petclinic/spring-framework-petclinic"
+else
+  install_petclinic "land-of-apps/spring-petclinic" old-java-support
+fi
 
 patch -N -p1 -d build/fixtures/spring-petclinic < test/petclinic/pom.patch
 

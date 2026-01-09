@@ -17,7 +17,7 @@ setup() {
 run_framework_test() {
   local framework=$1
   local test="$2"
-  run ./gradlew cleanTest test_${framework} --tests "$test"
+  run gradlew cleanTest test_${framework} --tests "$test"
 }
 
 @test "metadata captured on success for junit" {

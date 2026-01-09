@@ -6,7 +6,7 @@ setup_file() {
   cd test/jdbc
   _configure_logging
 
-  ./gradlew -q clean
+  gradlew -q clean
 }
 
 setup() {
@@ -14,7 +14,7 @@ setup() {
 }
 
 @test "successful test" {
-  run ./gradlew -q test --tests 'CustomerRepositoryTests.testFindFromBogusTable'
+  run gradlew -q test --tests 'CustomerRepositoryTests.testFindFromBogusTable'
   assert_success
 
   output="$(<./tmp/appmap/junit/com_example_accessingdatajpa_CustomerRepositoryTests_testFindFromBogusTable.appmap.json)"
@@ -25,7 +25,7 @@ setup() {
 }
 
 @test "failing test" {
-  run ./gradlew -q test --tests 'CustomerRepositoryTests.testFails'
+  run gradlew -q test --tests 'CustomerRepositoryTests.testFails'
   assert_failure
 
   output="$(<./tmp/appmap/junit/com_example_accessingdatajpa_CustomerRepositoryTests_testFails.appmap.json)"
