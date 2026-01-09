@@ -18,20 +18,11 @@ setup_file() {
   cd "$BATS_TEST_DIRNAME" || exit
   _configure_logging
 
-  printf 'getting set up' >&3
-  ./gradlew run --args "${SERVER_PORT}"   &> $LOG &
-  export JVM_MAIN_CLASS=org.gradle.wrapper.GradleWrapperMain
+  printf 'Starting httpcore test server' >&3
+  gradlew run --args "${SERVER_PORT}" &> $LOG &
+  export WS_PID=$!
 
-  while [ -z "$(curl -sI ${WS_URL} | grep 'HTTP/1.1 200')" ]; do
-    if ! jcmd $JVM_MAIN_CLASS VM.uptime >&/dev/null; then
-      echo "$JVM_MAIN_CLASS failed" >&3
-      cat $LOG >&3
-      exit 1
-    fi
-    printf ' .' >&3
-    sleep 1
-  done
-  printf ' ok\n\n' >&3
+  wait_for_ws
 }
 
 teardown_file() {

@@ -9,5 +9,3 @@ for d in build/fixtures/*; do
   ./mvnw package -quiet -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true
   cd -
 done
-
-../gradlew testClasses

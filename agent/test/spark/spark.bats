@@ -10,8 +10,11 @@ setup_file() {
   _configure_logging
 
   cd test/spark
-  ./gradlew -PappmapJar="${AGENT_JAR}" run &
-  export JVM_MAIN_CLASS=org.gradle.wrapper.GradleWrapperMain
+  export LOG="$BATS_TEST_DIRNAME/../../build/log/spark.log"
+  mkdir -p "$(dirname "$LOG")"
+
+  gradlew -PappmapJar="${AGENT_JAR}" run &> "$LOG" &
+  export WS_PID=$!
 
   wait_for_ws
 }

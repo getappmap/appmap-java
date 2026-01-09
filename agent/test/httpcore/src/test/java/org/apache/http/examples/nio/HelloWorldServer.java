@@ -12,6 +12,7 @@ import org.apache.http.RequestLine;
 
 import org.apache.http.impl.nio.bootstrap.HttpServer;
 import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.nio.protocol.BasicAsyncRequestHandler;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -42,12 +43,17 @@ public class HelloWorldServer {
 
   @Labels({"server", "runner"})
   public HttpServer run(int port) throws IOException, InterruptedException {
+    final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
+        .setSoTimeout(5000)
+        .setSoReuseAddress(true)
+        .build();
     final HttpServer server = ServerBootstrap.bootstrap()
-      .setListenerPort(port)
-      .setServerInfo("HelloWorld/1.1")
-      .setExceptionLogger(ExceptionLogger.STD_ERR)
-      .registerHandler("*", new BasicAsyncRequestHandler(new HelloWorldHandler()))
-      .create();
+        .setListenerPort(port)
+        .setIOReactorConfig(ioReactorConfig)
+        .setServerInfo("HelloWorld/1.1")
+        .setExceptionLogger(ExceptionLogger.STD_ERR)
+        .registerHandler("*", new BasicAsyncRequestHandler(new HelloWorldHandler()))
+        .create();
 
       server.start();
       server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);

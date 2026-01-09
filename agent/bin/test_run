@@ -15,5 +15,5 @@ set -x
 #   * just doing bats -r test doesn't discover a setup_suite.bash file correctly. http_client uses
 #     one, so it needs to be run separately
 
-bats -r test/!(http_client)
-bats -r test/http_client
+bats -r test/!(http_client)/
+bats -r test/http_client/
