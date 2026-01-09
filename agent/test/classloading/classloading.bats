@@ -12,13 +12,13 @@ setup_file() {
   # it's easy to do (the test for BATS_VERSION will add -q to the command line
   # when run as a test, but not when run in a shell).
   run \
-    ./gradlew ${BATS_VERSION+-q} -PappmapJar="$AGENT_JAR" run --args "TestSafeClassForName"
+    gradlew ${BATS_VERSION+-q} -PappmapJar="$AGENT_JAR" run --args "TestSafeClassForName"
   assert_success
 }
 
 @test "Proxy" {
   run --separate-stderr \
-    ./gradlew ${BATS_VERSION+-q} -PappmapJar="$AGENT_JAR" run --args "TestProxy"
+    gradlew ${BATS_VERSION+-q} -PappmapJar="$AGENT_JAR" run --args "TestProxy"
   assert_success
   assert_json_eq ".events[0].defined_class" "com.appland.appmap.test.fixture.helloworld.HelloWorld"
   assert_json_eq ".events[0].method_id" "getGreeting"

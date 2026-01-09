@@ -7,9 +7,7 @@ load '../petclinic-shared/static-resources.bash'
 load '../petclinic-shared/message-params.bash'
 
 setup_file() {
-  if [[ $JAVA_VERSION != 17.* ]]; then
-    skip "needs Java 17"
-  fi
+  is_java 17 || skip "needs Java 17"
 
   export FIXTURE_DIR=build/fixtures/spring-framework-petclinic
   _shared_setup
