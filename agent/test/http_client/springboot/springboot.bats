@@ -11,7 +11,7 @@ teardown_file() {
 }
 
 @test "runs in spring boot jar" {
-  run ./gradlew -q -PSPRING_BOOT_VERSION=$SPRING_BOOT_VERSION clean bootJar
+  run gradlew -q -PSPRING_BOOT_VERSION=$SPRING_BOOT_VERSION clean bootJar
   assert_success
 
   run java -javaagent:"$(find_agent_jar)" -jar build/libs/springboot-test.jar "$WS_URL"

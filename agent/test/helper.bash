@@ -13,6 +13,15 @@ export JAVA_VERSION
 # issues a warning. That warning confuses our tests, so set -Xshare:off to preempt it.
 export JAVA_OUTPUT_OPTIONS="-Xshare:off"
 
+# Checks if Java version is at least the given version.
+# Usage: if is_java 11; then ...
+is_java() {
+  local required_version="$1"
+  if [[ $(echo -e "$required_version\n${JAVA_VERSION}" | sort -V | head -n1) == "$required_version" ]]; then
+    return 0
+  fi
+  return 1
+}
 
 _curl() {
   curl -sfH 'Accept: application/json,*/*' "${@}"
@@ -142,6 +151,14 @@ find_annotation_jar() {
 
 export ANNOTATION_JAR="$(find_annotation_jar)"
 
+# absolute gradle wrapper path (in the same directory as this file)
+GRADLE_WRAPPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/gradlew"
+
+# Shared gradle wrapper function
+gradlew() {
+  "${GRADLE_WRAPPER}" "$@"
+}
+
 check_ws_running() {
   printf 'checking for running web server\n'
 
@@ -154,32 +171,49 @@ check_ws_running() {
 }
 
 wait_for_ws() {
-  while ! curl -Isf "${WS_URL}" >/dev/null; do
-    if ! jcmd $JVM_MAIN_CLASS VM.uptime >&/dev/null; then
-      echo "$JVM_MAIN_CLASS failed"
+  local timeout=60
+  for i in $(seq 1 $timeout); do
+    if curl -Isf "${WS_URL}" >/dev/null 2>&1; then
+      echo " ok" >&3
+      return 0
+    fi
+
+    # Check if the process died
+    if [[ -n "$WS_PID" ]] && ! kill -0 "$WS_PID" 2>/dev/null; then
+      echo "Error: Web server process died" >&3
+      if [[ -n "$LOG" ]]; then
+        cat "$LOG" >&3
+      fi
       exit 1
     fi
+
+    echo -n '.' >&3
     sleep 1
   done
-  printf '  ok\n\n'
+
+  echo "Error: Timeout waiting for web server to start" >&3
+  if [[ -n "$LOG" ]]; then
+    cat "$LOG" >&3
+  fi
+  exit 1
 }
 
 wait_for_mvn() {
   local mvn_pid=$1
+  export WS_PID=$mvn_pid
 
-  # The only thing special about the VM.uptime command is that it's fast, and
-  # the output is small.
-  local uptime="jcmd ${JVM_MAIN_CLASS} VM.uptime"
-  while ! ${uptime} >&/dev/null; do
-    if ! ps -p $mvn_pid >&/dev/null; then
-      echo "mvn failed"
-      cat $LOG
+  # Just wait for the maven wrapper process to keep running
+  # The actual JVM will be a child process, and wait_for_ws will verify it started
+  for i in {1..30}; do
+    if ! kill -0 $mvn_pid 2>/dev/null; then
+      echo "Error: Maven process exited prematurely" >&3
+      if [[ -n "$LOG" ]]; then
+        cat "$LOG" >&3
+      fi
       exit 1
     fi
     sleep 1
   done
-  # Final check, this will fail if the server didn't start
-  ${uptime} >&/dev/null
 }
 
 # Start a PetClinic server. Note that the output from the printf's in this
@@ -254,25 +288,31 @@ start_petclinic_fw() {
 }
 
 stop_ws() {
-  # curl doesn't like it when the server exits. Assume the request was
-  # successful, then wait for the main class to finish.
-  curl -sXDELETE "${WS_URL}"/exit  || true
+  # If we don't have a PID, we can't stop anything
+  if [[ -z "$WS_PID" ]]; then
+    return 0
+  fi
 
+  # Try graceful shutdown first
+  curl -sXDELETE "${WS_URL}/exit" >&/dev/null || true
+
+  # Wait up to 30 seconds for process to exit
   for i in {1..30}; do
-    if ! jcmd $JVM_MAIN_CLASS VM.uptime >&/dev/null ; then
-      break;
+    if ! kill -0 "$WS_PID" 2>/dev/null; then
+      # Process is gone, success
+      return 0
     fi
     sleep 1
   done
 
-  if jcmd $JVM_MAIN_CLASS VM.update >&/dev/null; then
-    echo "$JVM_MAIN_CLASS didn't exit"
-    if [[ ! -z "$LOG" ]]; then
+  # If still running, force kill it
+  if kill -0 "$WS_PID" 2>/dev/null; then
+    echo "Warning: Process $WS_PID didn't exit gracefully, force killing" >&3
+    kill -9 "$WS_PID" 2>/dev/null || true
+    if [[ -n "$LOG" ]]; then
       cat "$LOG" >&3
     fi
-    exit 1;
   fi
-
 }
 
 wait_for_glob() {

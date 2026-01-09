@@ -12,7 +12,7 @@ plugins {
 }
 
 repositories {
-  jcenter()
+
   mavenCentral()
 }
 
@@ -40,8 +40,7 @@ version = parameterizedVersion ?: ( travisVersionValid ? travisVersion : default
 group = publishGroupId
 
 compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+    options.release = 8
 }
 
 check {
@@ -50,7 +49,7 @@ check {
 // extra artifacts used in publishing
 task sourcesJar(type: Jar) {
   from sourceSets.main.allJava
-  classifier = 'sources'
+  archiveClassifier = 'sources'
 }
 
 // for some reason this block generates empty Javadoc
@@ -59,7 +58,7 @@ javadoc {
   exclude 'com/appland/**'
 }
 task mockJavadocJar(type: Jar) {
-  classifier = 'javadoc'
+  archiveClassifier = 'javadoc'
   from javadoc.destinationDir
 }
 
@@ -74,8 +73,8 @@ publishing {
 
       // 1. coordinates (parameterized)
 
-      groupId publishGroupId
-      artifactId publishArtifactId
+      groupId = publishGroupId
+      artifactId = publishArtifactId
 
       // version defined globally
 
