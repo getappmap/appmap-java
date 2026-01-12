@@ -2,6 +2,8 @@
 
 set -e
 
+(cd ../annotation && ../gradlew jar)
+
 . test/helper.bash
 
 for d in build/fixtures/*; do

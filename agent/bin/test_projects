@@ -73,7 +73,7 @@ case "${JAVA_VERSION}" in
   1.8*|11.*)
     install_petclinic "land-of-apps/spring-petclinic" old-java-support
     ;;
-  17.*)
+  17.*|21.*)
     # The spring-petclinic main branch now requires Java 25. This is the last commit that supports Java 17.
     install_petclinic "spring-projects/spring-petclinic" "3aa79e3944ab1b626288f5d0629e61643ab8fb4a"
     install_petclinic "spring-petclinic/spring-framework-petclinic"
