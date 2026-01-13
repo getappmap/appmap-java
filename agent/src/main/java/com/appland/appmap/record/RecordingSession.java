@@ -93,22 +93,24 @@ public class RecordingSession {
       // By using RandomAccessFile we can erase that character.
       // If we don't let the JSON writer write the "begin object" token, it refuses
       // to do anything else properly either.
-      RandomAccessFile raf = new RandomAccessFile(targetPath.toFile(), "rw");
-      Writer fw = new OutputStreamWriter(new OutputStream() {
-        @Override
-        public void write(int b) throws IOException {
-          raf.write(b);
+      try (RandomAccessFile raf = new RandomAccessFile(targetPath.toFile(), "rw")) {
+        Writer fw = new OutputStreamWriter(new OutputStream() {
+          @Override
+          public void write(int b) throws IOException {
+            raf.write(b);
+          }
+        }, StandardCharsets.UTF_8);
+        raf.seek(targetPath.toFile().length());
+
+        if (eventReceived) {
+          fw.write("],");
         }
-      }, StandardCharsets.UTF_8);
-      raf.seek(targetPath.toFile().length());
+        fw.flush();
 
-      if (  eventReceived ) {
-        fw.write("],");
+        try (AppMapSerializer serializer = AppMapSerializer.reopen(fw, raf)) {
+          serializer.write(this.getClassMap(), this.metadata, this.eventUpdates);
+        }
       }
-      fw.flush();
-
-      AppMapSerializer serializer = AppMapSerializer.reopen(fw, raf);
-      serializer.write(this.getClassMap(), this.metadata, this.eventUpdates);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -124,15 +126,23 @@ public class RecordingSession {
       throw new IllegalStateException("AppMap: Unable to stop the recording because no recording is in progress.");
     }
 
+    File file = this.tmpPath.toFile();
     try {
       this.serializer.write(this.getClassMap(), this.metadata, this.eventUpdates);
     } catch (IOException e) {
       throw new RuntimeException(e);
+    } finally {
+      // Ensure serializer is closed even if write() throws an exception
+      try {
+        if (this.serializer != null) {
+          this.serializer.close();
+        }
+      } catch (IOException e) {
+        logger.error("Failed to close serializer", e);
+      }
+      this.serializer = null;
+      this.tmpPath = null;
     }
-
-    File file = this.tmpPath.toFile();
-    this.serializer = null;
-    this.tmpPath = null;
 
     logger.debug("Recording finished");
     logger.debug("Wrote recording to file {}", file.getPath());
@@ -163,7 +173,9 @@ public class RecordingSession {
     try {
       this.tmpPath = Files.createTempFile(null, ".appmap.json");
       this.tmpPath.toFile().deleteOnExit();
-      this.serializer = AppMapSerializer.open(new OutputStreamWriter(new FileOutputStream(this.tmpPath.toFile()), StandardCharsets.UTF_8));
+      FileOutputStream fileOutputStream = new FileOutputStream(this.tmpPath.toFile());
+      OutputStreamWriter writer = new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8);
+      this.serializer = AppMapSerializer.open(writer);
     } catch (IOException e) {
       this.tmpPath = null;
       this.serializer = null;
