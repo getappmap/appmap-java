@@ -17,7 +17,7 @@ import com.appland.appmap.util.GitUtil;
 /**
  * Writes AppMap data to JSON.
  */
-public class AppMapSerializer {
+public class AppMapSerializer implements AutoCloseable {
   public static class FileSections {
     public static final String Version = "version";
     public static final String Metadata = "metadata";
@@ -37,10 +37,13 @@ public class AppMapSerializer {
   }
 
   private final JSONWriter json;
+  private final Writer underlyingWriter;
   private SectionInfo currentSection = null;
   private final HashSet<String> sectionsWritten = new HashSet<String>();
+  private boolean closed = false;
 
   private AppMapSerializer(Writer writer) {
+    this.underlyingWriter = writer;
     this.json = new JSONWriter(writer);
     // The eventUpdates object contains Event objects that are also in the
     // events array. Setting DisableCircularReferenceDetect tells fastjson that
@@ -73,7 +76,7 @@ public class AppMapSerializer {
       writeMetadata(git, metadata);
     }
     writeEventUpdates(eventUpdates);
-    finish();
+    close();
   }
 
   private void setCurrentSection(String section, String type) throws IOException {
@@ -280,12 +283,22 @@ public class AppMapSerializer {
   }
 
   /**
-   * Closes outstanding JSON objects and closes the writer.
+   * Closes outstanding JSON objects and closes the underlying writer. Safe to call multiple times.
    * @throws IOException If a writer error occurs
    */
-  private void finish() throws IOException {
-    this.setCurrentSection("EOF", "");
-    this.json.endObject();
-    this.json.close();
+  @Override
+  public void close() throws IOException {
+    if (!this.closed) {
+      try {
+        this.setCurrentSection("EOF", "");
+        this.json.endObject();
+        this.json.close();
+      } finally {
+        // JSONWriter.close() does not close the underlying writer, so we must do it explicitly
+        // Always close the underlying writer, even if JSON finalization fails
+        this.underlyingWriter.close();
+        this.closed = true;
+      }
+    }
   }
 }
