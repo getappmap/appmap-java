@@ -213,13 +213,14 @@ public class Agent {
       System.exit(1);
     }
 
-    // Adding the runtime jar to the boot class loader means the classes it
-    // contains will be available everywhere. This avoids issues caused by any
-    // filtering the app's class loader might be doing (e.g. the Scala runtime
-    // when running a Play app).
+    // It's critical to append the runtime JAR to the bootstrap class loader
+    // search path, not the system class loader search path. This ensures that
+    // AppMap's core runtime classes, such as HookFunctions, are available to
+    // all application classes, including those loaded by different class loaders
+    // (e.g., in web servers like Tomcat or other complex environments), which
+    // fixes `NoClassDefFoundError` for `HookFunctions`.
     JarFile runtimeJar = new JarFile(runtimeJarPath.toFile());
-    inst.appendToSystemClassLoaderSearch(runtimeJar);
-    // inst.appendToBootstrapClassLoaderSearch(runtimeJar);
+    inst.appendToBootstrapClassLoaderSearch(runtimeJar);
 
     // HookFunctions can only be referenced after the runtime jar has been
     // appended to the boot class loader.
