@@ -126,17 +126,16 @@ assert_json_not_contains() {
   refute jq -er "${query}" <<< "${output}"
 }
 
-_top_level() {
-  git rev-parse --show-toplevel
-}
+TOP_LEVEL="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../.. && pwd)"
 
+LOG_DIR="$TOP_LEVEL/agent/build/log"
 
 find_agent_jar() {
   if [[ -n "$AGENT_JAR" ]]; then
     echo "$AGENT_JAR"
     return
   fi
-  find "$(_top_level)" -name 'appmap-[[:digit:]]*.jar'
+  find "$TOP_LEVEL" -name 'appmap-[[:digit:]]*.jar'
 }
 
 export AGENT_JAR="$(find_agent_jar)"
@@ -146,13 +145,13 @@ find_annotation_jar() {
     echo "$ANNOTATION_JAR"
     return
   fi
-  find "$(_top_level)" -name 'annotation-[[:digit:]]*.jar'
+  find "$TOP_LEVEL" -name 'annotation-[[:digit:]]*.jar'
 }
 
 export ANNOTATION_JAR="$(find_annotation_jar)"
 
 # absolute gradle wrapper path (in the same directory as this file)
-GRADLE_WRAPPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/gradlew"
+GRADLE_WRAPPER="$TOP_LEVEL/agent/test/gradlew"
 
 # Shared gradle wrapper function
 gradlew() {
@@ -227,7 +226,6 @@ start_petclinic() {
 
   WD=$(getcwd)
 
-  export LOG_DIR=$WD/build/log
   mkdir -p ${LOG_DIR}
 
   local fixture_dir="$WD/build/fixtures/spring-petclinic"
@@ -259,7 +257,6 @@ start_petclinic() {
 
 start_petclinic_fw() {
   WD=$(getcwd)
-  export LOG_DIR="$WD/build/log"
   mkdir -p ${LOG_DIR}
 
   local fixture_dir="$WD/build/fixtures/spring-framework-petclinic"
@@ -327,7 +324,7 @@ wait_for_glob() {
 }
 
 _configure_logging() {
-  local logConfigDir="$(_top_level)/agent/test/shared"
+  local logConfigDir="$TOP_LEVEL/agent/test/shared"
   export APPMAP_DISABLELOGFILE=true
   export JUL_CONFIG="${logConfigDir}/java-logging.properties"
 }
