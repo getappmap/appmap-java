@@ -1,6 +1,12 @@
 name: Build and test
 on: [push]
 
+permissions:
+  # The GITHUB_TOKEN is used to download AppMap service
+  # binaries in addition to cloning the repository; by explicitly
+  # setting permissions, we ensure it has no unnecessary access.
+  contents: read
+
 jobs:
   build-and-check:
     name: Build and check
@@ -106,5 +112,8 @@ jobs:
         env:
           BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
           TERM: xterm
+          # Github token is just to avoid rate limiting when IntelliJ tests
+          # are run and download the AppMap service binaries
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: ./agent
         run: bin/test_run
