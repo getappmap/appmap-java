@@ -1,0 +1,3 @@
+name: gretty-tomcat
+packages:
+- path: org.example
