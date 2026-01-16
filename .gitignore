@@ -22,3 +22,6 @@ tmp
 
 # test output
 /.metadata/
+
+# Log files
+*.log

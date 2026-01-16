@@ -1,0 +1,10 @@
+# This docker-compose file is used for local, manual execution of the Oracle JDBC integration tests.
+# It starts a standalone Oracle database for testing purposes.
+version: '3.8'
+services:
+  oracle:
+    image: docker.io/gvenzl/oracle-free:slim-faststart
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: oracle
