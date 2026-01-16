@@ -7,6 +7,10 @@ permissions:
   # setting permissions, we ensure it has no unnecessary access.
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-check:
     name: Build and check
@@ -37,6 +41,18 @@ jobs:
             annotation/build/libs/*.jar
 
   test-suite:
+    services:
+      oracle:
+        image: docker.io/gvenzl/oracle-free:slim-faststart
+        ports:
+          - 1521:1521
+        env:
+          ORACLE_PASSWORD: oracle
+        options: >-
+          --health-cmd healthcheck.sh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     strategy:
       matrix:
         java: ['21', '17', '11', '8']
@@ -115,5 +131,8 @@ jobs:
           # Github token is just to avoid rate limiting when IntelliJ tests
           # are run and download the AppMap service binaries
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORACLE_URL: jdbc:oracle:thin:@localhost:1521
+          ORACLE_USERNAME: system
+          ORACLE_PASSWORD: oracle
         working-directory: ./agent
         run: bin/test_run
