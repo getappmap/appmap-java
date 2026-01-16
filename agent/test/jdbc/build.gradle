@@ -2,21 +2,25 @@ plugins {
 		id 'org.springframework.boot' version '2.7.0'
 		id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 		id 'java'
-		// id 'com.appland.appmap' version '1.1.0'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '1.8'
 
+// suppress warnings about source compatibility
+tasks.withType(JavaCompile) {
+	options.compilerArgs << '-Xlint:-options'
+}
+
 repositories {
-  // mavenLocal()
 	mavenCentral()
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	runtimeOnly 'com.h2database:h2'
+	runtimeOnly 'com.oracle.database.jdbc:ojdbc8:21.9.0.0'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
@@ -24,11 +28,16 @@ def appmapJar = "$System.env.AGENT_JAR"
 
 test {
 	useJUnitPlatform()
+	if (System.env.ORACLE_URL) {
+		inputs.property("oracleUrl", System.env.ORACLE_URL)
+	}
+	if (System.env.AGENT_JAR) {
+		inputs.file(System.env.AGENT_JAR)
+	}
 	jvmArgs += [
-		"-javaagent:${appmapJar}", 
-    "-Dappmap.config.file=appmap.yml", 
-    "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}"
-    // "-Dappmap.debug=true", 
-    // "-Dappmap.debug.file=../../build/log/jdbc-appmap.log"
+		"-javaagent:${appmapJar}",
+		"-Dappmap.config.file=appmap.yml",
+		"-Djava.util.logging.config.file=${System.env.JUL_CONFIG}",
+		// "-Dappmap.debug=true",
 	]
 }
