@@ -1,0 +1,55 @@
+diff --git a/pom.xml b/pom.xml
+index fb38cc3..6cb8530 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -65,6 +65,23 @@
+     <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-webmvc</artifactId>
++      <exclusions>
++        <exclusion>
++          <groupId>org.springframework.boot</groupId>
++          <artifactId>spring-boot-starter-tomcat</artifactId>
++        </exclusion>
++      </exclusions>
++    </dependency>
++    <dependency>
++      <groupId>com.appland</groupId>
++      <artifactId>annotation</artifactId>
++      <version>LATEST</version>
++      <scope>system</scope>
++      <systemPath>${env.ANNOTATION_JAR}</systemPath>
++    </dependency>
++    <dependency>
++      <groupId>com.fasterxml.jackson.core</groupId>
++      <artifactId>jackson-databind</artifactId>
+     </dependency>
+ 
+     <dependency>
+@@ -407,5 +424,26 @@
+         </pluginManagement>
+       </build>
+     </profile>
++    <profile>
++      <id>tomcat</id>
++      <activation>
++        <activeByDefault>true</activeByDefault>
++      </activation>
++      <dependencies>
++        <dependency>
++          <groupId>org.springframework.boot</groupId>
++          <artifactId>spring-boot-starter-tomcat</artifactId>
++        </dependency>
++      </dependencies>
++    </profile>
++    <profile>
++      <id>jetty</id>
++      <dependencies>
++        <dependency>
++          <groupId>org.springframework.boot</groupId>
++          <artifactId>spring-boot-starter-jetty</artifactId>
++        </dependency>
++      </dependencies>
++    </profile>
+   </profiles>
+ </project>

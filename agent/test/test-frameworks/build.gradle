@@ -36,6 +36,9 @@ def addAgentArgs = [
   ]
 
 task test_junit(type: Test) {
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+
   testLogging {
     events TestLogEvent.STANDARD_OUT
   }
@@ -44,6 +47,9 @@ task test_junit(type: Test) {
 }
 
 task test_testng(type: Test) {
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+
   useTestNG()
   testLogging {
     showStandardStreams = true
@@ -57,21 +63,14 @@ task test_testng(type: Test) {
 def jdk8Dependency = 'org.testng:testng:7.5.1'
 def jdk11Dependency = 'org.testng:testng:7.9.0'
 
-tasks.register('setTestDependencies') {
-  doLast {
-    def jdkVersion = javaToolchains.launcherFor(java.toolchain).get().metadata.languageVersion.asInt()
-    if (jdkVersion <= 8) {
-      dependencies {
-          testImplementation jdk8Dependency
-      }
-    } else {
-      dependencies {
-        testImplementation jdk11Dependency
-      }
-    }
+// Add TestNG dependency during configuration phase (not execution phase)
+def jdkVersion = System.getProperty('java.version').split('\\.')[0] as Integer
+if (jdkVersion <= 8) {
+  dependencies {
+    testImplementation jdk8Dependency
   }
-}
-
-tasks.named("compileTestJava") {
-  dependsOn 'setTestDependencies'
+} else {
+  dependencies {
+    testImplementation jdk11Dependency
+  }
 }

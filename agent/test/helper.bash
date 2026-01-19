@@ -151,7 +151,13 @@ find_annotation_jar() {
 export ANNOTATION_JAR="$(find_annotation_jar)"
 
 # absolute gradle wrapper path (in the same directory as this file)
-GRADLE_WRAPPER="$TOP_LEVEL/agent/test/gradlew"
+if is_java 25; then
+  # use 9.1 for newer java
+  GRADLE_WRAPPER="$TOP_LEVEL/gradlew"
+else
+  # this is 8.5 for older javas
+  GRADLE_WRAPPER="$TOP_LEVEL/agent/test/gradlew"
+fi
 
 # Shared gradle wrapper function
 gradlew() {

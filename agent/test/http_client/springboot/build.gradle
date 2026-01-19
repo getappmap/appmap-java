@@ -1,13 +1,28 @@
+buildscript {
+  ext {
+    if (JavaVersion.current() >= JavaVersion.VERSION_17) {
+      SPRING_BOOT_VERSION = '3.4.1'
+      javaCompatibility = JavaVersion.VERSION_17
+    } else {
+      SPRING_BOOT_VERSION = '2.7.18'
+      javaCompatibility = JavaVersion.VERSION_1_8
+    }
+  }
+}
 
 plugins {
   id 'java'
   id 'org.springframework.boot' version "${SPRING_BOOT_VERSION}"
-  id 'io.spring.dependency-management' version '1.1.4'
-
+  id 'io.spring.dependency-management' version '1.1.7'
 }
 
 repositories {
   mavenCentral()
+}
+
+java {
+  sourceCompatibility = javaCompatibility
+  targetCompatibility = javaCompatibility
 }
 
 sourceSets {

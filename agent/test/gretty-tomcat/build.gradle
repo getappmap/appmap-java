@@ -1,6 +1,16 @@
+buildscript {
+  ext {
+    if (GradleVersion.current() >= GradleVersion.version('9.0')) {
+      grettyVersion = '5.0.1'
+    } else {
+      grettyVersion = '4.1.6'
+    }
+  }
+}
+
 plugins {
   id 'war'
-  id 'org.gretty' version '4.1.6'
+  id 'org.gretty' version "${grettyVersion}"
 }
 
 repositories {

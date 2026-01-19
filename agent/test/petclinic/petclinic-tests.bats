@@ -43,9 +43,11 @@ run_petclinic_test() {
   run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_testOwnerDetails.appmap.json
   assert_success
 
-  # Thread 1 is the test runner's main thread. Check to make sure that parent_id
-  # of the "return" event matches the id of the "call" event.
-  assert_json_eq '.events | map(select(.thread_id == 1)) | ((.[0].event == "call" and .[1].event == "return") and (.[1].parent_id == .[0].id))' "true"
+  # Find the test runner's main thread (the one with testOwnerDetails method).
+  # Check to make sure that parent_id of the "return" event matches the id of the "call" event.
+  # Note: In Java 21 the main thread is typically thread 1, but in Java 25 it can be thread 3.
+  local main_thread_id=$(jq -r '[.events[] | select(.method_id == "testOwnerDetails")][0].thread_id' ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_testOwnerDetails.appmap.json)
+  assert_json_eq ".events | map(select(.thread_id == ${main_thread_id})) | ((.[0].event == \"call\" and .[1].event == \"return\") and (.[1].parent_id == .[0].id))" "true"
 }
 
 @test "extra properties in appmap.yml are ignored when config is loaded" {
