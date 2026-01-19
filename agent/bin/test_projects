@@ -87,7 +87,23 @@ else
   install_petclinic "land-of-apps/spring-petclinic" old-java-support
 fi
 
-patch -N -p1 -d build/fixtures/spring-petclinic < test/petclinic/pom.patch
+# Select the appropriate patch file based on Java version
+if is_java 25; then
+  PATCH_FILE="test/petclinic/pom-java25.patch"
+else
+  PATCH_FILE="test/petclinic/pom.patch"
+fi
+
+# Apply patch, but only ignore if already applied (not other failures)
+if ! patch -N -p1 -d build/fixtures/spring-petclinic < "$PATCH_FILE" 2>&1 | tee /tmp/patch_output.txt; then
+  if grep -q "Reversed (or previously applied) patch detected" /tmp/patch_output.txt; then
+    echo "Patch already applied, continuing..."
+  else
+    echo "ERROR: Patch failed to apply!"
+    cat /tmp/patch_output.txt
+    exit 1
+  fi
+fi
 
 
 install_scala_test_app

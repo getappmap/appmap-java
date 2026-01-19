@@ -6,6 +6,7 @@ init_plugin() {
 
 setup_file() {
   is_java 17 || skip "needs Java 17"
+  is_java 25 && skip "incompatible with Java 25"
 
   export AGENT_JAR="$(find_agent_jar)"
 

@@ -1,16 +1,27 @@
+buildscript {
+	ext {
+		if (JavaVersion.current() >= JavaVersion.VERSION_25) {
+			springBootVersion = '3.1.4'
+			javaVersion = JavaVersion.VERSION_17
+		} else {
+			springBootVersion = '2.7.0'
+			javaVersion = JavaVersion.VERSION_1_8
+		}
+	}
+}
+
 plugins {
-		id 'org.springframework.boot' version '2.7.0'
-		id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+		id 'org.springframework.boot' version "${springBootVersion}"
+		id 'io.spring.dependency-management' version '1.1.7'
 		id 'java'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
 
-// suppress warnings about source compatibility
-tasks.withType(JavaCompile) {
-	options.compilerArgs << '-Xlint:-options'
+java {
+	sourceCompatibility = javaVersion
+	targetCompatibility = javaVersion
 }
 
 repositories {
@@ -22,9 +33,25 @@ dependencies {
 	runtimeOnly 'com.h2database:h2'
 	runtimeOnly 'com.oracle.database.jdbc:ojdbc8:21.9.0.0'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 def appmapJar = "$System.env.AGENT_JAR"
+
+// Spring boot 3.x uses Jakarta EE namespaces
+task transformSources(type: Copy) {
+	from 'src/main/java'
+	into "$buildDir/generated-sources/transformed"
+
+	if (springBootVersion.startsWith("3.")) {
+		filter { line ->
+			line.replaceAll('javax.persistence', 'jakarta.persistence')
+		}
+	}
+}
+
+sourceSets.main.java.srcDirs = [transformSources.destinationDir]
+compileJava.dependsOn transformSources
 
 test {
 	useJUnitPlatform()

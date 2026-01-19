@@ -32,8 +32,11 @@ dependencies {
 }
 
 application {
-  // mainClass = 'http_client.HttpClientTest'
-  mainClassName = project.hasProperty("mainClass") ? project.getProperty("mainClass") : "NULL"
+  if (properties.containsKey("mainClass")) {
+    mainClass = project.hasProperty("mainClass") ? project.getProperty("mainClass") : "NULL"
+  } else {
+    mainClassName = project.hasProperty("mainClass") ? project.getProperty("mainClass") : "NULL"
+  }
   applicationDefaultJvmArgs = [
     System.env.JAVA_OUTPUT_OPTIONS,
     "-javaagent:${appmapJar}",
@@ -41,5 +44,4 @@ application {
     //"-Dappmap.debug=true",
     //"-Dappmap.debug.file=../../build/log/httpclient-appmap.log"
   ]
-
 }

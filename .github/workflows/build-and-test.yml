@@ -56,7 +56,7 @@ jobs:
           --health-retries 5
     strategy:
       matrix:
-        java: ['21', '17', '11', '8']
+        java: ['25', '21', '17', '11', '8']
     runs-on: ubuntu-latest
     name: Run test suite with Java ${{ matrix.java }}
     needs: build-and-check
