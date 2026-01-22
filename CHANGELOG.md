@@ -1,3 +1,21 @@
+# [1.29.0](https://github.com/getappmap/appmap-java/compare/v1.28.1...v1.29.0) (2026-01-22)
+
+
+### Bug Fixes
+
+* **agent:** Append runtime JAR to bootstrap class loader ([7f5ee4c](https://github.com/getappmap/appmap-java/commit/7f5ee4c0cd29568f96e3964ec2481b0b0262b4a9))
+* **agent:** Support running agent on bootstrap classpath ([c161259](https://github.com/getappmap/appmap-java/commit/c16125947fc4f462bf8352102111f4800050aa58))
+* Close underlying Writers in RecordingSession to prevent resource leaks ([4ac35f5](https://github.com/getappmap/appmap-java/commit/4ac35f5f7b50f14110de6e92cc0cac670d92e4aa))
+* Don't throw when loading logging config fails ([7782132](https://github.com/getappmap/appmap-java/commit/778213266d22629222225fb89ccfb928d48d0494))
+* Enforce UTF-8 for AppMap I/O and add encoding regression tests ([923aeef](https://github.com/getappmap/appmap-java/commit/923aeef8a6b742c6352c8623f01335827d6718c5))
+
+
+### Features
+
+* **agent:** Add option to exclude specific hook classes ([412f24d](https://github.com/getappmap/appmap-java/commit/412f24ddac47ea84bde77babc56e10c4cd487e02))
+* Enhanced JDBC hooks with PreparedStatement and batch support ([d901a68](https://github.com/getappmap/appmap-java/commit/d901a688e86a1bc3784dec36d86d416c147e8b44))
+* **logging:** Improve AppMap agent logging and config output ([fb1a4f9](https://github.com/getappmap/appmap-java/commit/fb1a4f93ba8f649f5c4254b3baf39474a3694d90))
+
 ## [1.28.1](https://github.com/getappmap/appmap-java/compare/v1.28.0...v1.28.1) (2025-11-11)
 
 
