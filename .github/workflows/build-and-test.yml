@@ -5,7 +5,8 @@ permissions:
   # The GITHUB_TOKEN is used to download AppMap service
   # binaries in addition to cloning the repository; by explicitly
   # setting permissions, we ensure it has no unnecessary access.
-  contents: read
+  # Note write is required to submit gradle dependencies.
+  contents: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
