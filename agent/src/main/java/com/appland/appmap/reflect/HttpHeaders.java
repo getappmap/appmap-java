@@ -32,13 +32,14 @@ public interface HttpHeaders {
 
   /**
    * Non-standard utility method. Retrieves all headers.
+   * Header names are normalized to lowercase since HTTP headers are case-insensitive.
    */
   default Map<String, String> getHeaders() {
     HashMap<String, String> headers = new HashMap<>();
 
     for (Enumeration<String> e = getHeaderNames(); e.hasMoreElements();) {
       String headerName = (String) e.nextElement();
-      headers.put(headerName, this.getHeader(headerName));
+      headers.put(headerName.toLowerCase(), this.getHeader(headerName));
     }
 
     return headers;
