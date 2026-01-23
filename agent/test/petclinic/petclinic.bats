@@ -211,7 +211,8 @@ setup() {
   assert_success
   stop_recording
 
-  assert_json_eq '.events[] | .http_server_response | .headers["Content-Type"]' "text/html;charset=UTF-8"
+  # HTTP headers are case-insensitive and are normalized to lowercase
+  assert_json_eq '.events[] | .http_server_response | .headers["content-type"]' "text/html;charset=UTF-8"
 }
 
 @test "recordings capture elapsed time" {
