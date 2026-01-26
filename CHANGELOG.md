@@ -1,3 +1,11 @@
+# [1.30.0](https://github.com/getappmap/appmap-java/compare/v1.29.0...v1.30.0) (2026-01-26)
+
+
+### Features
+
+* Add support for Java 25 ([3a78684](https://github.com/getappmap/appmap-java/commit/3a78684bf8602fde326bc3a2a89874948f72bddc))
+* Normalize HTTP headers to lower case ([597bfd5](https://github.com/getappmap/appmap-java/commit/597bfd5b80d96fc905d82a5c0a698a702bf18a86))
+
 # [1.29.0](https://github.com/getappmap/appmap-java/compare/v1.28.1...v1.29.0) (2026-01-22)
 
 
