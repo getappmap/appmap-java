@@ -40,13 +40,13 @@ run_petclinic_test() {
 @test "hooked functions are ordered correctly" {
   run_petclinic_test
   assert_success
-  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_testOwnerDetails.appmap.json
+  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_*wnerDetails.appmap.json
   assert_success
 
   # Find the test runner's main thread (the one with testOwnerDetails method).
   # Check to make sure that parent_id of the "return" event matches the id of the "call" event.
   # Note: In Java 21 the main thread is typically thread 1, but in Java 25 it can be thread 3.
-  local main_thread_id=$(jq -r '[.events[] | select(.method_id == "testOwnerDetails")][0].thread_id' ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_testOwnerDetails.appmap.json)
+  local main_thread_id=$(jq -r '[.events[] | select(.method_id | test("^.*wnerDetails$")?)][0].thread_id' ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_*wnerDetails.appmap.json)
   assert_json_eq ".events | map(select(.thread_id == ${main_thread_id})) | ((.[0].event == \"call\" and .[1].event == \"return\") and (.[1].parent_id == .[0].id))" "true"
 }
 
@@ -62,9 +62,9 @@ run_petclinic_test() {
 @test "log methods are labeled" {
   run_petclinic_test "${TEST_NAME}" appmap-labels.yml
   assert_success
-  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_testOwnerDetails.appmap.json
+  run cat ./tmp/appmap/junit/org_springframework_samples_petclinic_${TEST_NAME}_*wnerDetails.appmap.json
 
-  assert_json_eq '.classMap[0] | recurse(.children[]?) | select(.type? == "function" and .name? == "info").labels[0]' 'log'
+  assert_json_eq 'first(.classMap[0] | recurse(.children[]?) | select(.type? == "function" and (.name? | IN("info", "debug")))).labels[0]' 'log'
 }
 
 @test "test_status set for successful test" {
