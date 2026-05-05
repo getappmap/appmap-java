@@ -100,19 +100,19 @@ public class GitUtil implements AutoCloseable {
     try {
       List<RemoteConfig> remotes = git.remoteList().call();
       if (remotes.isEmpty()) {
-        return "";
+        return null;
       }
       Optional<RemoteConfig> originConfig = remotes.stream().filter(r -> r.getName().equals("origin")).findFirst();
       RemoteConfig remote = originConfig.orElseGet(() -> remotes.get(0));
       List<URIish> uris = remote.getURIs();
       if (uris.isEmpty()) {
-        return "";
+        return null;
       }
       return uris.get(0).toASCIIString();
     } catch (GitAPIException e) {
       logger.warn(e);
     }
-    return "";
+    return null;
   }
 
   public String getBranch() {
