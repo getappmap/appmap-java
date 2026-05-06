@@ -100,6 +100,15 @@ public class AppMapPackage {
     }
 
     /**
+     * @return {@code true} if this config came from an explicit {@code methods:} entry in
+     *         {@code appmap.yml} (i.e. the user named the method directly), rather than from a
+     *         generic include in exclude mode.
+     */
+    public boolean isExplicit() {
+      return this.name != null;
+    }
+
+    /**
      * Checks if the given fully qualified name matches this configuration.
      * Supports matching against both simple and fully qualified class names for
      * flexibility.
