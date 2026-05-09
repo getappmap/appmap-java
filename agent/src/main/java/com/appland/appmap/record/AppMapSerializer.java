@@ -185,8 +185,11 @@ public class AppMapSerializer implements AutoCloseable {
         this.json.writeKey("git");
         this.json.startObject();
         {
-          this.json.writeKey("repository");
-          this.json.writeValue(git.getRepositoryURL());
+          String repositoryURL = git.getRepositoryURL();
+          if (repositoryURL != null) {
+            this.json.writeKey("repository");
+            this.json.writeValue(repositoryURL);
+          }
           this.json.writeKey("branch");
           this.json.writeValue(git.getBranch());
           this.json.writeKey("commit");
