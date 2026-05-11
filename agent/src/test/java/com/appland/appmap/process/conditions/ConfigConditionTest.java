@@ -111,6 +111,29 @@ public class ConfigConditionTest {
   }
 
   @Test
+  void testLabeledGetterHasLabelsAnnotation(ClassBuilder classBuilder) throws Exception {
+    MethodBuilder methodBuilder = classBuilder.beginMethod();
+    methodBuilder.setName("getSomething")
+        .setBody("return Integer.valueOf(1);")
+        .setReturnType("java.lang.Integer")
+        .addAnnotation("com.appland.appmap.annotation.Labels")
+        .endMethod();
+    assertTrue(ConfigCondition.hasLabelsAnnotation(methodBuilder.getBehavior()));
+    assertTrue(ConfigCondition.isGetter(methodBuilder.getBehavior()));
+  }
+
+  @Test
+  void testUnlabeledGetterHasNoLabelsAnnotation(ClassBuilder classBuilder) throws Exception {
+    MethodBuilder methodBuilder = classBuilder.beginMethod();
+    methodBuilder.setName("getSomething")
+        .setBody("return Integer.valueOf(1);")
+        .setReturnType("java.lang.Integer")
+        .endMethod();
+    assertFalse(ConfigCondition.hasLabelsAnnotation(methodBuilder.getBehavior()));
+    assertTrue(ConfigCondition.isGetter(methodBuilder.getBehavior()));
+  }
+
+  @Test
   void testSetterMethod(ClassBuilder classBuilder) throws Exception {
     MethodBuilder methodBuilder = classBuilder.beginMethod();
     methodBuilder.setName("setSomething")
