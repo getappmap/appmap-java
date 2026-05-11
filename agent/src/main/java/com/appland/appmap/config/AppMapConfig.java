@@ -27,7 +27,6 @@ import org.tinylog.Logger;
 import org.tinylog.TaggedLogger;
 import org.tinylog.configuration.Configuration;
 
-import com.alibaba.fastjson.JSON;
 import com.appland.appmap.Agent;
 import com.appland.appmap.cli.CLI;
 import com.appland.appmap.util.FullyQualifiedName;
@@ -115,7 +114,7 @@ public class AppMapConfig {
    *
    * @return The AppMapConfig singleton
    */
-  static AppMapConfig load(Path configFile, boolean mustExist) {
+  public static AppMapConfig load(Path configFile, boolean mustExist) {
     InputStream inputStream = null;
 
     try {
