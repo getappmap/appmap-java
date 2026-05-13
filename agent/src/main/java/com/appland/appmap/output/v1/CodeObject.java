@@ -1,7 +1,5 @@
 package com.appland.appmap.output.v1;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -12,9 +10,9 @@ import java.util.regex.Matcher;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.appland.appmap.util.GitUtil;
+import com.appland.appmap.util.LabelUtil;
 import com.appland.appmap.util.Logger;
 
-import javassist.CtAppMapClassType;
 import javassist.CtBehavior;
 import javassist.CtClass;
 
@@ -187,25 +185,9 @@ public class CodeObject {
     final String file = CodeObject.getSourceFilePath(ctclass);
     final int lineno = behavior.getMethodInfo().getLineNumber(0);
 
-    try {
-      // Look for the Labels annotation by class name. If we introduce a
-      // compile-time dependency on Labels.class, it will get relocated by the
-      // shadowing process, and so won't match the annotation the user put on
-      // their method.
-      final String labelsClass = "com.appland.appmap.annotation.Labels";
-      if (behavior.hasAnnotation(labelsClass)) {
-        Object annotation = CtAppMapClassType.getAnnotation(behavior, labelsClass);
-        Method value = annotation.getClass().getMethod("value");
-        labels = (String[])(value.invoke(annotation));
-      }
-    } catch (ClassNotFoundException e) {
-      Logger.println(e);
-    } catch (IllegalAccessException e) {
-      Logger.println(e);
-    } catch (InvocationTargetException e) {
-      Logger.println(e);
-    } catch (NoSuchMethodException e) {
-      Logger.println(e);
+    String[] annotationLabels = LabelUtil.readAnnotationLabels(behavior);
+    if (annotationLabels != null) {
+      labels = annotationLabels;
     }
 
     this.setType("function")

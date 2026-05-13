@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
+import java.lang.management.ManagementFactory;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -14,6 +15,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -162,32 +164,7 @@ public class Agent {
   }
 
   private static void addAgentJars(String agentArgs, Instrumentation inst) {
-
-    Path agentJarPath = null;
-    try {
-      Class<Agent> agentClass = Agent.class;
-      // When the agent is loaded by the bootstrap class loader (e.g., via -Xbootclasspath/a:),
-      // agentClass.getClassLoader() returns null, leading to a NullPointerException. To handle
-      // this, we use Class.getResource() which correctly resolves resources even when the
-      // class is loaded by the bootstrap class loader. The leading '/' in the resource name
-      // is crucial for absolute path resolution when using Class.getResource().
-      URL resourceURL = agentClass.getResource("/" + agentClass.getName().replace('.', '/') + ".class");
-
-      // During testing of the agent itself, classes get loaded from a directory, and will have the
-      // protocol "file". The rest of the time (i.e. when it's actually deployed), they'll always
-      // come from a jar file. We must also check that resourceURL is not null before using it,
-      // as getResource() can return null if the resource is not found.
-      if (resourceURL != null && resourceURL.getProtocol().equals("jar")) {
-        String resourcePath = resourceURL.getPath();
-        URL jarURL = new URL(resourcePath.substring(0, resourcePath.indexOf('!')));
-        logger.debug("jarURL: {}", jarURL);
-        agentJarPath = Paths.get(jarURL.toURI());
-      }
-    } catch (URISyntaxException | MalformedURLException e) {
-      // Doesn't seem like these should ever happen....
-      logger.error(e, "Failed getting path to agent jar");
-      System.exit(1);
-    }
+    Path agentJarPath = locateAgentJar();
     if (agentJarPath != null) {
       try {
         JarFile agentJar = new JarFile(agentJarPath.toFile());
@@ -199,6 +176,83 @@ public class Agent {
         System.exit(1);
       }
     }
+  }
+
+  /**
+   * Locate the agent jar on disk so its bundled runtime jar can be extracted and added to the
+   * bootstrap class loader.
+   *
+   * <p>Prefer {@code Class.getResource} on this class because it works even when the agent has
+   * been loaded by the bootstrap class loader (where {@code Class.getClassLoader()} returns
+   * null). Fall back to parsing {@code -javaagent:} out of the JVM input arguments when
+   * {@code getResource} resolves to a {@code file:} URL — which happens when this class is
+   * also visible on a classpath directory, e.g. during integration tests where the agent jar
+   * is attached via {@code -javaagent:} but the build also puts {@code build/classes/java/main}
+   * on the test runtime classpath.
+   *
+   * @return the agent jar path, or {@code null} if no jar could be identified
+   */
+  private static Path locateAgentJar() {
+    try {
+      URL resourceURL = Agent.class.getResource(
+          "/" + Agent.class.getName().replace('.', '/') + ".class");
+      if (resourceURL != null && "jar".equals(resourceURL.getProtocol())) {
+        String resourcePath = resourceURL.getPath();
+        URL jarURL = new URL(resourcePath.substring(0, resourcePath.indexOf('!')));
+        logger.debug("jarURL: {}", jarURL);
+        return Paths.get(jarURL.toURI());
+      }
+    } catch (URISyntaxException | MalformedURLException e) {
+      logger.error(e, "Failed getting path to agent jar");
+      System.exit(1);
+    }
+
+    Path fromArgs = agentJarFromJvmArgs();
+    if (fromArgs != null) {
+      logger.debug("agent jar from -javaagent: {}", fromArgs);
+    }
+    return fromArgs;
+  }
+
+  /**
+   * Parse {@code -javaagent:<path>[=options]} out of the JVM input arguments and return the path
+   * if it points at an existing jar that declares {@code Premain-Class: com.appland.appmap.Agent}.
+   *
+   * @return the agent jar path or {@code null} if no matching {@code -javaagent} arg is present
+   */
+  private static Path agentJarFromJvmArgs() {
+    final String prefix = "-javaagent:";
+    List<String> jvmArgs;
+    try {
+      jvmArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
+    } catch (SecurityException e) {
+      logger.warn(e, "Unable to read JVM input arguments");
+      return null;
+    }
+    for (String arg : jvmArgs) {
+      if (!arg.startsWith(prefix)) {
+        continue;
+      }
+      String spec = arg.substring(prefix.length());
+      int eq = spec.indexOf('=');
+      String pathPart = eq < 0 ? spec : spec.substring(0, eq);
+      Path candidate = Paths.get(pathPart);
+      if (!Files.isRegularFile(candidate)) {
+        continue;
+      }
+      try (JarFile jf = new JarFile(candidate.toFile())) {
+        if (jf.getManifest() == null) {
+          continue;
+        }
+        String premain = jf.getManifest().getMainAttributes().getValue("Premain-Class");
+        if (Agent.class.getName().equals(premain)) {
+          return candidate.toAbsolutePath();
+        }
+      } catch (IOException e) {
+        logger.debug(e, "Skipping unreadable -javaagent jar {}", candidate);
+      }
+    }
+    return null;
   }
 
   private static void setupRuntime(Path agentJarPath, JarFile agentJar, Instrumentation inst)
