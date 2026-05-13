@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.RevisionSyntaxException;
@@ -60,7 +62,8 @@ public class GitUtil implements AutoCloseable {
       FileRepositoryBuilder builder = new FileRepositoryBuilder()
           .readEnvironment();
 
-        builder.findGitDir();
+      Path fsBase = AppMapConfig.get().configFile.toAbsolutePath().getParent();
+      builder.findGitDir(fsBase.toFile());
         if (builder.getGitDir() == null) {
           logger.debug("Working directory {}, not in a git repo", () -> Paths.get("").toAbsolutePath());
           return null;
@@ -73,7 +76,6 @@ public class GitUtil implements AutoCloseable {
         return null;
       }
 
-      Path fsBase = AppMapConfig.get().configFile.toAbsolutePath().getParent();
       ObjectId tree = repository.resolve(Constants.HEAD + "^{tree}");
       if (tree == null) {
         logger.warn("Couldn't resolve HEAD to a tree in {}, source paths may be incorrect", fsBase);
@@ -96,7 +98,7 @@ public class GitUtil implements AutoCloseable {
     return git.getRepository();
   }
 
-  public String getRepositoryURL() {
+  public @Nullable String getRepositoryURL() {
     try {
       List<RemoteConfig> remotes = git.remoteList().call();
       if (remotes.isEmpty()) {

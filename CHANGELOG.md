@@ -1,3 +1,10 @@
+## [1.30.1](https://github.com/getappmap/appmap-java/compare/v1.30.0...v1.30.1) (2026-05-11)
+
+
+### Bug Fixes
+
+* Don't crash when running in git repositories without remotes ([48723a8](https://github.com/getappmap/appmap-java/commit/48723a8695cebf66a5e1d1704ed7fa7ba8341b25))
+
 # [1.30.0](https://github.com/getappmap/appmap-java/compare/v1.29.0...v1.30.0) (2026-01-26)
 
 

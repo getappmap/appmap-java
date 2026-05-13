@@ -245,11 +245,12 @@ start_petclinic() {
   AGENT_JAR="$(find_agent_jar)"
 
   local cfg="$WD/test/petclinic/appmap.yml"
+  cp "$cfg" "${fixture_dir}/appmap.yml"
   local out="${fixture_dir}/tmp/appmap"
   pushd build/fixtures/spring-petclinic >/dev/null
   ./mvnw ${MAVEN_PROFILE} ${BATS_VERSION+--quiet} -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true \
     -Dspring-boot.run.agents=$AGENT_JAR \
-    -Dspring-boot.run.jvmArguments="-Dappmap.config.file='${cfg}' -Dappmap.output.directory='${out}' $jvmargs" \
+    -Dspring-boot.run.jvmArguments="-Dappmap.config.file='${fixture_dir}/appmap.yml' -Dappmap.output.directory='${out}' $jvmargs" \
     spring-boot:run \
     &>$LOG  3>&- &
   export JVM_MAIN_CLASS=PetClinicApplication
