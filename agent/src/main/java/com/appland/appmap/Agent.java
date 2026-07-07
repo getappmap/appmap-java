@@ -72,7 +72,16 @@ public class Agent {
     logger.info("Agent version {}, current time mills: {}",
             implementationVersion, start);
     logger.info("config: {}", AppMapConfig.get());
-    logger.debug("System properties: {}", System.getProperties());
+    // Only log AppMap's own system properties, never the full set: arbitrary
+    // properties (e.g. -Dpassword=... on the command line) must never end up
+    // in the log file.
+    logger.debug("System properties: {}", () -> {
+      java.util.Properties appmapProperties = new java.util.Properties();
+      System.getProperties().stringPropertyNames().stream()
+          .filter(name -> name.startsWith("appmap."))
+          .forEach(name -> appmapProperties.setProperty(name, System.getProperty(name)));
+      return appmapProperties;
+    });
 
     if (Agent.class.getClassLoader() == null) {
       logger.warn("AppMap agent is running on the bootstrap classpath. This is not a recommended configuration and should only be used for troubleshooting. Git integration will be disabled.");
