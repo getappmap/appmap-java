@@ -43,6 +43,18 @@ public class Agent {
   public static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
   /**
+   * Returns only the {@code appmap.*} system properties from {@code props}, so that arbitrary
+   * properties (e.g. secrets passed via {@code -Dpassword=...}) never end up in the log file.
+   */
+  static java.util.Properties filterAppMapProperties(java.util.Properties props) {
+    java.util.Properties appmapProperties = new java.util.Properties();
+    props.stringPropertyNames().stream()
+        .filter(name -> name.startsWith("appmap."))
+        .forEach(name -> appmapProperties.setProperty(name, props.getProperty(name)));
+    return appmapProperties;
+  }
+
+  /**
    * premain is the entry point for the AppMap Java agent.
    *
    * @param agentArgs agent options
@@ -75,13 +87,7 @@ public class Agent {
     // Only log AppMap's own system properties, never the full set: arbitrary
     // properties (e.g. -Dpassword=... on the command line) must never end up
     // in the log file.
-    logger.debug("System properties: {}", () -> {
-      java.util.Properties appmapProperties = new java.util.Properties();
-      System.getProperties().stringPropertyNames().stream()
-          .filter(name -> name.startsWith("appmap."))
-          .forEach(name -> appmapProperties.setProperty(name, System.getProperty(name)));
-      return appmapProperties;
-    });
+    logger.debug("System properties: {}", () -> filterAppMapProperties(System.getProperties()));
 
     if (Agent.class.getClassLoader() == null) {
       logger.warn("AppMap agent is running on the bootstrap classpath. This is not a recommended configuration and should only be used for troubleshooting. Git integration will be disabled.");
