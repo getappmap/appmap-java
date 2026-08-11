@@ -11,6 +11,7 @@ import com.appland.appmap.transform.annotations.AnnotationUtil.AnnotatedBehavior
 import com.appland.appmap.transform.annotations.AppMapAppMethod;
 import com.appland.appmap.util.AppMapBehavior;
 import com.appland.appmap.util.FullyQualifiedName;
+import com.appland.appmap.util.LabelUtil;
 import com.appland.appmap.util.Logger;
 
 import javassist.CtBehavior;
@@ -57,7 +58,7 @@ public class ConfigCondition implements Condition {
       }
     }
 
-    if (!AppMapBehavior.isRecordable(behavior) || ignoreMethod(behavior)) {
+    if (!AppMapBehavior.isRecordable(behavior)) {
       return false;
     }
 
@@ -67,12 +68,31 @@ public class ConfigCondition implements Condition {
     }
 
     final AppMapPackage.LabelConfig ls = AppMapConfig.get().includes(new FullyQualifiedName(behavior));
-    if (ls != null) {
-      matchResult.put("labels", ls.getLabels());
-      return true;
+    if (ls == null) {
+      return false;
     }
 
-    return false;
+    // Explicit opt-ins override the trivial-method filter:
+    //  - @Labels annotation on the method
+    //  - method named directly under "methods:" in appmap.yml
+    //  - labels attached to the method via appmap.yml
+    if (!isExplicitlyLabeled(behavior, ls) && ignoreMethod(behavior)) {
+      return false;
+    }
+
+    matchResult.put("labels", ls.getLabels());
+    return true;
+  }
+
+  private static boolean isExplicitlyLabeled(CtBehavior behavior, AppMapPackage.LabelConfig ls) {
+    if (LabelUtil.hasLabelAnnotation(behavior)) {
+      return true;
+    }
+    if (ls.isExplicit()) {
+      return true;
+    }
+    String[] configLabels = ls.getLabels();
+    return configLabels != null && configLabels.length > 0;
   }
 
   private static final Pattern SETTER_PATTERN = Pattern.compile("^set[A-Z].*");

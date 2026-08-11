@@ -15,6 +15,7 @@ import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.Descriptor;
+import javassist.bytecode.LineNumberAttributeTestHelper;
 import javassist.bytecode.LocalVariableAttribute;
 import javassist.bytecode.annotation.Annotation;
 
@@ -30,6 +31,7 @@ public class MethodBuilder {
   private Integer modifiers = Modifier.PUBLIC;
   private List<ParameterBuilder> parameters = new ArrayList<ParameterBuilder>();
   private List<AnnotationBuilder> annotations = new ArrayList<AnnotationBuilder>();
+  private boolean withLineNumber = true;
   private CtMethod behavior;
 
   public CtMethod getBehavior() {
@@ -249,6 +251,9 @@ public class MethodBuilder {
 
     codeAttribute.getAttributes().add(locals);
 
+    if (withLineNumber) {
+      codeAttribute.getAttributes().add(LineNumberAttributeTestHelper.singleEntry(constPool, 1));
+    }
 
     final AnnotationsAttribute annotationAttribute =
           new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);

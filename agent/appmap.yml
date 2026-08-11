@@ -1,5 +1,9 @@
 name: appmap-java
 packages:
+- path: com.appland.appmap.test.fixture.labels
+  methods:
+  - class: LabelFixture
+    name: getNamedInConfig
 - path: com.appland.appmap.test.fixture
   exclude:
   - com.appland.appmap.test.util.UnhandledExceptionCollection

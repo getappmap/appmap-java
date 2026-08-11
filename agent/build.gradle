@@ -82,6 +82,12 @@ dependencies {
   testImplementation 'com.github.marschall:memoryfilesystem:2.6.1'
 
   testImplementation 'org.apache.maven:maven-model:3.9.5'
+
+  // Test-only dependency on the @Labels / @NoAppMap annotations so that
+  // integration tests can apply them to fixture classes. Production code
+  // refers to these annotations by name to avoid the shadow relocation,
+  // so this stays out of the agent jar.
+  testImplementation project(':annotation')
 }
 
 compileJava {
@@ -146,6 +152,11 @@ task integrationTest(type: Test) {
   description = 'Runs integration tests'
   group = 'verification'
 
+  // Gradle 9 no longer infers these from the test sourceSet for custom Test
+  // tasks; without them the task reports NO-SOURCE and silently passes.
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+  useJUnitPlatform()
   include 'com/appland/appmap/integration/**'
 
   dependsOn shadowJar
