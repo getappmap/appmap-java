@@ -1,0 +1,3 @@
+name: mockito
+packages:
+- path: com.example.mockito

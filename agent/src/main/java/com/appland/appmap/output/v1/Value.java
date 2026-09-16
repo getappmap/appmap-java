@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.appland.appmap.config.Properties;
 import com.appland.appmap.util.Logger;
+import com.appland.appmap.util.MockDetector;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -117,6 +118,11 @@ public class Value {
     if (this.value != null) {
       if (Properties.DisableValue) {
         this.value = "< disabled >";
+      } else if (MockDetector.isMock(this.value)) {
+        // Calling toString() on a mock is an interaction, and it consumes the
+        // mocking framework's pending thread-local state. That breaks the
+        // user's stubbing, so record a placeholder instead.
+        this.value = MockDetector.MOCK_VALUE;
       } else {
         try {
           this.value = this.value.toString();
