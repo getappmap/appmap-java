@@ -1,0 +1,53 @@
+buildscript {
+  ext {
+    // JDK 25 no longer compiles for a Java 8 target.
+    if (JavaVersion.current() >= JavaVersion.VERSION_25) {
+      javaVersion = JavaVersion.VERSION_17
+    } else {
+      javaVersion = JavaVersion.VERSION_1_8
+    }
+  }
+}
+
+plugins {
+  id 'java'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+  sourceCompatibility = javaVersion
+  targetCompatibility = javaVersion
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  // 4.11 is the last driver line that accepts the wire protocol version
+  // mongo-java-server 1.43 speaks. The hook itself works with 3.x, 4.x and 5.x.
+  implementation 'org.mongodb:mongodb-driver-sync:4.11.5'
+  // An in-process MongoDB server, so the test needs no external service.
+  // 1.43.0 is the last release that runs on Java 8.
+  testImplementation 'de.bwaldvogel:mongo-java-server:1.43.0'
+  testImplementation platform('org.junit:junit-bom:5.8.2')
+  testImplementation 'org.junit.jupiter:junit-jupiter'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+def appmapJar = "$System.env.AGENT_JAR"
+
+test {
+  useJUnitPlatform()
+  if (System.env.AGENT_JAR) {
+    inputs.file(System.env.AGENT_JAR)
+  }
+  jvmArgs += [
+    "-javaagent:${appmapJar}",
+    "-Dappmap.config.file=appmap.yml",
+    "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}",
+    // "-Dappmap.debug=true",
+  ]
+}
