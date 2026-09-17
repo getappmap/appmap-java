@@ -60,8 +60,8 @@ public class MockDetector {
 
   /**
    * Mockito's mock-detection API, or null if it can't be reached for a given
-   * class. Cached per class, so applications with no mocking framework on the
-   * class path pay one {@link ClassValue} read and nothing else.
+   * class. Cached per class: for each distinct recorded type, Mockito resolution
+   * is attempted once and the result (including "unavailable") is reused.
    */
   private static final ClassValue<Method[]> MOCKITO = new ClassValue<Method[]>() {
     @Override
