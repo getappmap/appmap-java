@@ -25,10 +25,14 @@ repositories {
   mavenCentral()
 }
 
+// 4.11 is the last driver line that accepts the wire protocol version
+// mongo-java-server 1.43 speaks. The hook itself works with 3.x, 4.x and 5.x;
+// to run the tests against another driver and a real server, use
+//   MONGODB_URI=mongodb://localhost:27017 ../gradlew test -PmongoDriverVersion=5.6.1
+def mongoDriverVersion = project.findProperty('mongoDriverVersion') ?: '4.11.5'
+
 dependencies {
-  // 4.11 is the last driver line that accepts the wire protocol version
-  // mongo-java-server 1.43 speaks. The hook itself works with 3.x, 4.x and 5.x.
-  implementation 'org.mongodb:mongodb-driver-sync:4.11.5'
+  implementation "org.mongodb:mongodb-driver-sync:${mongoDriverVersion}"
   // An in-process MongoDB server, so the test needs no external service.
   // 1.43.0 is the last release that runs on Java 8.
   testImplementation 'de.bwaldvogel:mongo-java-server:1.43.0'

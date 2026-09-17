@@ -3,6 +3,7 @@ package com.example.mongo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCommandException;
 import com.mongodb.MongoWriteException;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -43,10 +45,11 @@ import de.bwaldvogel.mongo.MongoServer;
 import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 
 /**
- * Exercises the driver's MongoCollection API against an in-process server.
- * The bats test checks the AppMaps these tests produce. mongo-java-server does
- * not support sessions, so the ClientSession overloads are covered by the
- * agent's unit tests instead.
+ * Exercises the driver's MongoCollection API. By default the tests run against
+ * mongo-java-server, an in-process server, so CI needs no service. Set
+ * MONGODB_URI to run them against a real MongoDB instead; the session test only
+ * runs then, because mongo-java-server does not support sessions. The bats test
+ * checks the AppMaps these tests produce.
  */
 @Execution(ExecutionMode.SAME_THREAD)
 public class MongoCollectionTests {
@@ -55,8 +58,14 @@ public class MongoCollectionTests {
   private MongoDatabase db;
   private MongoCollection<Document> people;
 
+  private static final String EXTERNAL_URI = System.getenv("MONGODB_URI");
+
   @BeforeAll
   public static void startServer() {
+    if (EXTERNAL_URI != null && !EXTERNAL_URI.isEmpty()) {
+      client = MongoClients.create(EXTERNAL_URI);
+      return;
+    }
     server = new MongoServer(new MemoryBackend());
     InetSocketAddress address = server.bind();
     client = MongoClients.create("mongodb://" + address.getHostString() + ":" + address.getPort());
@@ -65,7 +74,9 @@ public class MongoCollectionTests {
   @AfterAll
   public static void stopServer() {
     client.close();
-    server.shutdown();
+    if (server != null) {
+      server.shutdown();
+    }
   }
 
   @BeforeEach
@@ -159,6 +170,19 @@ public class MongoCollectionTests {
     Person grace = persons.find(Filters.eq("name", "grace")).first();
     assertEquals(35, grace.getAge());
     assertEquals(3, persons.countDocuments());
+  }
+
+  @Test
+  public void sessions() {
+    assumeTrue(server == null, "mongo-java-server does not support sessions");
+    // A session is recorded as a parameter and left out of the statement.
+    try (ClientSession session = client.startSession()) {
+      people.insertOne(session, new Document("name", "judy").append("age", 38));
+      people.updateOne(session, Filters.eq("name", "judy"), Updates.set("age", 39));
+      assertEquals(1, people.countDocuments(session));
+      Document judy = people.find(session, Filters.eq("name", "judy")).first();
+      assertEquals(39, judy.getInteger("age"));
+    }
   }
 
   @Test
