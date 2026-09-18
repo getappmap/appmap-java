@@ -1,3 +1,11 @@
+## [1.30.2](https://github.com/getappmap/appmap-java/compare/v1.30.1...v1.30.2) (2026-09-18)
+
+
+### Bug Fixes
+
+* don't call methods on mock objects while recording ([#329](https://github.com/getappmap/appmap-java/issues/329)) ([4f09699](https://github.com/getappmap/appmap-java/commit/4f0969972e8645706a41d127efccd10bc7ce9c69))
+* don't log full JVM system properties at debug level ([#328](https://github.com/getappmap/appmap-java/issues/328)) ([8b59cf9](https://github.com/getappmap/appmap-java/commit/8b59cf934ef658ed143f6b04b5070e0bc776d4a5))
+
 ## [1.30.1](https://github.com/getappmap/appmap-java/compare/v1.30.0...v1.30.1) (2026-05-11)
 
 
