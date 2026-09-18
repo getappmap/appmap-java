@@ -1,0 +1,65 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
+plugins {
+  id 'java'
+}
+
+repositories {
+  mavenCentral()
+}
+
+def buildAppmapJar = "$System.env.AGENT_JAR"
+def buildAnnotationJar = "$System.env.ANNOTATION_JAR"
+
+def agentJar = findProperty("agentJar") ?: buildAppmapJar
+def annotationJar = findProperty("annotationJar") ?: buildAnnotationJar
+
+// Mockito 5 requires Java 11. On Java 8 stay on 4.x, where the default mock
+// maker is the subclass one rather than the inline one.
+//
+// Don't go below 5.19 on the Mockito 5.x line: the Byte Buddy bundled with
+// earlier releases rejects Java 25 class files ("Java 25 (69) is not supported
+// by the current version of Byte Buddy"), which the inline mock maker hits as
+// soon as it mocks anything.
+def jdkVersion = System.getProperty('java.version').split('\\.')[0] as Integer
+def mockitoVersion = findProperty('mockitoVersion') ?: (jdkVersion <= 8 ? '4.11.0' : '5.19.0')
+
+dependencies {
+  testImplementation 'junit:junit:4.13.2'
+  testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+  testImplementation files(annotationJar)
+}
+
+def commonTestConfig = {
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+
+  testLogging {
+    events TestLogEvent.STANDARD_OUT
+    exceptionFormat = 'full'
+  }
+}
+
+// Control task: the same tests with no agent attached. These tests have to
+// pass without AppMap, otherwise a failure under AppMap proves nothing.
+tasks.register('test_noagent', Test) {
+  description = 'Runs the Mockito tests with no AppMap agent (control)'
+  group = 'verification'
+
+  configure commonTestConfig
+}
+
+tasks.register('test_appmap', Test) {
+  description = 'Runs the Mockito tests under the AppMap agent'
+  group = 'verification'
+
+  configure commonTestConfig
+
+  systemProperty 'appmap.config.file', "$projectDir/appmap.yml"
+
+  jvmArgs += [
+      System.env.JAVA_OUTPUT_OPTIONS,
+      "-javaagent:${agentJar}",
+      "-Djava.util.logging.config.file=${System.env.JUL_CONFIG}"
+    ]
+}
