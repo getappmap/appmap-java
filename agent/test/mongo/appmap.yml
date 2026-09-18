@@ -1,0 +1,3 @@
+name: mongo
+packages:
+- path: com.example.mongo
