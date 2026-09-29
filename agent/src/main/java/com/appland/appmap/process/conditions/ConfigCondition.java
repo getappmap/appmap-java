@@ -48,6 +48,12 @@ public class ConfigCondition implements Condition {
     return matched;
   }
 
+  private static final String LABELS_CLASS = "com.appland.appmap.annotation.Labels";
+
+  static boolean hasLabelsAnnotation(CtBehavior behavior) {
+    return behavior.hasAnnotation(LABELS_CLASS);
+  }
+
   private boolean doMatch(CtBehavior behavior, Map<String, Object> matchResult) {
     CtClass declaringClass = behavior.getDeclaringClass();
     String declaringClassName = declaringClass.getName();
@@ -57,7 +63,7 @@ public class ConfigCondition implements Condition {
       }
     }
 
-    if (!AppMapBehavior.isRecordable(behavior) || ignoreMethod(behavior)) {
+    if (!AppMapBehavior.isRecordable(behavior) || (!hasLabelsAnnotation(behavior) && ignoreMethod(behavior))) {
       return false;
     }
 
