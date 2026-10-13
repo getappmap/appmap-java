@@ -1,10 +1,10 @@
 package com.appland.appmap.util;
 
-import static org.eclipse.jgit.lib.Constants.HEAD;
 import static org.eclipse.jgit.util.FileUtils.relativizeGitPath;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,7 +17,6 @@ import javax.annotation.Nullable;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
@@ -34,9 +33,22 @@ import com.appland.appmap.config.Properties;
 public class GitUtil implements AutoCloseable {
   private static final TaggedLogger logger = AppMapConfig.getLogger(null);
 
+  // Files that identify, and describe, a linked worktree (i.e. one created by
+  // `git worktree add`). They live in the worktree's git directory, which is
+  // .git/worktrees/<id> in the main repository.
+  private static final String COMMONDIR_FILE = "commondir";
+  private static final String GITDIR_FILE = "gitdir";
+  private static final String INDEX_FILE = "index";
+
+  // The prefix of a symbolic ref, e.g. the contents of HEAD when it's not
+  // detached.
+  private static final String SYMREF_PREFIX = "ref: ";
+
   private Git git;
   private Path fsBase;
   private ObjectId tree; // HEAD^{tree}
+  private final String branch;
+  private final String commit;
 
   // Map from the Git path of a source root (that starts with
   // src/{main,test}/java) to its real location in the filesystem.
@@ -47,10 +59,12 @@ public class GitUtil implements AutoCloseable {
   // failed.
   private static Map<String, Optional<String>> sourcePaths = new HashMap<>();
 
-  private GitUtil(Git git, ObjectId tree, Path fsBase) {
+  private GitUtil(Git git, ObjectId tree, Path fsBase, String branch, String commit) {
     this.git = git;
     this.tree = tree;
     this.fsBase = fsBase;
+    this.branch = branch;
+    this.commit = commit;
   }
 
   public static GitUtil open() throws IOException {
@@ -69,28 +83,137 @@ public class GitUtil implements AutoCloseable {
           return null;
         }
 
+      String worktreeHead = setupLinkedWorktree(builder);
+
       Repository repository = builder.build();
-      if (repository.isBare()) {
-        logger.warn(
-            "Current git repository is an unsupported configuration. No git metadata will be collected, and source paths may be incorrect.");
-        return null;
-      }
+      boolean opened = false;
+      try {
+        if (repository.isBare()) {
+          logger.warn(
+              "Current git repository is an unsupported configuration. No git metadata will be collected, and source paths may be incorrect.");
+          return null;
+        }
 
-      ObjectId tree = repository.resolve(Constants.HEAD + "^{tree}");
-      if (tree == null) {
-        logger.warn("Couldn't resolve HEAD to a tree in {}, source paths may be incorrect", fsBase);
-        return null;
-      }
+        String branch;
+        ObjectId commit;
+        if (worktreeHead != null) {
+          // In a linked worktree, HEAD belongs to the worktree, not to the
+          // repository JGit opened for us.
+          String gitRef = headRef(worktreeHead);
+          branch = Repository.shortenRefName(gitRef);
+          commit = repository.resolve(gitRef);
+        } else {
+          branch = repository.getBranch();
+          commit = repository.resolve(Constants.HEAD);
+        }
 
-      return new GitUtil(new Git(repository), tree, fsBase);
+        if (commit == null) {
+          logger.warn("Couldn't resolve HEAD in {}. No git metadata will be collected, and source paths may be incorrect.",
+              fsBase);
+          return null;
+        }
+
+        ObjectId tree = repository.resolve(commit.name() + "^{tree}");
+        if (tree == null) {
+          logger.warn("Couldn't resolve HEAD to a tree in {}, source paths may be incorrect", fsBase);
+          return null;
+        }
+
+        GitUtil git = new GitUtil(new Git(repository), tree, fsBase, branch, commit.name());
+        opened = true;
+        return git;
+      } finally {
+        if (!opened) {
+          repository.close();
+        }
+      }
     } catch (IOException e) {
       logger.warn(e);
     }
     return null;
   }
 
+  /**
+   * If the git directory the builder found belongs to a linked worktree (i.e.
+   * one created by {@code git worktree add}), point the builder at the main
+   * repository's git directory, which holds the config, refs, and objects that
+   * all the worktrees share, and at the worktree's checkout.
+   * <p>
+   * JGit 5.13 (the last release that supports Java 8) doesn't know anything
+   * about linked worktrees. Left to itself, it sees a git directory that isn't
+   * named ".git" and has no config of its own, and concludes that the
+   * repository is bare.
+   *
+   * @param builder the builder, with its git directory already set
+   * @return the contents of the worktree's HEAD, or null if the git directory
+   * doesn't belong to a linked worktree
+   * @throws IOException if something goes wrong reading the worktree's
+   *                     administrative files
+   */
+  private static @Nullable String setupLinkedWorktree(FileRepositoryBuilder builder) throws IOException {
+    File fsWorktreeGitDir = builder.getGitDir();
+    String commonDir = readGitFile(fsWorktreeGitDir, COMMONDIR_FILE);
+    if (commonDir == null) {
+      return null;
+    }
+
+    // The gitdir file holds the location of the .git file in the worktree's
+    // checkout. git keeps it up to date as the worktree gets moved around, so
+    // it's a more reliable guide to the checkout than anything we could guess.
+    String fsDotGit = readGitFile(fsWorktreeGitDir, GITDIR_FILE);
+    String head = readGitFile(fsWorktreeGitDir, Constants.HEAD);
+    if (fsDotGit == null || head == null) {
+      logger.warn("{} doesn't look like a worktree's git directory. No git metadata will be collected, "
+          + "and source paths may be incorrect.", fsWorktreeGitDir);
+      return null;
+    }
+
+    File fsWorkTree = resolve(fsWorktreeGitDir, fsDotGit).getParentFile();
+    File fsCommonGitDir = resolve(fsWorktreeGitDir, commonDir).getCanonicalFile();
+    logger.debug("worktree {} of {}", fsWorkTree, fsCommonGitDir);
+
+    builder.setGitDir(fsCommonGitDir);
+    builder.setWorkTree(fsWorkTree);
+    builder.setIndexFile(new File(fsWorktreeGitDir, INDEX_FILE));
+
+    return head;
+  }
+
+  /**
+   * @param head the contents of a HEAD file
+   * @return the ref HEAD points to, or the commit it holds if it's detached
+   */
+  private static String headRef(String head) {
+    return head.startsWith(SYMREF_PREFIX)
+        ? head.substring(SYMREF_PREFIX.length()).trim()
+        : head;
+  }
+
+  /**
+   * Read a single-line file from a git directory.
+   *
+   * @return the contents of the file, with whitespace stripped, or null if it
+   * doesn't exist
+   */
+  private static @Nullable String readGitFile(File fsGitDir, String name) throws IOException {
+    Path fsPath = fsGitDir.toPath().resolve(name);
+    if (!Files.isRegularFile(fsPath)) {
+      return null;
+    }
+    return new String(Files.readAllBytes(fsPath), StandardCharsets.UTF_8).trim();
+  }
+
+  /**
+   * Resolve a path that git may have recorded as either absolute or relative.
+   */
+  private static File resolve(File fsBase, String path) {
+    File file = new File(path);
+    return file.isAbsolute() ? file : new File(fsBase, path);
+  }
+
   @Override
   public void close() {
+    git.getRepository().close();
     git.close();
   }
 
@@ -118,21 +241,11 @@ public class GitUtil implements AutoCloseable {
   }
 
   public String getBranch() {
-    try {
-      return getRepository().getBranch();
-    } catch (IOException e) {
-      logger.warn(e);
-    }
-    return "";
+    return branch;
   }
 
   public String getCommit() {
-    try {
-      return getRepository().resolve(HEAD).name();
-    } catch (RevisionSyntaxException | IOException e) {
-      logger.warn(e);
-    }
-    return "";
+    return commit;
   }
 
   // In the code below, the "fs" prefix indicates that the variable holds a
